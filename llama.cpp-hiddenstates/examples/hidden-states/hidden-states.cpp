@@ -93,6 +93,7 @@ struct hs_state {
 
     int pos_a = -1;
     int pos_c = -1;
+    int n_tokens = 0; // rows of the state pass, pos_c + 1
     bool want_a = true;
 
     int n_layer = 0;
@@ -105,18 +106,33 @@ struct hs_state {
     std::vector<float> hs_c;
     std::vector<float> hs_a;
 
-    bool got_c = false;
-    bool got_a = false;
+    // per-layer capture flags for the selected layers only
+    std::vector<uint8_t> cap_c;
+    std::vector<uint8_t> cap_a;
+    int n_cap_c = 0;
+    int n_cap_a = 0;
 
     bool dump_tensors = false;
 };
+
+static void reset_capture(hs_state & st) {
+    std::fill(st.cap_c.begin(), st.cap_c.end(), (uint8_t) 0);
+    std::fill(st.cap_a.begin(), st.cap_a.end(), (uint8_t) 0);
+    st.n_cap_c = 0;
+    st.n_cap_a = 0;
+}
 
 static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
     auto * st = (hs_state *) user_data;
 
     if (ask) {
         if (st->dump_tensors) {
-            LOG_INF("tensor: %s\n", t->name);
+            if (strncmp(t->name, "l_out-", 6) == 0) {
+                LOG_INF("tensor: %s shape=[%lld x %lld] type=%s\n", t->name,
+                        (long long) t->ne[0], (long long) t->ne[1], ggml_type_name(t->type));
+            } else {
+                LOG_INF("tensor: %s\n", t->name);
+            }
         }
         return st->enabled && strncmp(t->name, "l_out-", 6) == 0;
     }
@@ -149,12 +165,19 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
         LOG_ERR("%s : tensor '%s' has D=%lld, expected %d\n", __func__, t->name, (long long) D, st->n_embd);
         return true;
     }
+
+    // l_out has one row per token; some backends keep only the rows that produced
+    // logits, which are ordered as the logits were requested: A first, then C
+    int64_t r_c = st->pos_c;
+    int64_t r_a = st->pos_a;
     if (ntok <= st->pos_c) {
-        LOG_ERR("%s : tensor '%s' has %lld rows, need >= %d\n", __func__, t->name, (long long) ntok, st->pos_c + 1);
-        return true;
+        r_c = st->pos_a == st->pos_c ? 0 : 1;
+        r_a = 0;
     }
-    if (st->want_a && ntok <= st->pos_a) {
-        LOG_ERR("%s : tensor '%s' has %lld rows, need >= %d\n", __func__, t->name, (long long) ntok, st->pos_a + 1);
+    const int64_t r_need = st->want_a ? std::max(r_c, r_a) : r_c;
+    if (r_need >= ntok) {
+        LOG_ERR("%s : tensor '%s' has %lld rows, need row %lld\n", __func__, t->name,
+                (long long) ntok, (long long) r_need);
         return true;
     }
 
@@ -189,15 +212,17 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
 
     {
         float * dst = st->hs_c.data() + (size_t) row * D;
-        if (read_row(st->pos_c, dst)) {
-            st->got_c = true;
+        if (read_row((int) r_c, dst) && !st->cap_c[layer]) {
+            st->cap_c[layer] = 1;
+            st->n_cap_c++;
         }
     }
 
     if (st->want_a) {
         float * dst = st->hs_a.data() + (size_t) row * D;
-        if (read_row(st->pos_a, dst)) {
-            st->got_a = true;
+        if (read_row((int) r_a, dst) && !st->cap_a[layer]) {
+            st->cap_a[layer] = 1;
+            st->n_cap_a++;
         }
     }
 
@@ -552,6 +577,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     for (size_t i = 0; i < layers.size(); ++i) {
         st.layer_row[(size_t) layers[i]] = (int) i;
     }
+    st.cap_c.assign((size_t) st.n_layer, 0);
+    st.cap_a.assign((size_t) st.n_layer, 0);
 
     const int64_t L_sel = (int64_t) layers.size();
     const int64_t D     = st.n_embd;
@@ -559,6 +586,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     st.hs_c.assign((size_t) L_sel * D, 0.0f);
     st.hs_a.assign((size_t) L_sel * D, 0.0f);
     st.want_a = true;
+    reset_capture(st);
 
     common_chat_templates_ptr tmpls;
     if (!no_template) {
@@ -712,6 +740,9 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     int64_t n_run  = 0; // newly processed (for speed)
     int64_t n_trunc = 0;
     int64_t since_flush = 0;
+    int64_t n_gen_rows  = 0; // rows that went through generation
+    int64_t n_retok     = 0; // .. whose text re-tokenizes back to different ids
+    bool    logged_prompt = false;
 
     auto write_meta = [&](const json & j) {
         meta << j.dump(-1, ' ', false, json::error_handler_t::replace) << "\n";
@@ -725,8 +756,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         }
 
         st.enabled = false;
-        st.got_c   = false;
-        st.got_a   = false;
+        reset_capture(st);
 
         auto skip = [&](const std::string & reason) {
             json j;
@@ -738,6 +768,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             j["answer"]    = r.answer;
             j["generated"] = false;
             j["truncated"] = false;
+            j["logprobs"]  = nullptr;
+            j["entropies"] = nullptr;
             j["status"]    = "skipped";
             j["reason"]    = reason;
             merge_extra(j, r.extra);
@@ -769,6 +801,11 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             }
         }
 
+        if (!logged_prompt) {
+            logged_prompt = true;
+            LOG_INF("rendered prompt[0] (row %lld):\n%s\n", (long long) r.row, prompt_text.c_str());
+        }
+
         std::vector<llama_token> tok_q = common_tokenize(vocab, prompt_text, no_template ? add_bos : false, true);
         if (tok_q.empty()) {
             skip("prompt produced no tokens");
@@ -778,6 +815,9 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         std::string answer_text = r.answer;
         bool generated = false;
         bool truncated = false;
+        std::vector<llama_token> gen;
+        std::vector<float> logprobs;
+        std::vector<float> entropies;
 
         // 2. generation (only when the answer is missing)
         if (!r.has_answer && do_generate) {
@@ -789,7 +829,6 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             llama_memory_clear(mem, true);
             st.enabled = false;
 
-            std::vector<llama_token> gen;
             std::string stop_reason = "max_new_tokens";
 
             {
@@ -824,6 +863,25 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
                     gen.push_back(best);
 
+                    // baseline statistics of the plain softmax over the raw logits
+                    {
+                        const double best_logit = (double) best_v;
+                        double z = 0.0;
+                        for (int v = 0; v < n_vocab; ++v) {
+                            z += std::exp((double) logits[v] - best_logit);
+                        }
+                        const double log_z = best_logit + std::log(z);
+                        double h = 0.0;
+                        for (int v = 0; v < n_vocab; ++v) {
+                            const double p = std::exp((double) logits[v] - log_z);
+                            if (p > 0.0) {
+                                h -= p * ((double) logits[v] - log_z);
+                            }
+                        }
+                        logprobs.push_back((float) (best_logit - log_z));
+                        entropies.push_back((float) h);
+                    }
+
                     if ((int64_t) (tok_q.size() + gen.size()) >= max_len) {
                         stop_reason = "max_len";
                         break;
@@ -849,7 +907,19 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
         // 3. answer tokens (EOG tails stripped)
         std::vector<llama_token> tok_a;
-        if (!answer_text.empty()) {
+        if (generated) {
+            // ids produced by generation are used as-is for the state pass
+            tok_a = gen;
+            n_gen_rows++;
+
+            std::vector<llama_token> re = common_tokenize(vocab, answer_text, false, true);
+            while (!re.empty() && llama_vocab_is_eog(vocab, re.back())) {
+                re.pop_back();
+            }
+            if (re != gen) {
+                n_retok++;
+            }
+        } else if (!answer_text.empty()) {
             tok_a = common_tokenize(vocab, answer_text, false, true);
             while (!tok_a.empty() && llama_vocab_is_eog(vocab, tok_a.back())) {
                 tok_a.pop_back();
@@ -873,11 +943,11 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         // 4. state pass over "prompt + answer"
         llama_memory_clear(mem, true);
 
-        st.enabled = true;
-        st.pos_a   = pos_a;
-        st.pos_c   = pos_c;
-        st.got_c   = false;
-        st.got_a   = false;
+        st.enabled  = true;
+        st.pos_a    = pos_a;
+        st.pos_c    = pos_c;
+        st.n_tokens = n_tokens;
+        reset_capture(st);
 
         const int logits_a = pos_a;
         const int logits_c = pos_c;
@@ -890,7 +960,13 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
         st.enabled = false;
 
-        if (!st.got_c || !st.got_a || !check_finite(st.hs_c, "hs_c") || !check_finite(st.hs_a, "hs_a")) {
+        const int cap = st.want_a ? std::min(st.n_cap_c, st.n_cap_a) : st.n_cap_c;
+        if (cap != (int) L_sel) {
+            skip("incomplete capture: " + std::to_string(cap) + "/" + std::to_string(L_sel));
+            continue;
+        }
+
+        if (!check_finite(st.hs_c, "hs_c") || !check_finite(st.hs_a, "hs_a")) {
             skip("failed to capture hidden states");
             continue;
         }
@@ -911,6 +987,13 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             j["generated"] = generated;
             j["truncated"] = truncated;
             j["status"]    = "ok";
+            if (generated) {
+                j["logprobs"]  = logprobs;
+                j["entropies"] = entropies;
+            } else {
+                j["logprobs"]  = nullptr;
+                j["entropies"] = nullptr;
+            }
             merge_extra(j, r.extra);
             write_meta(j);
         }
@@ -952,6 +1035,10 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     LOG_INF("\n");
     LOG_INF("done: %lld/%lld  ok=%lld skipped=%lld truncated=%lld  in %.1f s (%.2f ex/s)\n",
             (long long) done, (long long) N, (long long) n_ok, (long long) n_skip, (long long) n_trunc, sec, sec > 0.0 ? (double) n_run / sec : 0.0);
+    if (n_gen_rows > 0) {
+        LOG_INF("retokenize mismatch: %lld/%lld (%.1f%%)\n", (long long) n_retok, (long long) n_gen_rows,
+                100.0 * (double) n_retok / (double) n_gen_rows);
+    }
     LOG_INF("wrote %s  shape=[%lld, %lld, %lld]\n", path_c.string().c_str(), (long long) N, (long long) L_sel, (long long) D);
     LOG_INF("wrote %s  shape=[%lld, %lld, %lld]\n", path_a.string().c_str(), (long long) N, (long long) L_sel, (long long) D);
     LOG_INF("wrote %s\n", (out_dir / "meta.jsonl").string().c_str());
@@ -1146,6 +1233,7 @@ int main(int argc, char ** argv) {
     st.n_embd    = llama_model_n_embd(model);
     st.pos_a     = pos_a;
     st.pos_c     = pos_c;
+    st.n_tokens  = n_tokens;
     st.want_a    = true;
     st.layer_row.assign((size_t) st.n_layer, -1);
     for (int i = 0; i < st.n_layer; ++i) {
@@ -1153,6 +1241,9 @@ int main(int argc, char ** argv) {
     }
     st.hs_c.assign((size_t) st.n_layer * st.n_embd, 0.0f);
     st.hs_a.assign((size_t) st.n_layer * st.n_embd, 0.0f);
+    st.cap_c.assign((size_t) st.n_layer, 0);
+    st.cap_a.assign((size_t) st.n_layer, 0);
+    reset_capture(st);
     st.enabled = true;
 
     LOG_INF("model: n_layer=%d n_embd=%d\n", st.n_layer, st.n_embd);
@@ -1182,15 +1273,13 @@ int main(int argc, char ** argv) {
 
     st.enabled = false;
 
-    if (!st.got_c) {
-        LOG_ERR("%s : failed to capture hidden states at position C (%d)\n", __func__, pos_c);
-        llama_free(ctx);
-        return 1;
-    }
-    if (st.want_a && !st.got_a) {
-        LOG_ERR("%s : failed to capture hidden states at position A (%d)\n", __func__, pos_a);
-        llama_free(ctx);
-        return 1;
+    {
+        const int cap = st.want_a ? std::min(st.n_cap_c, st.n_cap_a) : st.n_cap_c;
+        if (cap != st.n_layer) {
+            LOG_ERR("%s : incomplete capture: %d/%d\n", __func__, cap, st.n_layer);
+            llama_free(ctx);
+            return 1;
+        }
     }
 
     if (!check_finite(st.hs_c, "hs_c")) { llama_free(ctx); return 1; }

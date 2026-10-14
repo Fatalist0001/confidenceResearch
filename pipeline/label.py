@@ -9,10 +9,15 @@ import argparse
 import csv
 import json
 import random
+import re
+import string
 import sys
 from collections import defaultdict
 
 from normalize import normalize
+
+_FALLBACK_PUNCT_TABLE = str.maketrans("", "", string.punctuation)
+_FALLBACK_WHITESPACE_RE = re.compile(r"\s+")
 
 
 def as_bool(v):
@@ -23,22 +28,65 @@ def as_bool(v):
     return bool(v)
 
 
-def contains_phrase(ans_tokens, gold_norm):
-    """True if gold_norm appears in ans as a contiguous token sequence."""
-    if not gold_norm:
-        return False
-    gt = gold_norm.split()
-    gl = len(gt)
+def normalize_fallback(s):
+    """Lowercase, drop punctuation, collapse whitespace — but keep articles."""
+    if s is None:
+        return ""
+    s = s.lower()
+    s = s.translate(_FALLBACK_PUNCT_TABLE)
+    s = _FALLBACK_WHITESPACE_RE.sub(" ", s).strip()
+    return s
+
+
+def norm_with_fallback(s):
+    """normalize(s); if that is empty, fall back to normalize_fallback(s)."""
+    n = normalize(s)
+    if n:
+        return n
+    return normalize_fallback(s)
+
+
+def phrase_match(ans_tokens, gold_tokens):
+    """True if gold_tokens appears in ans as a contiguous token sequence."""
+    gl = len(gold_tokens)
     if gl == 0 or gl > len(ans_tokens):
         return False
     for i in range(len(ans_tokens) - gl + 1):
-        if ans_tokens[i:i + gl] == gt:
+        if ans_tokens[i:i + gl] == gold_tokens:
             return True
     return False
 
 
+def all_words_present(gold_tokens, ans_tokens):
+    """True if every gold token appears as a whole word in ans (order-free)."""
+    ans_set = set(ans_tokens)
+    return all(g in ans_set for g in gold_tokens)
+
+
+def strip_plural(token):
+    """Drop a trailing 's' from words of length >= 4 (simple plural normalization)."""
+    if len(token) >= 4 and token.endswith("s"):
+        return token[:-1]
+    return token
+
+
+def strip_plural_tokens(tokens):
+    return [strip_plural(t) for t in tokens]
+
+
+def relaxed_match(ans_tokens, gold_tokens):
+    """strict OR order-free word-subset (gold>=2) OR plural-normalized phrase match."""
+    if phrase_match(ans_tokens, gold_tokens):
+        return True
+    if len(gold_tokens) >= 2 and all_words_present(gold_tokens, ans_tokens):
+        return True
+    if phrase_match(strip_plural_tokens(ans_tokens), strip_plural_tokens(gold_tokens)):
+        return True
+    return False
+
+
 def label_row(row):
-    """Return (correct, n_answer_tokens). correct in {0, 1, None}."""
+    """Return (correct_strict, correct_relaxed, n_answer_tokens), each in {0, 1, None}."""
     status = row.get("status")
     generated = as_bool(row.get("generated", False))
     truncated = as_bool(row.get("truncated", False))
@@ -52,17 +100,26 @@ def label_row(row):
         n_answer_tokens = pos_c - pos_a
 
     if status != "ok" or not generated:
-        return None, n_answer_tokens
+        return None, None, n_answer_tokens
     if truncated:
-        return None, n_answer_tokens
-    ans_norm = normalize(answer)
+        return None, None, n_answer_tokens
+    ans_norm = norm_with_fallback(answer)
     if not ans_norm:
-        return None, n_answer_tokens
+        return None, None, n_answer_tokens
     ans_tokens = ans_norm.split()
+
+    strict = 0
+    relaxed = 0
     for g in gold:
-        if contains_phrase(ans_tokens, g):
-            return 1, n_answer_tokens
-    return 0, n_answer_tokens
+        g_norm = norm_with_fallback(g)
+        if not g_norm:
+            continue
+        g_tokens = g_norm.split()
+        if phrase_match(ans_tokens, g_tokens):
+            strict = 1
+        if relaxed_match(ans_tokens, g_tokens):
+            relaxed = 1
+    return strict, relaxed, n_answer_tokens
 
 
 def read_meta(path):
@@ -76,21 +133,24 @@ def read_meta(path):
 
 
 def compute_labels(rows):
-    """Return list of (row, correct, n_answer_tokens)."""
+    """Return list of (row, correct_strict, correct_relaxed, n_answer_tokens)."""
     return [(r, *label_row(r)) for r in rows]
 
 
 def write_labels_csv(labeled, out_path):
-    fields = ["id", "row", "split", "correct", "truncated", "n_answer_tokens", "answer", "gold_main"]
+    fields = ["id", "row", "split", "correct_strict", "correct_relaxed", "correct",
+              "truncated", "n_answer_tokens", "answer", "gold_main"]
     with open(out_path, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
-        for r, correct, nat in labeled:
+        for r, strict, relaxed, nat in labeled:
             w.writerow({
                 "id": r.get("id", ""),
                 "row": r.get("row", ""),
                 "split": r.get("split", ""),
-                "correct": "" if correct is None else correct,
+                "correct_strict": "" if strict is None else strict,
+                "correct_relaxed": "" if relaxed is None else relaxed,
+                "correct": "" if strict is None else strict,
                 "truncated": r.get("truncated", ""),
                 "n_answer_tokens": "" if nat is None else nat,
                 "answer": r.get("answer", ""),
@@ -100,20 +160,28 @@ def write_labels_csv(labeled, out_path):
 
 def report(labeled):
     by_split = defaultdict(int)
-    corr = defaultdict(lambda: [0, 0])
-    total_correct = 0
+    strict_corr = defaultdict(lambda: [0, 0])
+    relaxed_corr = defaultdict(lambda: [0, 0])
+    total_strict = 0
+    total_relaxed = 0
     total_labeled = 0
     total_null = 0
-    for r, correct, _nat in labeled:
+    n_diff = 0
+    for r, strict, relaxed, _nat in labeled:
         sp = r.get("split", "?")
         by_split[sp] += 1
-        if correct is None:
+        if strict is None:
             total_null += 1
         else:
             total_labeled += 1
-            total_correct += correct
-            corr[sp][0] += correct
-            corr[sp][1] += 1
+            total_strict += strict
+            total_relaxed += relaxed
+            strict_corr[sp][0] += strict
+            strict_corr[sp][1] += 1
+            relaxed_corr[sp][0] += relaxed
+            relaxed_corr[sp][1] += 1
+            if strict != relaxed:
+                n_diff += 1
 
     print("=== rows by split ===")
     for sp in sorted(by_split):
@@ -122,16 +190,20 @@ def report(labeled):
 
     print("=== correct ratio ===")
     if total_labeled:
-        overall = total_correct / total_labeled
-        print(f"  overall: {total_correct}/{total_labeled} = {overall:.3f}")
-        for sp in sorted(corr):
-            c, n = corr[sp]
-            print(f"  {sp}: {c}/{n} = {c / n:.3f}")
-        if overall < 0.10 or overall > 0.90:
-            print(f"WARNING: correct ratio {overall:.3f} outside 10-90%")
+        ov_s = total_strict / total_labeled
+        ov_r = total_relaxed / total_labeled
+        print(f"  overall strict : {total_strict}/{total_labeled} = {ov_s:.3f}")
+        print(f"  overall relaxed: {total_relaxed}/{total_labeled} = {ov_r:.3f}")
+        for sp in sorted(strict_corr):
+            cs, ns = strict_corr[sp]
+            cr, nr = relaxed_corr[sp]
+            print(f"  {sp}: strict {cs}/{ns} = {cs / ns:.3f}   relaxed {cr}/{nr} = {cr / nr:.3f}")
+        if ov_s < 0.10 or ov_s > 0.90:
+            print(f"WARNING: strict ratio {ov_s:.3f} outside 10-90%")
     else:
         print("  no labeled rows")
     print(f"=== null: {total_null} ===")
+    print(f"=== strict != relaxed: {n_diff} rows ===")
 
 
 def run_normal(meta_path, out_path):
@@ -145,18 +217,19 @@ def run_normal(meta_path, out_path):
 def run_audit(meta_path, n, seed, out_path):
     rows = read_meta(meta_path)
     labeled = compute_labels(rows)
-    labeled_only = [(r, correct) for r, correct, _nat in labeled if correct is not None]
+    labeled_only = [(r, strict, relaxed) for r, strict, relaxed, _nat in labeled if strict is not None]
     rng = random.Random(seed)
     sample = rng.sample(labeled_only, min(n, len(labeled_only)))
-    fields = ["answer", "gold_main", "correct", "manual"]
+    fields = ["answer", "gold_main", "correct_strict", "correct_relaxed", "manual"]
     with open(out_path, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
-        for r, correct in sample:
+        for r, strict, relaxed in sample:
             w.writerow({
                 "answer": r.get("answer", ""),
                 "gold_main": r.get("gold_main", ""),
-                "correct": correct,
+                "correct_strict": strict,
+                "correct_relaxed": relaxed,
                 "manual": "",
             })
     print(f"=== audit ===")
@@ -169,38 +242,48 @@ def run_audit_score(audit_path):
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    total = 0
-    match = 0
-    fp = 0  # auto=1, manual=0
-    fn = 0  # auto=0, manual=1
-    for r in rows:
-        manual = (r.get("manual") or "").strip()
-        if manual == "":
-            continue
-        try:
-            manual_v = int(manual)
-        except ValueError:
-            continue
-        auto_raw = (r.get("correct") or "").strip()
-        if auto_raw == "":
-            continue
-        auto_v = int(auto_raw)
-        total += 1
-        if manual_v == auto_v:
-            match += 1
-        elif auto_v == 1 and manual_v == 0:
-            fp += 1
-        elif auto_v == 0 and manual_v == 1:
-            fn += 1
+    stats = {}
+    for label_col in ("correct_strict", "correct_relaxed"):
+        total = 0
+        match = 0
+        fp = 0  # auto=1, manual=0
+        fn = 0  # auto=0, manual=1
+        for r in rows:
+            manual = (r.get("manual") or "").strip()
+            if manual == "":
+                continue
+            try:
+                manual_v = int(manual)
+            except ValueError:
+                continue
+            auto_raw = (r.get(label_col) or "").strip()
+            if auto_raw == "":
+                continue
+            auto_v = int(auto_raw)
+            total += 1
+            if manual_v == auto_v:
+                match += 1
+            elif auto_v == 1 and manual_v == 0:
+                fp += 1
+            elif auto_v == 0 and manual_v == 1:
+                fn += 1
+        noise = (fp + fn) / total if total else 0.0
+        stats[label_col] = {"total": total, "match": match, "fp": fp, "fn": fn, "noise": noise}
 
     print("=== audit score ===")
-    print(f"scored rows: {total}  (of {len(rows)} in file)")
-    if total:
-        print(f"match: {match}/{total} = {match / total:.3f}")
-        print(f"false positives (auto=1, manual=0): {fp}")
-        print(f"false negatives (auto=0, manual=1): {fn}")
-    else:
-        print("no scored rows (fill the 'manual' column first)")
+    print(f"rows in file: {len(rows)}")
+    for label_col in ("correct_strict", "correct_relaxed"):
+        s = stats[label_col]
+        if s["total"]:
+            print(f"  {label_col}:")
+            print(f"    match: {s['match']}/{s['total']} = {s['match'] / s['total']:.3f}")
+            print(f"    false positives (auto=1, manual=0): {s['fp']}")
+            print(f"    false negatives (auto=0, manual=1): {s['fn']}")
+            print(f"    noise: {s['noise']:.3f}")
+        else:
+            print(f"  {label_col}: no scored rows")
+    overall_noise = (stats["correct_strict"]["noise"] + stats["correct_relaxed"]["noise"]) / 2
+    print(f"  overall noise (mean of two): {overall_noise:.3f}")
 
 
 def main() -> int:

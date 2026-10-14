@@ -408,3 +408,81 @@ python prepare_data.py --n 200 --out data\pilot.jsonl --meta data\pilot_meta.jso
 **Разница с TriviaQA-20 из раздела 7.1:** там truncated 4/20 (Gemma) и 15/20 (Qwen) — вопросы без подсказки «just the answer» вели к развёрнутым ответам. Здесь шаблон явно ограничивает формат, поэтому **ни один из 200 ответов не упёрся в лимит токенов**, средняя скорость выросла с ~0.9 до 5.3 ex/s.
 
 Пример (10 случайных, `gold_main` vs ответ): модель часто отвечает коротко и по делу (`Boreas` → `Nereus`, `1` → `1`), но встречаются и ошибки (`JOY DIVISION` → `The Beatles`, `Alan Freed` → `Elvis Presley`) — оценка правильности (label.py) — следующий шаг.
+
+---
+
+## 10. Разметка правильности: `label.py`
+
+`pipeline/label.py` — разметка правильности ответов из `meta.jsonl` (вывод `llama-hidden-states`) по эталонам `gold`.
+
+### 10.1. Правило
+
+Для строк `status=ok` и `generated=true`:
+
+- `ans = normalize(answer)` (общий модуль `normalize.py`);
+- `gold` — список из поля `gold` (уже нормализован в `prepare_data.py`);
+- `correct = 1`, если **любой** `gold` встречается в `ans` **как целая фраза по границам слов** (сравнение токенов, не подстрок): последовательность токенов `gold` равна непрерывной подпоследовательности токенов `ans`. `"1"` не совпадает с `"1990s"` или `"10"`; `"web link"` не совпадает с `"web links"`;
+- `correct = 0`, если ни один `gold` не совпал;
+- `correct = null` (не используется), если `truncated=true` **или** `ans` пуст после нормализации, **или** строка не `ok`/не `generated`.
+
+### 10.2. Выход
+
+CSV (`--out`), колонки: `id, row, split, correct, truncated, n_answer_tokens, answer, gold_main`. `n_answer_tokens = pos_c - pos_a`.
+
+В консоль: число строк по сплитам, доля `correct` (общая и по сплитам), число `null`. Предупреждение, если общая доля `correct` вне 10–90 %.
+
+### 10.3. Аудит
+
+- `--audit N --seed S` — выборка `N` случайных **размеченных** строк в `audit.csv` (колонки `answer, gold_main, correct, manual`; `manual` пустая — для ручной разметки 0/1);
+- `--audit-score audit.csv` — по заполненной колонке `manual`: доля совпадения авто-метки с ручной, отдельно ложные срабатывания (auto=1, manual=0) и ложные пропуски (auto=0, manual=1).
+
+### 10.4. Пилот (200 вопросов, Qwen3.5-0.8B)
+
+```
+python label.py --meta out\pilot_qwen08\meta.jsonl --out labels.csv
+```
+
+| split | строк | correct | доля |
+|---|---|---|---|
+| train | 120 | 25/119 | 0.210 |
+| val | 40 | 4/40 | 0.100 |
+| test | 40 | 9/40 | 0.225 |
+| **overall** | **200** | **38/199** | **0.191** |
+
+`null` = 1 (ответ `"A"` нормализуется в пустую строку — артикл `a` удаляется). Предупреждения о диапазоне 10–90 % нет (0.191 внутри).
+
+Примеры `correct=1` (10 случайных):
+
+| gold_main | answer |
+|---|---|
+| Utrecht | `Treaty of Utrecht` |
+| Heraldry | `Heraldry` |
+| Les Paul | `Gibson Guitars named after him: Les Paul` |
+| Eye | `eye` |
+| Winnipeg | `Winnipeg` |
+| Printed Circuit Board | `Printed Circuit Board` |
+| Chess | `Chess` |
+| THE AVENGERS | `The Avengers` |
+| PULSAR | `pulsar` |
+| 1 | `1` |
+
+Примеры `correct=0` (10 случайных):
+
+| gold_main | answer |
+|---|---|
+| Miller Lite Beer | `Burger` |
+| TOP OF THE POPS | `The Wizard` |
+| ALMONDS | `hydrogen cyanide` |
+| Germany, Japan, Italy | `Germany, Italy, and Japan` |
+| Sea | `ocean` |
+| APOLLO | `King Philip II of Greece` |
+| Royal Botanical Gardens at Kew | `The 250th anniversary of the Royal Mint.` |
+| London | `The Sea Wolf was written by John F. Kennedy.` |
+| A Horse Collar | `a necklace` |
+| Joan Rivers | `Maggie Gyllenhaal` |
+
+Замечания:
+
+- Ответ с **другим порядком компонентов** (`Germany, Italy, and Japan` vs `Germany, Japan, Italy`) не засчитывается — сравнение токенов строго последовательное;
+- Ответ, содержащий верный эталон **как фразу внутри** более длинного текста (`Treaty of Utrecht`), засчитывается — это ожидаемо для оценки «содержит эталон»;
+- доля `correct` ≈ 19 % на пилоте низкая, но это ожидаемо для 0.8B-модели на TriviaQA без контекста; шаблон «just the answer» даёт короткие ответы, большинство ошибок — фактические ошибки модели, а не артефакты разметки.

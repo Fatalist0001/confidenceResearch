@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "n": 6000,
+  "dataset": "mandarjoshi/trivia_qa",
+  "config": "rc.nocontext",
+  "split_source": "validation",
+  "dataset_tag": "triviaqa-rc-nocontext-validation",
+  "question_template": "{question}\nAnswer with just the answer, no explanation.",
+  "split_counts": {
+    "train": 3600,
+    "val": 1200,
+    "test": 1200
+  },
+  "n_groups": 7400,
+  "n_dupes_removed": 7983,
+  "ids_sha256": "6ee7ff7e1524bf902e141fe373509d929aa2125f787404211d06345093af153b",
+  "max_question_chars": 300,
+  "total_after_filters": 9947
+}

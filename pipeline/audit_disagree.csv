@@ -1,0 +1,37 @@
+row,answer,gold_main,llm,unsure,correct_strict,correct_relaxed,reason
+27, Upper Voltachanged,BURKINO FASO,1,0,0,0,бывшее имя той же страны
+36, fylfot,Swastika,1,0,0,0,синоним того же знака
+83,The Nashville Network,Spike TV,1,0,0,0,тот же канал (переименован)
+88,Claire Mary Teresa Rawstron,KIRI TE KANAWA,1,0,0,0,то же лицо (имя при рождении)
+90, Anna Sage,Lady in Red,1,0,0,0,то же лицо (прозвище)
+103,Indonesian Army Special Forces,Kopassus,1,0,0,1,то же подразделение (перевод)
+104,Sandra Ann Goodrich,Sandie Shaw,1,0,0,1,то же лицо (имя при рождении)
+105, Steveland Hardaway Morris,Stevie Wonder,1,0,0,1,то же лицо (имя при рождении)
+107," Belgium is surrounded by 4 countries: France, Germany, Netherlands, and Luxembourg.","France, Germany, Luxembourg, and the Netherlands",1,0,0,1,порядок в перечислении
+111," Five stages of grief: denial, anger, bargaining, depression, and acceptance.","Denial, Anger, Bargaining, Depression, Acceptance",1,0,0,1,та же последовательность
+114,The Rothschilds,Rothschild,1,0,0,1,ед./мн. число
+121,"Germany, Italy, and Japan","Germany, Japan, Italy",1,0,0,1,порядок в перечислении
+123, Red and White,White and red,1,0,0,1,порядок/регистр
+58, Tanzania was previously called the Republic of Tanzania.,United Republic of Tanganyika and Zanzibar,0,0,1,1,другое название
+96,"The Georgia Peach was a professional baseball team based in Atlanta, Georgia.",Ty Cobb,0,0,1,1,команда вместо человека
+102,Barney the Owl is the mascot of the English football club Everton.,Sheffield Wednesday FC,0,0,0,1,другой клуб
+106,Dr. Mark Sloan played by John Krasinski.,Dick van Dyke,0,0,0,1,другой актёр
+108,"Blinky, Pinky, Inky, and Clyde are the four ghosts in the game ""The Hitchhiker's Guide to the Galaxy"".",Pac-Man,0,0,0,1,не называет Pac-Man
+112, Lemony Snicket wrote the series of children's books called *Lemony Snicket's Secret Diary*.,A Series of Unfortunate Events,0,0,0,1,другая книга
+113, Redfoo and Sky Blu were members of the electronic rock band The Neighbourhood.,LMFAO,0,0,0,1,не называет LMFAO
+116,"Rapunzel, Mother Gothel and Paulo are all characters in the 2010 animated film *Rapunzel and the Lost Princess*.",Tangled,0,0,0,1,другой фильм
+117, DangerMouse's sidekick is the character named **Doomsday**.,Ernest Penfold,0,0,0,1,другой персонаж
+118, The song 'Wunderbar' comes from the musical *The Sound of Music*.,KISS ME KATE,0,0,0,1,другой мюзикл
+119," Donald Duck's three nephews are Duck, Duck, and Duck.","Huey, Dewey and Louie",0,0,0,1,другие имена
+120,The father of three Peter Griffin is the title character of the American animated TV series *The Simpsons*.,'FAMILY GUY',0,0,0,1,другой сериал
+122, Eleanor Roosevelt's maiden name was Eleanor.,Roosevelt,0,0,0,1,другое имя
+92,The right to vote.,Vote,0,1,1,1,"не уверен, то ли понятие"
+101,"The school was called the ""Squeers' School"".",DOTHEBOYS HALL,0,1,0,1,"название по владельцу, не уверен"
+109,The Prince's Charitable Trust,Prince's Trust,0,1,0,1,разные организации
+110,1900,1900s,0,1,0,1,год vs десятилетие
+115, James Jewel Osterberg is better known by the name James Jewel Osterberg.,Iggy Pop,0,1,0,1,не называет Iggy Pop
+8,nasolabial groove,FILTRUM,0,1,0,0,возможно другая структура
+11,The mountains to the prairie to the oceans white with foam,God Bless AMERICA.,0,1,0,0,"строки песни, не название"
+45,Black Mountains National Park,Brecon Beacons,0,1,0,0,"не уверен, тот ли парк"
+59,Boeing Air Transport,United,0,1,0,0,"предшественник, не уверен"
+97, a managerie,Animals,0,1,0,0,"коллекция, не сами животные"

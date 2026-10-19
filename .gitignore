@@ -5,6 +5,9 @@
 !/llama.cpp-hiddenstates/examples/CMakeLists.txt
 !/llama.cpp-hiddenstates/examples/hidden-states/
 
+# Локальный черновик плана (не коммитим)
+/GLOBALPLAN.md
+
 # Python-пайплайн: артефакты окружения; под out/ — только тяжёлые бинарники и логи
 /pipeline/.venv/
 /pipeline/__pycache__/

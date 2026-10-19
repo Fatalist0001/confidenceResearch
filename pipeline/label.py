@@ -5,6 +5,10 @@ Audit mode:   label.py --meta <out_dir>/meta.jsonl --audit N --seed S --question
               (writes N random sample rows first, then appends strict!=relaxed disagreements)
 Score mode:   label.py --audit-score audit.csv [--sample-n 100]
               (splits rows into (a) leading sample and (b) the rest; noise is estimated from (a))
+Audit2 build: label.py --meta <out_dir>/meta.jsonl --questions data/main.jsonl --audit2
+              --out audit2.csv --groups-out audit2_groups.csv --exclude audit.csv audit_human.csv
+              (filter_changed 40 @seed5, a_vs_b all, fresh_random 100 @seed7, shuffled @seed9)
+Audit2 score: label.py --audit2-score audit2.csv --groups-in audit2_groups.csv --labels labels.csv
 """
 
 import argparse
@@ -183,6 +187,17 @@ def load_questions(path):
     return q
 
 
+def read_csv_ids(path):
+    """Collect the set of ids from a CSV that has an 'id' column."""
+    ids = set()
+    with open(path, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            rid = r.get("id")
+            if rid:
+                ids.add(rid)
+    return ids
+
+
 def compute_labels(rows):
     """Return list of (row, correct_strict, correct_relaxed, n_answer_tokens, m_strict, m_relaxed)."""
     return [(r, *label_row(r)) for r in rows]
@@ -307,6 +322,79 @@ def run_audit(meta_path, n, seed, out_path, questions_path):
     print(f"fill the 'manual' column with 0/1, then run: label.py --audit-score {out_path}")
 
 
+def run_audit2(meta_path, out_path, groups_out, questions_path, exclude_paths,
+               n_fc=40, seed_fc=5, n_fresh=100, seed_fresh=7, seed_shuffle=9):
+    rows = read_meta(meta_path)
+    labeled = compute_labels(rows)
+    qmap = load_questions(questions_path) if questions_path else {}
+
+    excluded = set()
+    for p in exclude_paths:
+        excluded |= read_csv_ids(p)
+
+    # a_vs_b: filtered_a != filtered_b (all). filter_changed pool: strict=1 & filtered_a=0.
+    avb = []
+    fc_pool = []
+    for r, strict, _relaxed, _nat, ms, _mr in labeled:
+        if strict is None:
+            continue
+        qn = norm_with_fallback(qmap.get(r.get("id"), ""))
+        fa, fb = filtered_labels(strict, ms, r.get("gold_main"), qn)
+        if fa != fb:
+            avb.append(r)
+        if strict == 1 and fa == 0:
+            fc_pool.append(r)
+
+    avb_ids = {r.get("id") for r in avb}
+    fc_pool = [r for r in fc_pool if r.get("id") not in avb_ids]
+    fc_sample = random.Random(seed_fc).sample(fc_pool, min(n_fc, len(fc_pool)))
+    fc_ids = {r.get("id") for r in fc_sample}
+
+    noise_ids = excluded | avb_ids | fc_ids
+    fresh_pool = [r for r, strict, _relaxed, _nat, _ms, _mr in labeled
+                  if r.get("status") == "ok"
+                  and not as_bool(r.get("truncated", False))
+                  and r.get("id") not in noise_ids]
+    fresh_sample = random.Random(seed_fresh).sample(fresh_pool, min(n_fresh, len(fresh_pool)))
+
+    combined = [(r.get("id"), "filter_changed") for r in fc_sample]
+    combined += [(r.get("id"), "a_vs_b") for r in avb]
+    combined += [(r.get("id"), "fresh_random") for r in fresh_sample]
+    random.Random(seed_shuffle).shuffle(combined)
+
+    id_to_row = {r.get("id"): r for r, _s, _rl, _n, _ms, _mr in labeled}
+    fields = ["id", "question", "answer", "gold_main", "manual", "note"]
+    with open(out_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        for rid, _grp in combined:
+            r = id_to_row[rid]
+            w.writerow({
+                "id": rid,
+                "question": qmap.get(rid, ""),
+                "answer": r.get("answer", ""),
+                "gold_main": r.get("gold_main", ""),
+                "manual": "",
+                "note": "",
+            })
+    with open(groups_out, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["id", "group"])
+        for rid, grp in combined:
+            w.writerow([rid, grp])
+
+    n_fc = sum(1 for _i, g in combined if g == "filter_changed")
+    n_avb = sum(1 for _i, g in combined if g == "a_vs_b")
+    n_fr = sum(1 for _i, g in combined if g == "fresh_random")
+    print("=== audit2 ===")
+    print(f"  filter_changed: {n_fc} (pool {len(fc_pool)}, seed {seed_fc})")
+    print(f"  a_vs_b: {n_avb}")
+    print(f"  fresh_random: {n_fr} (pool {len(fresh_pool)}, seed {seed_fresh})")
+    print(f"  total: {len(combined)} rows, shuffled (seed {seed_shuffle})")
+    print(f"wrote: {out_path}")
+    print(f"wrote groups (do NOT open until labeling is done): {groups_out}")
+
+
 def _score_group(rows):
     stats = {}
     for label_col in ("correct_strict", "correct_relaxed"):
@@ -378,6 +466,69 @@ def run_audit_score(audit_path, sample_n=100):
             print(f"  {label_col}: no scored rows in (a)")
 
 
+def run_audit2_score(audit2_path, groups_path, labels_path):
+    groups = {}
+    with open(groups_path, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            groups[r["id"]] = r["group"]
+
+    labels = {}
+    with open(labels_path, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            labels[r["id"]] = r
+
+    by_group = defaultdict(list)
+    with open(audit2_path, encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    for r in rows:
+        by_group[groups.get(r["id"], "?")].append(r)
+
+    print("=== audit2 score ===")
+    print(f"rows: {len(rows)}")
+
+    fc = by_group.get("filter_changed", [])
+    filled = [r for r in fc if (r.get("manual") or "").strip() != ""]
+    n0 = sum(1 for r in filled if r["manual"].strip() == "0")
+    n1 = sum(1 for r in filled if r["manual"].strip() == "1")
+    print(f"--- filter_changed: {len(fc)} rows, filled {len(filled)} ---")
+    if filled:
+        print(f"  manual=0 (filter correctly removed): {n0}/{len(filled)} = {n0 / len(filled):.3f}")
+        print(f"  manual=1 (filter wrongly removed):   {n1}/{len(filled)}")
+    else:
+        print("  no filled rows")
+
+    avb = by_group.get("a_vs_b", [])
+    print(f"--- a_vs_b: {len(avb)} rows ---")
+    for r in avb:
+        man = (r.get("manual") or "").strip()
+        print(f"  {r['id']}: manual={man or '(empty)'}")
+
+    fr = by_group.get("fresh_random", [])
+    print(f"--- fresh_random: {len(fr)} rows ---")
+    for col in ("correct_strict", "correct_filtered_a", "correct_filtered_b"):
+        total = match = fp = fn = 0
+        for r in fr:
+            man = (r.get("manual") or "").strip()
+            if man == "":
+                continue
+            auto_raw = (labels.get(r["id"], {}).get(col) or "").strip()
+            if auto_raw == "":
+                continue
+            m = int(man)
+            a = int(auto_raw)
+            total += 1
+            if a == m:
+                match += 1
+            elif a == 1 and m == 0:
+                fp += 1
+            elif a == 0 and m == 1:
+                fn += 1
+        if total:
+            print(f"  {col}: match {match}/{total} = {match / total:.3f}  fp={fp}  fn={fn}")
+        else:
+            print(f"  {col}: no filled rows")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--meta", type=str, default=None, help="path to meta.jsonl")
@@ -389,10 +540,31 @@ def main() -> int:
     ap.add_argument("--audit-score", type=str, default=None, help="score a filled audit.csv")
     ap.add_argument("--sample-n", type=int, default=100,
                     help="audit-score: number of leading rows treated as the random sample")
+    ap.add_argument("--audit2", action="store_true", help="build audit2.csv + audit2_groups.csv")
+    ap.add_argument("--groups-out", type=str, default="audit2_groups.csv",
+                    help="audit2: path for the hidden id->group map")
+    ap.add_argument("--exclude", nargs="*", default=[],
+                    help="audit2: CSV files whose ids are excluded from fresh_random")
+    ap.add_argument("--audit2-score", type=str, default=None, help="score a filled audit2.csv")
+    ap.add_argument("--groups-in", type=str, default="audit2_groups.csv",
+                    help="audit2-score: path to the id->group map")
+    ap.add_argument("--labels", type=str, default="labels.csv",
+                    help="audit2-score: labels.csv with correct_strict/_filtered_* by id")
     args = ap.parse_args()
+
+    if args.audit2_score:
+        run_audit2_score(args.audit2_score, args.groups_in, args.labels)
+        return 0
 
     if args.audit_score:
         run_audit_score(args.audit_score, args.sample_n)
+        return 0
+
+    if args.audit2:
+        if not args.meta:
+            ap.error("--audit2 requires --meta")
+        out = args.out or "audit2.csv"
+        run_audit2(args.meta, out, args.groups_out, args.questions, args.exclude)
         return 0
 
     if args.audit is not None:

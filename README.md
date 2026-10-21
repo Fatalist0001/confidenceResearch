@@ -1,7 +1,7 @@
 # README: оценка правильности ответа LLM по скрытым состояниям
 
-Статус: сделаны пункты 1–3 плана (инструмент, данные, разметка). Проба и baseline ещё
-не делались (план, `GLOBALPLAN.md` — локальный файл, в git не входит).
+Статус: сделаны пункты 1–4 плана (инструмент, данные, разметка, baseline). Проба ещё
+не делалась (план, `GLOBALPLAN.md` — локальный файл, в git не входит).
 
 ---
 
@@ -441,6 +441,51 @@ relaxed (их 31 строка), плюс 5 строк, где судья был 
 7. **Обрезанные ответы (`truncated`) исключаются из разметки** — у них метка пустая:
    23 строки из 6000 (`labels.csv`).
 
+### 3.7 Baseline: logprob и энтропия первого токена (шаг 4)
+
+Самый простой способ «угадать правильность» без скрытых состояний: посмотреть на
+**первый выданный токен ответа**. Два признака уже лежат в `meta.jsonl`:
+
+- `logprobs[0]` — логарифм вероятности, которую модель дала этому токену (ближе к нулю —
+  увереннее);
+- `entropies[0]` — энтропия распределения по словарю в этой позиции (меньше — увереннее).
+
+Скрипт `pipeline/baseline.py` (только `numpy`) считает AUROC/AUPRC, Brier и ECE,
+подгоняет калибровку `p = sigmoid(b0 + b1·x)` **на val** и применяет её к test.
+
+Данные: 5977 строк с меткой `correct_filtered_b` (23 `truncated` исключены); val — 1193
+строки, 166 правильных (0.139), test — 1195 строк, 178 (0.149). Стыковка `meta.jsonl`
+и `labels.csv` — по `row` (в `labels.csv` есть дубль `id` `bb_956` — две разные строки).
+
+| split | признак | AUROC | AUPRC | Brier | ECE |
+|---|---|---|---|---|---|
+| val | `logprob` | 0.729 | 0.319 | — | — |
+| test | `logprob` | 0.739 | 0.321 | — | — |
+| val | `entropy` | 0.743 | 0.336 | — | — |
+| test | `entropy` | 0.767 | 0.350 | — | — |
+| val | `logprob`, калибр. | 0.729 | 0.319 | 0.109 | 0.012 |
+| test | `logprob`, калибр. | 0.739 | 0.321 | 0.114 | 0.014 |
+| val | `entropy`, калибр. | 0.743 | 0.336 | 0.107 | 0.015 |
+| test | `entropy`, калибр. | 0.767 | 0.350 | 0.112 | 0.025 |
+| val | сырая `exp(lp0)` | 0.729 | 0.319 | 0.118 | 0.063 |
+| test | сырая `exp(lp0)` | 0.739 | 0.321 | 0.124 | 0.060 |
+
+(95 % интервалы bootstrap — в `out/main_qwen08/baseline.json` и `report.md`, §12;
+bootstrap 1000, seed 42, ECE — 10 бинов.)
+
+Что из этого следует:
+
+- baseline далёк от случайного, но и не решает задачу: AUROC 0.73–0.77, AUPRC 0.32–0.35
+  при доле правильных 0.139–0.149. Это планка, которую проба должна побить;
+- энтропия первого токена чуть сильнее logprob (test AUROC 0.767 против 0.739), но
+  интервалы перекрываются — считать различие установленным нельзя;
+- сырая вероятность `exp(lp0)` переоценена (ECE 0.060–0.063); калибровка на val
+  снижает ECE до 0.012–0.025 и Brier с 0.118 до 0.109 (val) и с 0.124 до 0.114 (test).
+
+Артефакты: `out/main_qwen08/baseline.json` (коэффициенты, метрики, интервалы) и
+`out/main_qwen08/baseline_scores.csv` (по строкам: `id, row, split, y, lp0, h0, p_raw,
+p_cal_logprob, p_cal_entropy`). Команда — в разделе 5, шаг 6.
+
 ---
 
 ## 4. Итоговая сводка
@@ -458,9 +503,10 @@ relaxed (их 31 строка), плюс 5 строк, где судья был 
 | Аудит 1: авто-таблица и ручная разметка | `pipeline/out/main_qwen08/audit.csv`, `audit_human.csv` |
 | Аудит 2: выборка и ручная разметка | `pipeline/out/main_qwen08/audit2.csv`, `audit2_human.csv`, группы `audit2_groups.csv` |
 | Слепая разметка и судья-LLM | `pipeline/audit_blind.csv`, `pipeline/audit_llm.csv`, `pipeline/audit_disagree.csv` |
-| Скрипты | `pipeline/prepare_data.py` (данные), `pipeline/label.py` (метки и аудиты), `pipeline/normalize.py` (нормализация) |
+| Baseline (logprob/энтропия первого токена) | `pipeline/out/main_qwen08/baseline.json`, `baseline_scores.csv` |
+| Скрипты | `pipeline/prepare_data.py` (данные), `pipeline/label.py` (метки и аудиты), `pipeline/normalize.py` (нормализация), `pipeline/baseline.py` (baseline) |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–11) |
+| Подробный технический отчёт | `report.md` (пункты 1–12) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -563,6 +609,15 @@ python label.py --audit2-score out\main_qwen08\audit2_human.csv `
 `a_vs_b` все, `fresh_random` 100 @seed7, перемешивание @seed9; заполнять `manual`
 до открытия `audit2_groups.csv`).
 
+### Шаг 6. Baseline
+
+```powershell
+python baseline.py --meta out\main_qwen08\meta.jsonl --labels out\main_qwen08\labels.csv `
+  --out out\main_qwen08\baseline.json --scores-out out\main_qwen08\baseline_scores.csv
+```
+
+(`baseline.py`; калибровка — по split `val`, метрики — на val и test)
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -607,6 +662,10 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   он печатает «no scored rows» и «overall noise 0.000», что легко понять неверно.
 - **Логи промежуточных прогонов Gemma и пилота Qwen не сохранялись** — их числа взяты
   из `report.md`, а не из файлов логов.
+- **Baseline посчитан только для Qwen3.5-0.8B и только по первому токену ответа**
+  (`report.md`, §12); для Gemma и для других позиций/токенов он не считался — нет данных.
+  Кроме того, baseline оценивается по автоматической метке `correct_filtered_b`, шум
+  которой сам известен лишь по выборкам (см. выше).
 
 ---
 
@@ -614,14 +673,13 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 По плану (`GLOBALPLAN.md`), без обещаний по срокам:
 
-1. **Baseline** — logprob и энтропия первого токена, откалиброванные на val.
-2. **Проба** — логистическая регрессия по слою и точке (A, C), слой выбираем по val,
+1. **Проба** — логистическая регрессия по слою и точке (A, C), слой выбираем по val,
    тест считаем один раз; метрики AUROC, AUPRC, ECE, Brier, интервалы bootstrap;
-   контроль — перемешанные метки и нулевой слой.
-3. **Анализ** — кривая по слоям (раздельно для рекуррентных и слоёв внимания у Qwen),
+   контроль — перемешанные метки и нулевой слой. Сравнение — с baseline из 3.7.
+2. **Анализ** — кривая по слоям (раздельно для рекуррентных и слоёв внимания у Qwen),
    A против C, reliability diagram.
-4. **Другие модели** — Qwen3.5 2B / 4B / 9B, Gemma 4 E2B.
-5. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
+3. **Другие модели** — Qwen3.5 2B / 4B / 9B, Gemma 4 E2B.
+4. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
 ---
 
@@ -679,7 +737,8 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    — нигде в файлах не записаны; известно только то, что на вход давались `answer` и
    `gold_main` без вопроса (`pipeline/audit_blind.csv`).
 7. **Количество вопросов с выбором внутри формулировки («A or B?»)** — не считалось.
-8. **Результаты пробы и baseline (AUROC, ECE, Brier, reliability)** — ещё не получены.
+8. **Результаты пробы (AUROC, ECE, Brier, reliability diagram) — ещё не получены**;
+   baseline уже посчитан (`report.md`, §12, и раздел 3.7 выше).
 9. **Логи прогонов Gemma и пилота Qwen** — файлов логов нет, только `main_run1.log`;
    соответствующие числа взяты из `report.md`.
 

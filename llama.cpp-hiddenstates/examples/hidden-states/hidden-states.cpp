@@ -99,14 +99,30 @@ struct hs_state {
     int n_layer = 0;
     int n_embd  = 0;
 
+    // batched state pass (--batch-rows > 1): l_out rows are the concatenation
+    // of all sequences, so token t of sequence s lives at row seq_off[s] + t
+    bool batch_mode = false;
+    int  n_seq      = 0;
+    int  n_sel      = 0;
+    std::vector<int> seq_off;
+    std::vector<int> seq_pos_a;
+    std::vector<int> seq_pos_c;
+    // l_out rows when the backend materializes only the rows that produced
+    // logits (they follow the requested order: A then C per sequence)
+    std::vector<int> seq_out_a;
+    std::vector<int> seq_out_c;
+    int  n_logits        = 0;
+    bool batch_rows_full = true;
+    int  batch_ntok      = 0; // l_out rows reported by the backend on mismatch
+
     // layer -> row in the output buffer, -1 = not selected
     std::vector<int> layer_row;
 
-    // reusable buffers, sized n_sel * n_embd
+    // reusable buffers, sized n_seq * n_sel * n_embd
     std::vector<float> hs_c;
     std::vector<float> hs_a;
 
-    // per-layer capture flags for the selected layers only
+    // per-layer capture flags for the selected layers only (n_seq * n_layer)
     std::vector<uint8_t> cap_c;
     std::vector<uint8_t> cap_a;
     int n_cap_c = 0;
@@ -166,25 +182,10 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
         return true;
     }
 
-    // l_out has one row per token; some backends keep only the rows that produced
-    // logits, which are ordered as the logits were requested: A first, then C
-    int64_t r_c = st->pos_c;
-    int64_t r_a = st->pos_a;
-    if (ntok <= st->pos_c) {
-        r_c = st->pos_a == st->pos_c ? 0 : 1;
-        r_a = 0;
-    }
-    const int64_t r_need = st->want_a ? std::max(r_c, r_a) : r_c;
-    if (r_need >= ntok) {
-        LOG_ERR("%s : tensor '%s' has %lld rows, need row %lld\n", __func__, t->name,
-                (long long) ntok, (long long) r_need);
-        return true;
-    }
-
     const size_t el_size   = ggml_element_size(t);
     const size_t row_bytes = (size_t) D * el_size;
 
-    auto read_row = [&](int r, float * dst) -> bool {
+    auto read_row = [&](int64_t r, float * dst) -> bool {
         std::vector<uint8_t> raw(row_bytes);
         ggml_backend_tensor_get(t, raw.data(), (size_t) r * t->nb[1], row_bytes);
         switch (t->type) {
@@ -210,9 +211,55 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
         return true;
     };
 
+    if (st->batch_mode) {
+        // either one row per token of the concatenated sequences, or one row per
+        // requested logits position (A then C, in sequence order)
+        const bool full_rows = ntok == st->n_tokens;
+        if (layer == 0) {
+            LOG_INF("batch decode: l_out rows=%lld total=%d n_logits=%d n_seq=%d\n",
+                    (long long) ntok, st->n_tokens, st->n_logits, st->n_seq);
+        }
+        if (!full_rows && ntok != st->n_logits) {
+            st->batch_rows_full = false;
+            st->batch_ntok      = (int) ntok;
+            return true;
+        }
+        for (int s = 0; s < st->n_seq; ++s) {
+            const int64_t r_c = full_rows ? (int64_t) st->seq_off[s] + st->seq_pos_c[s] : st->seq_out_c[s];
+            const int64_t r_a = full_rows ? (int64_t) st->seq_off[s] + st->seq_pos_a[s] : st->seq_out_a[s];
+            const size_t base = ((size_t) s * (size_t) st->n_sel + (size_t) row) * (size_t) D;
+            const size_t ci   = (size_t) s * (size_t) st->n_layer + (size_t) layer;
+
+            if (read_row(r_c, st->hs_c.data() + base) && !st->cap_c[ci]) {
+                st->cap_c[ci] = 1;
+                st->n_cap_c++;
+            }
+            if (st->want_a && read_row(r_a, st->hs_a.data() + base) && !st->cap_a[ci]) {
+                st->cap_a[ci] = 1;
+                st->n_cap_a++;
+            }
+        }
+        return true;
+    }
+
+    // l_out has one row per token; some backends keep only the rows that produced
+    // logits, which are ordered as the logits were requested: A first, then C
+    int64_t r_c = st->pos_c;
+    int64_t r_a = st->pos_a;
+    if (ntok <= st->pos_c) {
+        r_c = st->pos_a == st->pos_c ? 0 : 1;
+        r_a = 0;
+    }
+    const int64_t r_need = st->want_a ? std::max(r_c, r_a) : r_c;
+    if (r_need >= ntok) {
+        LOG_ERR("%s : tensor '%s' has %lld rows, need row %lld\n", __func__, t->name,
+                (long long) ntok, (long long) r_need);
+        return true;
+    }
+
     {
         float * dst = st->hs_c.data() + (size_t) row * D;
-        if (read_row((int) r_c, dst) && !st->cap_c[layer]) {
+        if (read_row(r_c, dst) && !st->cap_c[layer]) {
             st->cap_c[layer] = 1;
             st->n_cap_c++;
         }
@@ -220,7 +267,7 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
 
     if (st->want_a) {
         float * dst = st->hs_a.data() + (size_t) row * D;
-        if (read_row((int) r_a, dst) && !st->cap_a[layer]) {
+        if (read_row(r_a, dst) && !st->cap_a[layer]) {
             st->cap_a[layer] = 1;
             st->n_cap_a++;
         }
@@ -488,6 +535,44 @@ static int decode_ids(
     return rc;
 }
 
+static int decode_multi(
+        llama_context * ctx, const std::vector<std::vector<llama_token>> & seqs,
+        const std::vector<int> & logits_at) {
+    int total = 0;
+    for (const auto & s : seqs) {
+        total += (int) s.size();
+    }
+    if (total <= 0) {
+        return -1;
+    }
+
+    llama_batch batch = llama_batch_init(total, 0, 1);
+    int k = 0;
+    for (size_t s = 0; s < seqs.size(); ++s) {
+        for (size_t i = 0; i < seqs[s].size(); ++i, ++k) {
+            batch.token[k]     = seqs[s][i];
+            batch.pos[k]       = (llama_pos) i;
+            batch.n_seq_id[k]  = 1;
+            batch.seq_id[k][0] = (llama_seq_id) s;
+            batch.logits[k]    = 0;
+        }
+    }
+    for (int i : logits_at) {
+        if (i >= 0 && i < total) {
+            batch.logits[i] = 1;
+        }
+    }
+    batch.n_tokens = total;
+
+    const int rc = llama_decode(ctx, batch);
+    llama_batch_free(batch);
+
+    if (rc != 0) {
+        LOG_ERR("%s : llama_decode failed with code %d\n", __func__, rc);
+    }
+    return rc;
+}
+
 struct hs_opts {
     std::string batch_path;
     std::string out_dir;
@@ -497,6 +582,7 @@ struct hs_opts {
     bool        thinking    = false; // false = --no-thinking (default for batch)
     int         max_new     = 64;
     int         max_len     = 1024;
+    int         batch_rows  = 1;
 };
 
 //
@@ -511,6 +597,20 @@ struct hs_row {
     bool        has_answer = false;
     int64_t     row        = 0;
     json        extra;     // unknown keys of the input line, copied verbatim to meta.jsonl
+};
+
+struct hs_pending {
+    const hs_row * r = nullptr;
+    std::vector<llama_token> ids;
+    int n_prompt = 0;
+    int n_tokens = 0;
+    int pos_a = -1;
+    int pos_c = -1;
+    std::string answer_text;
+    bool generated = false;
+    bool truncated = false;
+    std::vector<float> logprobs;
+    std::vector<float> entropies;
 };
 
 static std::string render_prompt(
@@ -535,6 +635,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     const bool          do_generate = o.generate;
     const int           max_new     = o.max_new;
     const int           max_len     = o.max_len;
+    const int           batch_rows  = std::max(1, o.batch_rows);
     const std::string & layers_spec = o.layers;
 
     if (batch_path.empty()) {
@@ -553,6 +654,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     params.n_ctx             = std::max(params.n_ctx, max_len);
     params.n_batch           = max_len;
     params.n_ubatch          = max_len;
+    params.n_parallel        = std::max(params.n_parallel, batch_rows);
 
     auto llama_init = common_init_from_params(params, /*model_only=*/true);
 
@@ -583,8 +685,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     const int64_t L_sel = (int64_t) layers.size();
     const int64_t D     = st.n_embd;
 
-    st.hs_c.assign((size_t) L_sel * D, 0.0f);
-    st.hs_a.assign((size_t) L_sel * D, 0.0f);
+    st.hs_c.assign((size_t) batch_rows * L_sel * D, 0.0f);
+    st.hs_a.assign((size_t) batch_rows * L_sel * D, 0.0f);
     st.want_a = true;
     reset_capture(st);
 
@@ -605,8 +707,18 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     llama_memory_t mem = llama_get_memory(ctx);
 
-    LOG_INF("model: n_layer=%d n_embd=%d | selected layers=%lld | max_len=%d | template=%s | thinking=%s\n",
-            st.n_layer, st.n_embd, (long long) L_sel, max_len, no_template ? "no" : "yes", thinking ? "yes" : "no");
+    // padding token for equal-length batched passes; it sits after the real
+    // tokens, so causal attention keeps the states of the real ones unchanged
+    llama_token pad_token = llama_vocab_eos(vocab);
+    if (pad_token < 0 || pad_token >= llama_vocab_n_tokens(vocab)) {
+        pad_token = 0;
+    }
+
+    LOG_INF("ctx: n_ctx=%u n_batch=%u n_ubatch=%u n_seq_max=%u pad_token=%d\n",
+            llama_n_ctx(ctx), llama_n_batch(ctx), llama_n_ubatch(ctx), llama_n_seq_max(ctx), (int) pad_token);
+
+    LOG_INF("model: n_layer=%d n_embd=%d | selected layers=%lld | max_len=%d | batch_rows=%d | template=%s | thinking=%s\n",
+            st.n_layer, st.n_embd, (long long) L_sel, max_len, batch_rows, no_template ? "no" : "yes", thinking ? "yes" : "no");
 
     // ---- read input ----------------------------------------------------
     std::vector<hs_row> rows;
@@ -746,6 +858,232 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     auto write_meta = [&](const json & j) {
         meta << j.dump(-1, ' ', false, json::error_handler_t::replace) << "\n";
+    };
+
+    auto print_progress = [&]() {
+        const auto t_now = std::chrono::steady_clock::now();
+        const double sec = std::chrono::duration<double>(t_now - t_start).count();
+        const double sps = sec > 0.0 ? (double) n_run / sec : 0.0;
+        fprintf(stderr, "\r[%lld/%lld] ok=%lld skipped=%lld truncated=%lld  %.2f ex/s   ",
+                (long long) done, (long long) N, (long long) n_ok, (long long) n_skip, (long long) n_trunc, sps);
+        fflush(stderr);
+    };
+
+    auto state_pass_one = [&](const hs_pending & p, std::vector<float> & out_c, std::vector<float> & out_a) -> bool {
+        llama_memory_clear(mem, true);
+        st.batch_mode = false;
+        st.n_seq      = 1;
+        st.n_tokens   = p.n_tokens;
+        st.pos_a      = p.pos_a;
+        st.pos_c      = p.pos_c;
+        st.hs_c.assign((size_t) L_sel * D, 0.0f);
+        st.hs_a.assign((size_t) L_sel * D, 0.0f);
+        st.cap_c.assign((size_t) st.n_layer, 0);
+        st.cap_a.assign((size_t) st.n_layer, 0);
+        reset_capture(st);
+        st.enabled = true;
+
+        const std::vector<int> logits_at = p.pos_a == p.pos_c
+            ? std::vector<int>{ p.pos_c }
+            : std::vector<int>{ p.pos_a, p.pos_c };
+        const int rc = decode_ids(ctx, p.ids, 0, logits_at);
+        st.enabled = false;
+
+        if (rc != 0 || st.n_cap_c != (int) L_sel || st.n_cap_a != (int) L_sel) {
+            return false;
+        }
+        out_c = st.hs_c;
+        out_a = st.hs_a;
+        return true;
+    };
+
+    auto write_skipped = [&](const hs_pending & p, const std::string & reason) {
+        json j;
+        j["id"]        = p.r->id;
+        j["row"]       = p.r->row;
+        j["n_tokens"]  = 0;
+        j["pos_a"]     = -1;
+        j["pos_c"]     = -1;
+        j["answer"]    = p.answer_text;
+        j["generated"] = false;
+        j["truncated"] = false;
+        j["logprobs"]  = nullptr;
+        j["entropies"] = nullptr;
+        j["status"]    = "skipped";
+        j["reason"]    = reason;
+        merge_extra(j, p.r->extra);
+        write_meta(j);
+        n_skip++;
+        n_run++;
+    };
+
+    std::vector<hs_pending> pending;
+
+    auto flush_pending = [&]() -> bool {
+        if (pending.empty()) {
+            return true;
+        }
+        const int K = (int) pending.size();
+
+        // every sequence is padded to the same length, so that the memory module
+        // keeps the batch as a single ubatch and the row layout stays predictable
+        int L_pad = 0;
+        for (int s = 0; s < K; ++s) {
+            L_pad = std::max(L_pad, pending[(size_t) s].n_tokens);
+        }
+
+        std::vector<int> off((size_t) K, 0);
+        int total = 0;
+        for (int s = 0; s < K; ++s) {
+            off[(size_t) s] = total;
+            total += L_pad;
+        }
+
+        bool batch_ok = K > 1;
+        if (batch_ok) {
+            llama_memory_clear(mem, true);
+            st.batch_mode = true;
+            st.n_seq      = K;
+            st.n_sel      = (int) L_sel;
+            st.seq_off    = off;
+            st.seq_pos_a.resize((size_t) K);
+            st.seq_pos_c.resize((size_t) K);
+            for (int s = 0; s < K; ++s) {
+                st.seq_pos_a[(size_t) s] = pending[(size_t) s].pos_a;
+                st.seq_pos_c[(size_t) s] = pending[(size_t) s].pos_c;
+            }
+            st.n_tokens = total;
+            st.hs_c.assign((size_t) K * L_sel * D, 0.0f);
+            st.hs_a.assign((size_t) K * L_sel * D, 0.0f);
+            st.cap_c.assign((size_t) K * st.n_layer, 0);
+            st.cap_a.assign((size_t) K * st.n_layer, 0);
+            reset_capture(st);
+            st.batch_rows_full = true;
+            st.enabled = true;
+
+            std::vector<std::vector<llama_token>> seqs((size_t) K);
+            for (int s = 0; s < K; ++s) {
+                seqs[(size_t) s] = pending[(size_t) s].ids;
+                seqs[(size_t) s].resize((size_t) L_pad, pad_token);
+            }
+
+            // rows of l_out (when only the logits rows are materialized) follow
+            // the order the logits were requested: A, C for sequence 0, then 1, ...
+            std::vector<int> logits_idx;
+            st.seq_out_a.resize((size_t) K);
+            st.seq_out_c.resize((size_t) K);
+            for (int s = 0; s < K; ++s) {
+                const hs_pending & p = pending[(size_t) s];
+                if (p.pos_a == p.pos_c) {
+                    st.seq_out_a[(size_t) s] = (int) logits_idx.size();
+                    st.seq_out_c[(size_t) s] = (int) logits_idx.size();
+                    logits_idx.push_back(off[(size_t) s] + p.pos_c);
+                } else {
+                    st.seq_out_a[(size_t) s] = (int) logits_idx.size();
+                    logits_idx.push_back(off[(size_t) s] + p.pos_a);
+                    st.seq_out_c[(size_t) s] = (int) logits_idx.size();
+                    logits_idx.push_back(off[(size_t) s] + p.pos_c);
+                }
+            }
+            st.n_logits = (int) logits_idx.size();
+
+            const int rc = decode_multi(ctx, seqs, logits_idx);
+            st.enabled = false;
+            st.batch_mode = false;
+
+            if (rc != 0 || !st.batch_rows_full) {
+                batch_ok = false;
+            } else {
+                for (int s = 0; s < K; ++s) {
+                    int cnt_c = 0;
+                    int cnt_a = 0;
+                    for (int l = 0; l < st.n_layer; ++l) {
+                        if (st.layer_row[(size_t) l] < 0) {
+                            continue;
+                        }
+                        if (st.cap_c[(size_t) s * st.n_layer + l]) cnt_c++;
+                        if (st.cap_a[(size_t) s * st.n_layer + l]) cnt_a++;
+                    }
+                    if (cnt_c != (int) L_sel || cnt_a != (int) L_sel) {
+                        LOG_WRN("%s : batched capture incomplete (seq %d: C=%d A=%d, need %d)\n",
+                                __func__, s, cnt_c, cnt_a, (int) L_sel);
+                        batch_ok = false;
+                        break;
+                    }
+                }
+            }
+            if (!batch_ok) {
+                LOG_WRN("%s : batched state pass failed (rc=%d rows_full=%d ntok=%d total=%d), falling back to single rows\n",
+                        __func__, rc, (int) st.batch_rows_full, st.batch_ntok, total);
+            }
+        }
+
+        for (int s = 0; s < K; ++s) {
+            const hs_pending & p = pending[(size_t) s];
+            std::vector<float> hc;
+            std::vector<float> ha;
+
+            if (batch_ok) {
+                const float * pc = st.hs_c.data() + (size_t) s * (size_t) L_sel * (size_t) D;
+                const float * pa = st.hs_a.data() + (size_t) s * (size_t) L_sel * (size_t) D;
+                hc.assign(pc, pc + (size_t) L_sel * (size_t) D);
+                ha.assign(pa, pa + (size_t) L_sel * (size_t) D);
+                if (!check_finite(hc, "hs_c") || !check_finite(ha, "hs_a")) {
+                    hc.clear();
+                    ha.clear();
+                }
+            }
+            if (hc.empty()) {
+                if (!state_pass_one(p, hc, ha) || !check_finite(hc, "hs_c") || !check_finite(ha, "hs_a")) {
+                    write_skipped(p, "failed to capture hidden states");
+                    continue;
+                }
+            }
+
+            if (!wr_c.write_row(p.r->row, hc.data()) || !wr_a.write_row(p.r->row, ha.data())) {
+                LOG_ERR("%s : failed to write row %lld\n", __func__, (long long) p.r->row);
+                return false;
+            }
+
+            {
+                json j;
+                j["id"]        = p.r->id;
+                j["row"]       = p.r->row;
+                j["n_tokens"]  = p.n_tokens;
+                j["pos_a"]     = p.pos_a;
+                j["pos_c"]     = p.pos_c;
+                j["answer"]    = p.answer_text;
+                j["generated"] = p.generated;
+                j["truncated"] = p.truncated;
+                j["status"]    = "ok";
+                if (p.generated) {
+                    j["logprobs"]  = p.logprobs;
+                    j["entropies"] = p.entropies;
+                } else {
+                    j["logprobs"]  = nullptr;
+                    j["entropies"] = nullptr;
+                }
+                merge_extra(j, p.r->extra);
+                write_meta(j);
+            }
+
+            n_ok++;
+            n_run++;
+            if (p.truncated) {
+                n_trunc++;
+            }
+
+            if (++since_flush >= HS_FLUSH_EVERY) {
+                since_flush = 0;
+                wr_a.flush();
+                wr_c.flush();
+                meta.flush();
+            }
+        }
+
+        pending.clear();
+        print_progress();
+        return true;
     };
 
     for (const hs_row & r : rows) {
@@ -940,86 +1278,41 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             continue;
         }
 
-        // 4. state pass over "prompt + answer"
-        llama_memory_clear(mem, true);
+        // 4. queue the state pass; rows are batched up to --batch-rows and max_len tokens
+        hs_pending p;
+        p.r           = &r;
+        p.ids         = std::move(ids);
+        p.n_prompt    = n_prompt;
+        p.n_tokens    = n_tokens;
+        p.pos_a       = pos_a;
+        p.pos_c       = pos_c;
+        p.answer_text = std::move(answer_text);
+        p.generated   = generated;
+        p.truncated   = truncated;
+        p.logprobs    = std::move(logprobs);
+        p.entropies   = std::move(entropies);
 
-        st.enabled  = true;
-        st.pos_a    = pos_a;
-        st.pos_c    = pos_c;
-        st.n_tokens = n_tokens;
-        reset_capture(st);
-
-        const int logits_a = pos_a;
-        const int logits_c = pos_c;
-        const std::vector<int> logits_at = logits_a == logits_c ? std::vector<int>{ logits_c } : std::vector<int>{ logits_a, logits_c };
-        if (decode_ids(ctx, ids, 0, logits_at) != 0) {
-            st.enabled = false;
-            skip("decode failed");
-            continue;
+        int pending_len = p.n_tokens;
+        for (const hs_pending & q : pending) {
+            pending_len = std::max(pending_len, q.n_tokens);
         }
-
-        st.enabled = false;
-
-        const int cap = st.want_a ? std::min(st.n_cap_c, st.n_cap_a) : st.n_cap_c;
-        if (cap != (int) L_sel) {
-            skip("incomplete capture: " + std::to_string(cap) + "/" + std::to_string(L_sel));
-            continue;
-        }
-
-        if (!check_finite(st.hs_c, "hs_c") || !check_finite(st.hs_a, "hs_a")) {
-            skip("failed to capture hidden states");
-            continue;
-        }
-
-        if (!wr_c.write_row(r.row, st.hs_c.data()) || !wr_a.write_row(r.row, st.hs_a.data())) {
-            LOG_ERR("%s : failed to write row %lld\n", __func__, (long long) r.row);
-            return 1;
-        }
-
-        {
-            json j;
-            j["id"]        = r.id;
-            j["row"]       = r.row;
-            j["n_tokens"]  = n_tokens;
-            j["pos_a"]     = pos_a;
-            j["pos_c"]     = pos_c;
-            j["answer"]    = answer_text;
-            j["generated"] = generated;
-            j["truncated"] = truncated;
-            j["status"]    = "ok";
-            if (generated) {
-                j["logprobs"]  = logprobs;
-                j["entropies"] = entropies;
-            } else {
-                j["logprobs"]  = nullptr;
-                j["entropies"] = nullptr;
+        if (!pending.empty() && (int) (pending.size() + 1) * pending_len > max_len) {
+            if (!flush_pending()) {
+                return 1;
             }
-            merge_extra(j, r.extra);
-            write_meta(j);
+        }
+        pending.push_back(std::move(p));
+        if ((int) pending.size() >= batch_rows) {
+            if (!flush_pending()) {
+                return 1;
+            }
         }
 
-        n_ok++;
-        n_run++;
-        if (truncated) {
-            n_trunc++;
-        }
+        print_progress();
+    }
 
-        if (++since_flush >= HS_FLUSH_EVERY) {
-            since_flush = 0;
-            wr_a.flush();
-            wr_c.flush();
-            meta.flush();
-        }
-
-        // progress
-        {
-            const auto t_now = std::chrono::steady_clock::now();
-            const double sec = std::chrono::duration<double>(t_now - t_start).count();
-            const double sps = sec > 0.0 ? (double) n_run / sec : 0.0;
-            fprintf(stderr, "\r[%lld/%lld] ok=%lld skipped=%lld truncated=%lld  %.2f ex/s   ",
-                    (long long) done, (long long) N, (long long) n_ok, (long long) n_skip, (long long) n_trunc, sps);
-            fflush(stderr);
-        }
+    if (!flush_pending()) {
+        return 1;
     }
 
     fprintf(stderr, "\n");
@@ -1072,6 +1365,7 @@ int main(int argc, char ** argv) {
     bool        opt_thinking     = false; // --no-thinking is the batch default
     int         opt_max_new      = 64;
     int         opt_max_len      = 1024;
+    int         opt_batch_rows   = 1;
 
     std::vector<char *> cargv;
     cargv.push_back(argv[0]);
@@ -1116,6 +1410,8 @@ int main(int argc, char ** argv) {
         if (arg.rfind("--max-new-tokens=", 0) == 0) { opt_max_new = std::stoi(arg.substr(16)); continue; }
         if (arg == "--max-len")              { opt_max_len      = next_int("--max-len");  continue; }
         if (arg.rfind("--max-len=", 0) == 0) { opt_max_len      = std::stoi(arg.substr(10)); continue; }
+        if (arg == "--batch-rows")           { opt_batch_rows   = next_int("--batch-rows"); continue; }
+        if (arg.rfind("--batch-rows=", 0) == 0) { opt_batch_rows = std::stoi(arg.substr(13)); continue; }
 
         cargv.push_back(argv[i]);
     }
@@ -1131,6 +1427,7 @@ int main(int argc, char ** argv) {
     opts.thinking    = opt_thinking;
     opts.max_new     = opt_max_new;
     opts.max_len     = opt_max_len;
+    opts.batch_rows  = opt_batch_rows;
 
     common_init();
 

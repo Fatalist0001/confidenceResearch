@@ -83,6 +83,106 @@ llama-hidden-states.exe -m <gguf> --batch input.jsonl --out <dir> \
 
 Просмотр: `python llama.cpp-hiddenstates\examples\hidden-states\load_example.py <out_dir> --k 3`.
 
+## Пайплайн пробы для новой модели
+
+Протокол пробы **заморожен**: признаки — вектор скрытого состояния слоя L в точке A или C,
+стандартизация по train, L2-логистическая регрессия; λ из сетки `{100,300,1000,3000}`
+по среднему val AUROC, пара (точка, слой) по max val AUROC, тест считается **один раз**.
+При смене модели меняется только `<tag>` и путь к GGUF. Данные те же:
+`pipeline/data/main.jsonl` (6000) и `pipeline/data/pilot.jsonl` (200), сплиты уже внутри.
+Тег: `main_qwen08`, `main_gemma4e2b`, дальше `main_<модель>_<размер>`.
+
+**0. Подготовка.** Python — `pipeline\.venv\Scripts\python.exe` (numpy; sklearn не нужен).
+Все команды — из каталога `pipeline\`, выходы — в `out\<tag>\`.
+
+**1. Пилот 200** (проверить время, обрезки, формы; ~40 с):
+
+```powershell
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <gguf> `
+  --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\pilot_<tag>
+```
+
+Смотреть: `ok=200 skipped=0`, `truncated`, `in ... s (X ex/s)`, `retokenize mismatch`,
+`shape=[200, n_layers, n_embd]`. Полный прогон ≈ время пилота × 30.
+
+**2. Полный прогон 6000** (~20 мин на RTX 3050; лог — в файл, т.к. консоль теряет вывод):
+
+```powershell
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <gguf> `
+  --batch data\main.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\main_<tag> 2>&1 | Tee-Object out\main_<tag>.log
+```
+
+Проверить в конце: `done: 6000/6000 ok=6000 skipped=0`, число `truncated`,
+`retokenize mismatch` (~0.5 % — норма), `config.json` (`n_layers`, `n_embd`, `template: true`,
+`thinking: false`). Флаги `-b/-ub` не задавать: пакетный режим сам ставит их в `--max-len`.
+
+**3. Разметка** (`label.py`):
+
+```powershell
+..\.venv\Scripts\python.exe label.py --meta out\main_<tag>\meta.jsonl --out out\main_<tag>\labels.csv
+```
+
+Свериться: `labeled` = 6000 − `truncated` − пустые/вырожденные; доли strict / relaxed /
+filtered_a / filtered_b; сколько меток меняет каждый фильтр. Пустые генерации искать по
+`logprobs == []`, вырожденные — глазами по `answer` (у Gemma были `}`, `?`, `\r`, `\xa0`,
+`<|channel>thought` при `thinking: false`). Все аномалии — в документацию, строки не
+удалять (они и так получают пустую метку).
+
+**4. Baseline** (logprob/энтропия первого токена):
+
+```powershell
+..\.venv\Scripts\python.exe baseline.py --meta out\main_<tag>\meta.jsonl `
+  --labels out\main_<tag>\labels.csv --out out\main_<tag>\baseline.json `
+  --scores-out out\main_<tag>\baseline_scores.csv
+```
+
+Смотреть test AUROC/AUPRC и ECE сырой `exp(lp0)`: если первый токен почти всегда
+служебный, сырая вероятность бесполезна (у Gemma ECE 0.54), это нормально — baseline
+всё равно ранжирует.
+
+**5. Проба** (~5–8 мин, CPU, mmap):
+
+```powershell
+..\.venv\Scripts\python.exe probe.py --hidden-a out\main_<tag>\hidden_a.npy `
+  --hidden-c out\main_<tag>\hidden_c.npy --meta out\main_<tag>\meta.jsonl `
+  --labels out\main_<tag>\labels.csv --out out\main_<tag>\probe.json `
+  --curve-out out\main_<tag>\probe_curve.csv --scores-out out\main_<tag>\probe_scores.csv
+```
+
+Контроли в `probe.json`: перемешанные метки ≈ 0.5 ± 0.06, слой 0 заметно ниже победителя,
+разрыв val→test не больше ~0.04 (у Gemma тест оказался выше val — это аномалия, её
+описывать, а не «исправлять»). Тест не пересчитывать и слой не перевыбирать.
+Детерминизм: повторный запуск с `--out ...\probe2.json --scores-out ...\probe2.csv`
+должен дать побайтово те же `probe_curve.csv`/`probe_scores.csv`.
+
+**6. Сравнение с предыдущей моделью** (метки у моделей разные — это ожидаемо):
+
+```powershell
+..\.venv\Scripts\python.exe compare_probes.py --a out\main_qwen08\probe_scores.csv `
+  --b out\main_<tag>\probe_scores.csv --split test --out out\compare_qwen08_<tag>_test.json
+```
+
+Интерпретация: bootstrap ресэмплит вопросы, у каждой модели своя метка, поэтому ΔAUROC
+отражает и разную долю правильных ответов; в тексте это оговаривать.
+
+**7. Документация и коммит.** `report.md` — новый раздел (§N): прогон, аномалии, разметка
+со сплитами, baseline, проба (λ-сетка, кривая по слоям, val/test, контроли), сравнение.
+`README.md` — новый §3.N по образцу §3.9 + строки в §3.2 (прогоны), §4 (артефакты),
+§5 (команды), §6 (ограничения), «Расхождения и недостающие данные». В git — всё, кроме
+`*.npy` и логов (игнорируются `.gitignore`).
+
+**Ориентиры (не менять протокол под них):**
+
+| модель | доля правильных (filtered_b) | baseline test AUROC | проба: точка/слой | test AUROC | test AUPRC |
+|---|---|---|---|---|---|
+| Qwen3.5-0.8B | 0.168 | 0.739 (logprob) | C / 13 | 0.857 | 0.593 |
+| Gemma 4 E2B | 0.182 | 0.705 (logprob) | C / 19 | 0.935 | 0.744 |
+
+Победивший слой у обеих — ~54 % глубины; если у новой модели он окажется на слое 0 или
+качество упадёт до baseline, это результат, а не повод менять сетку λ или точки.
+
 ## Инварианты (нарушать нельзя)
 
 1. **Определения точек** (зафиксированы):

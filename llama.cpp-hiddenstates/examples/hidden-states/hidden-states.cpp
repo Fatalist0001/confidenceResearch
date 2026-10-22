@@ -12,6 +12,7 @@
 #include <clocale>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <chrono>
@@ -215,10 +216,6 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
         // either one row per token of the concatenated sequences, or one row per
         // requested logits position (A then C, in sequence order)
         const bool full_rows = ntok == st->n_tokens;
-        if (layer == 0) {
-            LOG_INF("batch decode: l_out rows=%lld total=%d n_logits=%d n_seq=%d\n",
-                    (long long) ntok, st->n_tokens, st->n_logits, st->n_seq);
-        }
         if (!full_rows && ntok != st->n_logits) {
             st->batch_rows_full = false;
             st->batch_ntok      = (int) ntok;
@@ -601,11 +598,14 @@ struct hs_row {
 
 struct hs_pending {
     const hs_row * r = nullptr;
-    std::vector<llama_token> ids;
+    std::vector<llama_token> tok_q; // prompt tokens, kept until the group is flushed
+    std::vector<llama_token> tok_a; // answer tokens (generated or tokenized)
+    std::vector<llama_token> ids;   // tok_q + tok_a, filled when the group is flushed
     int n_prompt = 0;
     int n_tokens = 0;
     int pos_a = -1;
     int pos_c = -1;
+    bool need_gen = false;
     std::string answer_text;
     bool generated = false;
     bool truncated = false;
@@ -625,6 +625,25 @@ static std::string render_prompt(
 
     const common_chat_params res = common_chat_templates_apply(tmpls, inputs);
     return res.prompt;
+}
+
+static void push_logprob(
+        std::vector<float> & logprobs, std::vector<float> & entropies,
+        const float * logits, int n_vocab, double best_logit) {
+    double z = 0.0;
+    for (int v = 0; v < n_vocab; ++v) {
+        z += std::exp((double) logits[v] - best_logit);
+    }
+    const double log_z = best_logit + std::log(z);
+    double h = 0.0;
+    for (int v = 0; v < n_vocab; ++v) {
+        const double p = std::exp((double) logits[v] - log_z);
+        if (p > 0.0) {
+            h -= p * ((double) logits[v] - log_z);
+        }
+    }
+    logprobs.push_back((float) (best_logit - log_z));
+    entropies.push_back((float) h);
 }
 
 static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
@@ -714,8 +733,6 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         pad_token = 0;
     }
 
-    LOG_INF("ctx: n_ctx=%u n_batch=%u n_ubatch=%u n_seq_max=%u pad_token=%d\n",
-            llama_n_ctx(ctx), llama_n_batch(ctx), llama_n_ubatch(ctx), llama_n_seq_max(ctx), (int) pad_token);
 
     LOG_INF("model: n_layer=%d n_embd=%d | selected layers=%lld | max_len=%d | batch_rows=%d | template=%s | thinking=%s\n",
             st.n_layer, st.n_embd, (long long) L_sel, max_len, batch_rows, no_template ? "no" : "yes", thinking ? "yes" : "no");
@@ -919,17 +936,287 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     std::vector<hs_pending> pending;
 
+    // greedy generation of a single row (fallback when a group cannot be batched)
+    auto generate_one = [&](hs_pending & p) {
+        const int n_vocab = llama_vocab_n_tokens(vocab);
+        const int n_prompt = (int) p.tok_q.size();
+
+        llama_memory_clear(mem, true);
+        st.enabled = false;
+
+        std::string stop_reason = "max_new_tokens";
+        int logits_idx = n_prompt - 1;
+
+        if (decode_ids(ctx, p.tok_q, 0, { logits_idx }) != 0) {
+            p.answer_text = "";
+            p.generated   = true;
+            p.truncated   = true;
+            return;
+        }
+
+        for (int i = 0; i < max_new; ++i) {
+            const float * logits = llama_get_logits_ith(ctx, logits_idx);
+            if (logits == nullptr) {
+                stop_reason = "no logits";
+                break;
+            }
+            llama_token best = 0;
+            float best_v = logits[0];
+            for (int v = 1; v < n_vocab; ++v) {
+                if (logits[v] > best_v) {
+                    best_v = logits[v];
+                    best   = (llama_token) v;
+                }
+            }
+            if (llama_vocab_is_eog(vocab, best)) {
+                stop_reason = "eog";
+                break;
+            }
+            p.tok_a.push_back(best);
+            push_logprob(p.logprobs, p.entropies, logits, n_vocab, best_v);
+
+            if ((int64_t) (p.tok_q.size() + p.tok_a.size()) >= max_len) {
+                stop_reason = "max_len";
+                break;
+            }
+            const int pos = n_prompt + (int) p.tok_a.size() - 1;
+            if (decode_ids(ctx, { best }, pos, { 0 }) != 0) {
+                stop_reason = "decode failed";
+                break;
+            }
+            logits_idx = 0;
+        }
+
+        p.answer_text = detok(vocab, p.tok_a);
+        p.generated   = true;
+        p.truncated   = stop_reason != "eog";
+        LOG_INF("  generated %zu token(s), stop=%s\n", p.tok_a.size(), stop_reason.c_str());
+    };
+
+    // greedy generation of all rows of a group in one prefill + batched steps
+    auto generate_group = [&](std::vector<hs_pending> & rows) {
+        std::vector<size_t> sel;
+        for (size_t i = 0; i < rows.size(); ++i) {
+            if (rows[i].need_gen) {
+                sel.push_back(i);
+            }
+        }
+        if (sel.empty()) {
+            return;
+        }
+        if (sel.size() == 1) {
+            generate_one(rows[sel[0]]);
+            return;
+        }
+
+        const int m = (int) sel.size();
+        const int n_vocab = llama_vocab_n_tokens(vocab);
+
+        llama_memory_clear(mem, true);
+        st.enabled = false;
+
+        int total = 0;
+        for (size_t i : sel) {
+            total += (int) rows[i].tok_q.size();
+        }
+
+        std::vector<std::vector<float>> cur((size_t) m);
+        std::vector<char> active((size_t) m, 1);
+        std::vector<std::string> stop_text((size_t) m, "max_new_tokens");
+        std::vector<int> last_row((size_t) m, -1);
+
+        // prefill: prompts share batches of at most max_len tokens, logits at each last token
+        int g0 = 0;
+        while (g0 < m) {
+            int g1 = g0;
+            int sum = 0;
+            while (g1 < m) {
+                const int len = (int) rows[sel[(size_t) g1]].tok_q.size();
+                if (g1 > g0 && sum + len > max_len) {
+                    break;
+                }
+                sum += len;
+                ++g1;
+            }
+
+            llama_batch b = llama_batch_init(sum, 0, 1);
+            int k = 0;
+            for (int g = g0; g < g1; ++g) {
+                const auto & q = rows[sel[(size_t) g]].tok_q;
+                for (size_t i = 0; i < q.size(); ++i, ++k) {
+                    b.token[k]     = q[i];
+                    b.pos[k]       = (llama_pos) i;
+                    b.n_seq_id[k]  = 1;
+                    b.seq_id[k][0] = (llama_seq_id) g;
+                    b.logits[k]    = 0;
+                }
+                last_row[(size_t) g] = k - 1;
+                b.logits[last_row[(size_t) g]] = 1;
+            }
+            b.n_tokens = k;
+
+            const int rc = llama_decode(ctx, b);
+            llama_batch_free(b);
+            if (rc != 0) {
+                LOG_WRN("%s : batched prefill failed (rc=%d), generating rows one by one\n", __func__, rc);
+                llama_memory_clear(mem, true);
+                for (size_t i : sel) {
+                    generate_one(rows[i]);
+                }
+                return;
+            }
+            for (int g = g0; g < g1; ++g) {
+                const float * lg = llama_get_logits_ith(ctx, last_row[(size_t) g]);
+                cur[(size_t) g].assign(lg, lg + n_vocab);
+            }
+            g0 = g1;
+        }
+
+        for (int step = 0; step < max_new; ++step) {
+            std::vector<llama_token> next((size_t) m, -1);
+            std::vector<int> who;
+            for (int g = 0; g < m; ++g) {
+                if (!active[(size_t) g]) {
+                    continue;
+                }
+                hs_pending & p = rows[sel[(size_t) g]];
+                const float * logits = cur[(size_t) g].data();
+                llama_token best = 0;
+                float best_v = logits[0];
+                for (int v = 1; v < n_vocab; ++v) {
+                    if (logits[v] > best_v) {
+                        best_v = logits[v];
+                        best   = (llama_token) v;
+                    }
+                }
+                if (llama_vocab_is_eog(vocab, best)) {
+                    active[(size_t) g] = 0;
+                    stop_text[(size_t) g] = "eog";
+                    continue;
+                }
+                p.tok_a.push_back(best);
+                push_logprob(p.logprobs, p.entropies, logits, n_vocab, best_v);
+
+                if ((int64_t) (p.tok_q.size() + p.tok_a.size()) >= max_len) {
+                    active[(size_t) g] = 0;
+                    stop_text[(size_t) g] = "max_len";
+                    continue;
+                }
+                next[(size_t) g] = best;
+                who.push_back(g);
+            }
+            if (who.empty()) {
+                break;
+            }
+
+            llama_batch b2 = llama_batch_init((int) who.size(), 0, 1);
+            for (size_t j = 0; j < who.size(); ++j) {
+                const int g = who[j];
+                const hs_pending & p = rows[sel[(size_t) g]];
+                b2.token[j]     = next[(size_t) g];
+                b2.pos[j]       = (llama_pos) (p.tok_q.size() + p.tok_a.size() - 1);
+                b2.n_seq_id[j]  = 1;
+                b2.seq_id[j][0] = (llama_seq_id) g;
+                b2.logits[j]    = 1;
+            }
+            b2.n_tokens = (int) who.size();
+
+            const int rc2 = llama_decode(ctx, b2);
+            llama_batch_free(b2);
+            if (rc2 != 0) {
+                LOG_WRN("%s : batched step failed (rc=%d), keeping generated prefix\n", __func__, rc2);
+                for (int g : who) {
+                    active[(size_t) g] = 0;
+                    stop_text[(size_t) g] = "decode failed";
+                }
+                break;
+            }
+            for (size_t j = 0; j < who.size(); ++j) {
+                const float * lg = llama_get_logits_ith(ctx, (int32_t) j);
+                cur[(size_t) who[j]].assign(lg, lg + n_vocab);
+            }
+        }
+
+        for (int g = 0; g < m; ++g) {
+            hs_pending & p = rows[sel[(size_t) g]];
+            p.answer_text = detok(vocab, p.tok_a);
+            p.generated   = true;
+            p.truncated   = stop_text[(size_t) g] != "eog";
+            LOG_INF("  generated %zu token(s), stop=%s\n", p.tok_a.size(), stop_text[(size_t) g].c_str());
+        }
+    };
+
+    // build tok_a/ids/positions for one row and check the length limit
+    auto finalize_row = [&](hs_pending & p) -> bool {
+        if (!p.generated && !p.need_gen && !p.answer_text.empty()) {
+            p.tok_a = common_tokenize(vocab, p.answer_text, false, true);
+            while (!p.tok_a.empty() && llama_vocab_is_eog(vocab, p.tok_a.back())) {
+                p.tok_a.pop_back();
+            }
+        }
+        p.ids = p.tok_q;
+        p.ids.insert(p.ids.end(), p.tok_a.begin(), p.tok_a.end());
+        p.n_prompt = (int) p.tok_q.size();
+        p.n_tokens = (int) p.ids.size();
+        p.pos_a    = p.n_prompt - 1;
+        p.pos_c    = p.n_tokens - 1;
+        return p.n_tokens <= max_len;
+    };
+
     auto flush_pending = [&]() -> bool {
         if (pending.empty()) {
             return true;
         }
-        const int K = (int) pending.size();
+
+        // 0. generate the answers of the group (one prefill + batched steps)
+        generate_group(pending);
+
+        // 1. finish the rows and drop the ones that no longer fit
+        std::vector<hs_pending> ready;
+        ready.reserve(pending.size());
+        for (hs_pending & p : pending) {
+            if (!finalize_row(p)) {
+                write_skipped(p, "too long: " + std::to_string(p.n_tokens) + " tokens > max_len " + std::to_string(max_len));
+                continue;
+            }
+            if (p.generated) {
+                n_gen_rows++;
+                std::vector<llama_token> re = common_tokenize(vocab, p.answer_text, false, true);
+                while (!re.empty() && llama_vocab_is_eog(vocab, re.back())) {
+                    re.pop_back();
+                }
+                if (re != p.tok_a) {
+                    n_retok++;
+                }
+            }
+            ready.push_back(std::move(p));
+        }
+        pending.clear();
+        if (ready.empty()) {
+            return true;
+        }
+
+        // 2. split the rows into groups whose padded sequences fit one ubatch
+        while (!ready.empty()) {
+            std::vector<hs_pending> grp;
+            int Lmax = 0;
+            while (!ready.empty()) {
+                const int n = ready.front().n_tokens;
+                const int L = std::max(Lmax, n);
+                if (!grp.empty() && (int64_t) (grp.size() + 1) * L > max_len) {
+                    break;
+                }
+                Lmax = L;
+                grp.push_back(std::move(ready.front()));
+                ready.erase(ready.begin());
+            }
+        const int K = (int) grp.size();
 
         // every sequence is padded to the same length, so that the memory module
         // keeps the batch as a single ubatch and the row layout stays predictable
         int L_pad = 0;
         for (int s = 0; s < K; ++s) {
-            L_pad = std::max(L_pad, pending[(size_t) s].n_tokens);
+            L_pad = std::max(L_pad, grp[(size_t) s].n_tokens);
         }
 
         std::vector<int> off((size_t) K, 0);
@@ -949,8 +1236,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             st.seq_pos_a.resize((size_t) K);
             st.seq_pos_c.resize((size_t) K);
             for (int s = 0; s < K; ++s) {
-                st.seq_pos_a[(size_t) s] = pending[(size_t) s].pos_a;
-                st.seq_pos_c[(size_t) s] = pending[(size_t) s].pos_c;
+                st.seq_pos_a[(size_t) s] = grp[(size_t) s].pos_a;
+                st.seq_pos_c[(size_t) s] = grp[(size_t) s].pos_c;
             }
             st.n_tokens = total;
             st.hs_c.assign((size_t) K * L_sel * D, 0.0f);
@@ -963,7 +1250,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
             std::vector<std::vector<llama_token>> seqs((size_t) K);
             for (int s = 0; s < K; ++s) {
-                seqs[(size_t) s] = pending[(size_t) s].ids;
+                seqs[(size_t) s] = grp[(size_t) s].ids;
                 seqs[(size_t) s].resize((size_t) L_pad, pad_token);
             }
 
@@ -973,7 +1260,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             st.seq_out_a.resize((size_t) K);
             st.seq_out_c.resize((size_t) K);
             for (int s = 0; s < K; ++s) {
-                const hs_pending & p = pending[(size_t) s];
+                const hs_pending & p = grp[(size_t) s];
                 if (p.pos_a == p.pos_c) {
                     st.seq_out_a[(size_t) s] = (int) logits_idx.size();
                     st.seq_out_c[(size_t) s] = (int) logits_idx.size();
@@ -1019,7 +1306,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         }
 
         for (int s = 0; s < K; ++s) {
-            const hs_pending & p = pending[(size_t) s];
+            const hs_pending & p = grp[(size_t) s];
             std::vector<float> hc;
             std::vector<float> ha;
 
@@ -1081,8 +1368,10 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             }
         }
 
-        pending.clear();
+        grp.clear();
         print_progress();
+        } // chunks
+
         return true;
     };
 
@@ -1150,151 +1439,22 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             continue;
         }
 
-        std::string answer_text = r.answer;
-        bool generated = false;
-        bool truncated = false;
-        std::vector<llama_token> gen;
-        std::vector<float> logprobs;
-        std::vector<float> entropies;
-
-        // 2. generation (only when the answer is missing)
-        if (!r.has_answer && do_generate) {
-            if ((int64_t) tok_q.size() >= max_len) {
-                skip("no room for generation (prompt >= max_len)");
-                continue;
-            }
-
-            llama_memory_clear(mem, true);
-            st.enabled = false;
-
-            std::string stop_reason = "max_new_tokens";
-
-            {
-                const int n_prompt = (int) tok_q.size();
-                int logits_idx = n_prompt - 1;
-
-                if (decode_ids(ctx, tok_q, 0, { logits_idx }) != 0) {
-                    skip("decode failed during generation prompt");
-                    continue;
-                }
-
-                for (int i = 0; i < max_new; ++i) {
-                    const float * logits = llama_get_logits_ith(ctx, logits_idx);
-                    if (logits == nullptr) {
-                        stop_reason = "no logits";
-                        break;
-                    }
-                    const int n_vocab = llama_vocab_n_tokens(vocab);
-                    llama_token best = 0;
-                    float best_v = logits[0];
-                    for (int v = 1; v < n_vocab; ++v) {
-                        if (logits[v] > best_v) {
-                            best_v = logits[v];
-                            best   = (llama_token) v;
-                        }
-                    }
-
-                    if (llama_vocab_is_eog(vocab, best)) {
-                        stop_reason = "eog";
-                        break;
-                    }
-
-                    gen.push_back(best);
-
-                    // baseline statistics of the plain softmax over the raw logits
-                    {
-                        const double best_logit = (double) best_v;
-                        double z = 0.0;
-                        for (int v = 0; v < n_vocab; ++v) {
-                            z += std::exp((double) logits[v] - best_logit);
-                        }
-                        const double log_z = best_logit + std::log(z);
-                        double h = 0.0;
-                        for (int v = 0; v < n_vocab; ++v) {
-                            const double p = std::exp((double) logits[v] - log_z);
-                            if (p > 0.0) {
-                                h -= p * ((double) logits[v] - log_z);
-                            }
-                        }
-                        logprobs.push_back((float) (best_logit - log_z));
-                        entropies.push_back((float) h);
-                    }
-
-                    if ((int64_t) (tok_q.size() + gen.size()) >= max_len) {
-                        stop_reason = "max_len";
-                        break;
-                    }
-
-                    const int pos = n_prompt + (int) gen.size() - 1;
-                    if (decode_ids(ctx, { best }, pos, { 0 }) != 0) {
-                        stop_reason = "decode failed";
-                        break;
-                    }
-                    logits_idx = 0;
-                }
-            }
-
-            answer_text = detok(vocab, gen);
-            generated   = true;
-            // the answer is incomplete when the run stopped on the token/length
-            // budget instead of the model emitting an EOG token
-            truncated   = stop_reason != "eog";
-
-            LOG_INF("  generated %zu token(s), stop=%s\n", gen.size(), stop_reason.c_str());
-        }
-
-        // 3. answer tokens (EOG tails stripped)
-        std::vector<llama_token> tok_a;
-        if (generated) {
-            // ids produced by generation are used as-is for the state pass
-            tok_a = gen;
-            n_gen_rows++;
-
-            std::vector<llama_token> re = common_tokenize(vocab, answer_text, false, true);
-            while (!re.empty() && llama_vocab_is_eog(vocab, re.back())) {
-                re.pop_back();
-            }
-            if (re != gen) {
-                n_retok++;
-            }
-        } else if (!answer_text.empty()) {
-            tok_a = common_tokenize(vocab, answer_text, false, true);
-            while (!tok_a.empty() && llama_vocab_is_eog(vocab, tok_a.back())) {
-                tok_a.pop_back();
-            }
-        }
-
-        std::vector<llama_token> ids = tok_q;
-        ids.insert(ids.end(), tok_a.begin(), tok_a.end());
-
-        const int n_prompt = (int) tok_q.size();
-        const int n_tokens = (int) ids.size();
-
-        const int pos_a = n_prompt - 1;
-        const int pos_c = n_tokens - 1;
-
-        if (n_tokens > max_len) {
-            skip("too long: " + std::to_string(n_tokens) + " tokens > max_len " + std::to_string(max_len));
+        const bool need_gen = !r.has_answer && do_generate;
+        if (need_gen && (int64_t) tok_q.size() >= max_len) {
+            skip("no room for generation (prompt >= max_len)");
             continue;
         }
 
-        // 4. queue the state pass; rows are batched up to --batch-rows and max_len tokens
+        // 2. queue the row; generation and the state pass happen per batch
         hs_pending p;
         p.r           = &r;
-        p.ids         = std::move(ids);
-        p.n_prompt    = n_prompt;
-        p.n_tokens    = n_tokens;
-        p.pos_a       = pos_a;
-        p.pos_c       = pos_c;
-        p.answer_text = std::move(answer_text);
-        p.generated   = generated;
-        p.truncated   = truncated;
-        p.logprobs    = std::move(logprobs);
-        p.entropies   = std::move(entropies);
+        p.tok_q       = std::move(tok_q);
+        p.answer_text = r.answer;
+        p.need_gen    = need_gen;
 
-        int pending_len = p.n_tokens;
+        int pending_len = (int) p.tok_q.size();
         for (const hs_pending & q : pending) {
-            pending_len = std::max(pending_len, q.n_tokens);
+            pending_len = std::max(pending_len, (int) q.tok_q.size());
         }
         if (!pending.empty() && (int) (pending.size() + 1) * pending_len > max_len) {
             if (!flush_pending()) {

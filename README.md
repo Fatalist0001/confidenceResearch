@@ -197,6 +197,21 @@ wrote out\main_qwen08\hidden_a.npy  shape=[6000, 24, 1024]
 Доля обрывов на Qwen высокая именно потому, что модель отвечает коротко, а потом
 продолжает развёрнутым текстом и упирается в бюджет токенов (`report.md`, §8.3).
 
+**gpt-oss-20b-MXFP4** — архитектура `gpt-oss` (`LLM_ARCH_OPENAI_MOE`), **24 слоя**,
+**D = 2880**, MoE с 32 экспертами, файл 12.1 ГБ. Reasoning штатными флагами не
+отключается, поэтому вход — готовый harmony-промпт с предзаполненным каналом `final`
+(`pipeline/make_gptoss_prompt.py`), запуск с `--no-template` (`report.md`, §15.1).
+
+| Прогон | Примеров | ok / skipped | truncated | Пустые ответы | Скорость | Массивы |
+|---|---|---|---|---|---|---|
+| Пилот 50, `--batch-rows 8 -ngl 11` (§15.2) | 50 | 50 / 0 | 0 | 0 | 1.08 ex/s (46.1 s) | `[50, 24, 2880]` f16 |
+| **Основной прогон 6000, `--batch-rows 8 -ngl 11`** (§15.2) | 6000 | 6000 / 0 | 27 (0.45 %) | 0 | 0.56 ex/s (10733.5 s) | `[6000, 24, 2880]` f16, по 829.4 МБ; `retokenize mismatch` 21/6000 (0.3 %) |
+| Тот же набор с дефектным входом (§15.2.1, в отчёты не идёт) | 6000 | 6000 / 0 | 23 | 0 | 1.07 ex/s (5596 s) | `out/main_gptoss20b_dupinstr/` |
+
+Скорость полного прогона не показатель батчинга: первые ~2100 строк шли 1.06 ex/s,
+потом темп упал до 0.4–0.6 ex/s из-за нехватки RAM (свободно 0.7–1 ГБ из 16), GPU при
+этом 99 %, 41–44 Вт, 53 °C, без троттлинга (`report.md`, §15.2).
+
 ### 3.3 Данные: TriviaQA
 
 **Источник:** датасет `mandarjoshi/trivia_qa`, конфиг `rc.nocontext` (без контекста
@@ -583,6 +598,57 @@ D=1536), тот же вход `main.jsonl` и тот же шаблон. Снач
 `config.json`), `out/pilot_gemma4e2b/`, `out/compare_qwen08_gemma4e2b_test.json`.
 Команды — в разделе 5, шаг 8.
 
+### 3.10 Третья модель: gpt-oss-20b (шаг 8)
+
+`gpt-oss-20b-MXFP4.gguf` — 24 слоя, D = 2880, MoE (32 эксперта). Reasoning у модели
+штатно не отключается: шаблон всегда просит `Reasoning: medium`, `--no-thinking` он
+игнорирует, а `--reasoning*` действуют через сэмплер, которого в инструменте нет
+(генерация — greedy-argmax). Обход: `question` заменяется на готовый harmony-промпт,
+обрывающийся на `<|start|>assistant<|channel|>final<|message|>`, запуск — с
+`--no-template` (`pipeline/make_gptoss_prompt.py`, `report.md`, §15.1). Из-за этого
+точка A — последний токен нашего промпта, а не `<|start|>assistant`; это осознанное
+отклонение, иначе 64 токена уходят в канал `analysis` и всё обрезается.
+
+Прогон: **6000/6000 ok, 0 skipped, `truncated` 27 (0.45 %), 10733.5 s, 0.56 ex/s**,
+`retokenize mismatch` 21/6000 (0.3 %), массивы `[6000, 24, 2880]`. Пилот 50 строк —
+46.1 s (1.08 ex/s). Замедление к концу прогона — из-за памяти машины, а не батчинга:
+первые ~2100 строк шли 1.06 ex/s, свободной RAM оставалось 0.7–1 ГБ из 16.
+
+Разметка: strict 0.494, relaxed 0.498, **filtered_b 0.490**; без метки 27 строк — все
+`truncated`, пустых и вырожденных ответов нет (у Gemma были). Baseline test: logprob
+0.828, entropy 0.841. Проба: λ = 3000, победила **точка C, слой 16** (67 % глубины),
+val 0.9157, **test AUROC 0.9248** [0.909, 0.939], AUPRC 0.9197; контроли: перемешанные
+метки 0.494 ± 0.074, слой 0 (C) 0.684.
+
+| | Qwen3.5-0.8B | Gemma 4 E2B | gpt-oss-20b |
+|---|---|---|---|
+| слоёв × D | 24 × 1024 | 35 × 1536 | 24 × 2880 |
+| доля правильных (filtered_b) | 0.168 | 0.182 | 0.490 |
+| baseline logprob, test AUROC | 0.739 | 0.705 | 0.828 |
+| baseline entropy, test AUROC | 0.767 | 0.712 | 0.841 |
+| проба: точка, слой | C, 13 | C, 19 | C, 16 |
+| проба: val AUROC | 0.890 | 0.908 | 0.916 |
+| **проба: test AUROC** | **0.857** [0.825, 0.885] | **0.935** [0.918, 0.950] | **0.925** [0.909, 0.939] |
+| проба: test AUPRC | 0.593 | 0.744 | 0.920 (при доле правильных 0.49) |
+| контроль: слой 0 (C), test | 0.718 | 0.780 | 0.684 |
+| контроль: перемешанные метки | 0.490 ± 0.052 | 0.521 ± 0.056 | 0.494 ± 0.074 |
+
+Наблюдения:
+
+- gpt-oss отделяет верный ответ от неверного почти как Gemma (0.925 против 0.935) и
+  лучше Qwen (0.857); контроль «слой 0» у него ниже (0.684), то есть прирост от
+  глубоких слоёв больше;
+- лучший слой — 16 из 24 (**67 % глубины**), а не ~54 %, как у двух малых моделей;
+  сетку λ, точки и слои под это не подгоняли;
+- AUPRC 0.92 нельзя сравнивать с 0.59/0.74: у gpt-oss правильных ответов половина,
+  и AUPRC высок по построению;
+- у gpt-oss тест выше val (+0.009), как у Gemma, и в отличие от Qwen.
+
+Артефакты: `out/main_gptoss20b_v2/` (`meta.jsonl`, `labels.csv`, `baseline.*`,
+`probe.*`, `config.json`); неполный прогон `out/main_gptoss20b/` (325/6000) и
+`out/main_gptoss20b_dupinstr/` (дефектный промпт) в результаты не входят.
+Команды — в разделе 5, шаг 9.
+
 ---
 
 ## 4. Итоговая сводка
@@ -604,9 +670,11 @@ D=1536), тот же вход `main.jsonl` и тот же шаблон. Снач
 | Проба (логрегрессия по слоям) | `pipeline/out/main_qwen08/probe.json`, `probe_curve.csv`, `probe_scores.csv` |
 | Прогон и проба Gemma | `pipeline/out/main_gemma4e2b/` (meta, labels, baseline, probe, config), пилот `pipeline/out/pilot_gemma4e2b/` |
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/compare_probes.py` |
+| Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
+| Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–14) |
+| Подробный технический отчёт | `report.md` (пункты 1–15) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -759,6 +827,41 @@ python compare_probes.py --a out\main_qwen08\probe_scores.csv `
 
 (полный прогон Gemma — ~21 минута на RTX 3050; проба — ~7 минут)
 
+### Шаг 9. Третья модель (gpt-oss-20b)
+
+```powershell
+# 1) вход: harmony-промпт с предзаполненным каналом final (инструкция ровно один раз)
+python make_gptoss_prompt.py --in data\main.jsonl --out C:\Windows\TEMP\opencode\gptoss_final.jsonl
+#    проверка: у каждой строки count("Answer with just the answer") == 1, 6000 строк
+
+# 2) пилот 50 строк на том же входе (обязательно до полного прогона)
+Get-Content C:\Windows\TEMP\opencode\gptoss_final.jsonl -TotalCount 50 |
+  Set-Content C:\Windows\TEMP\opencode\gptoss_pilot50.jsonl -Encoding UTF8
+
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <путь к gpt-oss>.gguf `
+  --batch C:\Windows\TEMP\opencode\gptoss_pilot50.jsonl --generate --max-new-tokens 64 `
+  --max-len 1024 --layers all --no-thinking --no-template -ngl 11 --batch-rows 8 `
+  --out C:\Windows\TEMP\opencode\hsbatch\gptoss50
+
+# 3) полный прогон (~1.5–3 ч на RTX 3050 в зависимости от свободной RAM)
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <путь к gpt-oss>.gguf `
+  --batch C:\Windows\TEMP\opencode\gptoss_final.jsonl --generate --max-new-tokens 64 `
+  --max-len 1024 --layers all --no-thinking --no-template -ngl 11 --batch-rows 8 `
+  --out out\main_gptoss20b_v2
+
+# 4) метки, baseline, проба — те же команды, что выше, с путями out\main_gptoss20b_v2
+python label.py --meta out\main_gptoss20b_v2\meta.jsonl --out out\main_gptoss20b_v2\labels.csv
+python baseline.py --meta out\main_gptoss20b_v2\meta.jsonl --labels out\main_gptoss20b_v2\labels.csv `
+  --out out\main_gptoss20b_v2\baseline.json --scores-out out\main_gptoss20b_v2\baseline_scores.csv
+python probe.py --hidden-a out\main_gptoss20b_v2\hidden_a.npy --hidden-c out\main_gptoss20b_v2\hidden_c.npy `
+  --meta out\main_gptoss20b_v2\meta.jsonl --labels out\main_gptoss20b_v2\labels.csv `
+  --out out\main_gptoss20b_v2\probe.json --curve-out out\main_gptoss20b_v2\probe_curve.csv `
+  --scores-out out\main_gptoss20b_v2\probe_scores.csv
+```
+
+(`report.md`, §15; `-ngl 11` — оптимум для 6 ГБ, при 12+ слоях начинается вытеснение;
+`--batch-rows 8` ускоряет прогон в ~2.8 раза)
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -771,9 +874,10 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 ## 6. Ограничения и известные особенности
 
-- **Проверено только на двух моделях:** Gemma 4 E2B Q4_K_M (35 слоёв, D=1536) и
-  Qwen3.5-0.8B-BF16 (24 слоя, D=1024). Выводы про инструмент для других моделей не
-  проверялись (`report.md`, шапка и §8).
+- **Проверено на трёх моделях:** Gemma 4 E2B Q4_K_M (35 слоёв, D=1536),
+  Qwen3.5-0.8B-BF16 (24 слоя, D=1024) и gpt-oss-20b-MXFP4 (24 слоя, D=2880).
+  Выводы про инструмент для остальных моделей не проверялись (`report.md`, шапка, §8,
+  §15).
 - **Метки получены автоматикой и проверены выборкой.** Ручных меток всего 269:
   123 в `audit_human.csv` и 146 в `audit2_human.csv`. В случайной выборке из 100 строк
   строгое правило дало 3 ошибки, фильтр — 0; **доверительных границ для оценки шума
@@ -822,6 +926,21 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   ответов (0.182 против 0.168), и разное качество проб (`report.md`, §14.6).
 - **У Gemma тест выше val** (0.935 против 0.908), у Qwen — ниже (0.857 против 0.890);
   причина не установлена — нет данных.
+- **У gpt-oss точка A другая:** промпт обрывается на `<|start|>assistant<|channel|>final<|message|>`,
+  поэтому A — последний токен нашего сообщения, а не `<|start|>assistant`, как в
+  определении из `AGENTS.md`. Без этого reasoning съедает весь бюджет токенов
+  (`report.md`, §15.1). Сравнивать A у gpt-oss с A у Qwen/Gemma нужно с этой оговоркой.
+- **Скорость полного прогона gpt-oss зависела от свободной RAM:** 1.06 ex/s в начале,
+  0.4–0.6 ex/s во второй половине (свободно 0.7–1 ГБ из 16), итог 0.56 ex/s. Отдельного
+  замера одиночного режима на всех 6000 строках нет — ускорение ×2.9 оценено по 200
+  строкам (`report.md`, §15.7).
+- **AUPRC между моделями напрямую не сравнивать:** доля правильных ответов у gpt-oss
+  0.49 против 0.17–0.18 у малых моделей, поэтому AUPRC 0.92 высок по построению.
+  Сравнимы в первую очередь AUROC и контроли.
+- **Первый полный прогон gpt-oss (5596 s) недействителен:** инструкция в промпте стояла
+  дважды, результат лежит в `out/main_gptoss20b_dupinstr/` и в отчёты не входит
+  (`report.md`, §15.2.1). Неполный прогон `out/main_gptoss20b/` (325/6000, остановлен
+  вручную) тоже не используется.
 
 ---
 
@@ -904,6 +1023,13 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
     исследована.
 12. **Почему у Gemma тест выше val, а у Qwen ниже** — не установлено; val и test —
     разные наборы вопросов, отдельных проверок не делалось.
+13. **Полного замера одиночного режима gpt-oss на 6000 строках нет** — ускорение
+    батчинга ×2.9 получено по 200 строкам (533 s против 193 s), а на полном прогоне
+    темп дополнительно зависел от свободной RAM (`report.md`, §15.7).
+14. **Почему у gpt-oss лучший слой на 67 % глубины, а у Qwen/Gemma на ~54 %** — не
+    исследовалось; протокол (сетка λ, выбор по val) не менялся.
+15. **Логи полного прогона gpt-oss** сохранены только в `%TEMP%\opencode\hsbatch\`
+    (`gptoss6000_v2run.err.log`), в репозиторий не входят, как и логи других прогонов.
 
 ### Расхождения между `report.md` и файлами (не исправлены)
 
@@ -911,7 +1037,8 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    основным прогоном (раздел 11), а в него не попали: новые колонки аудита,
    `correct_filtered_a/b`, судья-LLM, аудит 2 и ручные разметки. Последний раз
    `report.md` менялся в коммите `1d177a9` от **2026-10-15** (`git log -- report.md`).
-   Цифры разделов 3.4–3.5 README поэтому взяты напрямую из CSV-файлов.
+   Цифры разделов 3.4–3.5 README поэтому взяты напрямую из CSV-файлов. Разделы 14 и 15
+   (Gemma и gpt-oss) добавлены позже и описывают свои прогоны полностью.
 2. **Размеры файлов в `report.md`, §11.3 устарели:** там `labels.csv = 431.4 KiB` и
    `audit.csv = 6.0 KiB`, сейчас это 465 716 байт (454.8 KiB) и 18 302 байта
    (17.9 KiB). Причина: файлы перегенерированы 2026-10-19 (добавлены `correct_filtered_*`
@@ -940,3 +1067,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    синтетическим вопросам без шаблона короткого ответа. На `main.jsonl` с нашим шаблоном
    у Gemma 13/6000 = 0.2 % (`report.md`, §14.1). Это разные входы, а не противоречие,
    но при цитировании «20 %» легко понять неверно.
+10. **`out/main_gptoss20b/` (325/6000) и `out/main_gptoss20b_dupinstr/` в git не входят.**
+    Первый остановлен вручную (массивы предвыделены, строки после 325 — нули), второй
+    получен на промпте с продублированной инструкцией. Оба оставлены на диске как следы
+    экспериментов; действительный прогон — `out/main_gptoss20b_v2/`.

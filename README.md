@@ -671,8 +671,9 @@ val 0.9157, **test AUROC 0.9248** [0.909, 0.939], AUPRC 0.9197; контроли
 | Прогон и проба Gemma | `pipeline/out/main_gemma4e2b/` (meta, labels, baseline, probe, config), пилот `pipeline/out/pilot_gemma4e2b/` |
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
+| Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/compare_probes.py` |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
 | Подробный технический отчёт | `report.md` (пункты 1–15) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
@@ -862,6 +863,26 @@ python probe.py --hidden-a out\main_gptoss20b_v2\hidden_a.npy --hidden-c out\mai
 (`report.md`, §15; `-ngl 11` — оптимум для 6 ГБ, при 12+ слоях начинается вытеснение;
 `--batch-rows 8` ускоряет прогон в ~2.8 раза)
 
+### Сохранённая проба: как применить к другим данным
+
+`probe.py` рядом с `probe.json` кладёт `probe_model.npz` (поля `w`, `mu`, `sd` и JSON
+`meta`). Скор для вектора скрытого состояния `x` (float64, слой `meta["layer"]`):
+
+```python
+z = (x - mu) / sd
+score = w[0] + w[1:] @ z
+```
+
+Для прогонов, сделанных до появления `probe_model.npz`, он пересобирается побайтово
+тем же протоколом (та же train-выборка, стандартизация и λ; тест не пересчитывается):
+
+```powershell
+python save_probe_model.py --dir out\main_gemma4e2b
+```
+
+Проверка при пересборке: AUROC на тесте совпадает с `probe.json` до 1e-9, скоры — с
+`probe_scores.csv` до 5e-9 (это округление в CSV).
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -941,6 +962,16 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   дважды, результат лежит в `out/main_gptoss20b_dupinstr/` и в отчёты не входит
   (`report.md`, §15.2.1). Неполный прогон `out/main_gptoss20b/` (325/6000, остановлен
   вручную) тоже не используется.
+- **Перенести обученную пробу с одной модели на другую «в лоб» нельзя.** Проба —
+  линейная по вектору скрытого состояния, а размерности у моделей разные: Qwen D=1024,
+  Gemma D=1536, gpt-oss D=2880. Вектор признаков Qwen (1024) не умножить на веса
+  Gemma-пробы (1536). Сами веса теперь сохраняются рядом с `probe.json` в
+  `probe_model.npz` (`w`, `mu`, `sd`), но это не снимает несовпадения размерностей.
+  Скрипт `pipeline/cross_model_test.py` (не в git) делал именно невозможное —
+  `np.dot(hs_qwen, w_gemma)` и `probe['coefficients']`; результат не запускался.
+  Корректные варианты: (а) прогнать Gemma на ответах Qwen и применить Gemma-пробу к
+  состояниям Gemma (это перенос на другой текст, а не на другое пространство) или
+  (б) отдельно учить линейное выравнивание пространств; ни то, ни другое не запускалось.
 
 ---
 

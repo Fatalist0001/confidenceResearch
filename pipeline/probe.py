@@ -17,6 +17,7 @@ Usage:
 import argparse
 import csv
 import json
+import os
 import sys
 
 import numpy as np
@@ -79,6 +80,17 @@ def with_bias(X):
     return np.column_stack([np.ones(len(X)), X])
 
 
+def save_probe_model(path, w, mu, sd, info):
+    """Store the fitted probe as a portable object (no pickled code, plain arrays)."""
+    np.savez(
+        path,
+        w=np.asarray(w, dtype=np.float64),
+        mu=np.asarray(mu, dtype=np.float64),
+        sd=np.asarray(sd, dtype=np.float64),
+        meta=np.array(json.dumps(info, ensure_ascii=False)),
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hidden-a", default="out/main_qwen08/hidden_a.npy")
@@ -88,6 +100,8 @@ def main() -> int:
     ap.add_argument("--out", default="out/main_qwen08/probe.json")
     ap.add_argument("--scores-out", default="out/main_qwen08/probe_scores.csv")
     ap.add_argument("--curve-out", default="out/main_qwen08/probe_curve.csv")
+    ap.add_argument("--model-out", default=None,
+                    help="weights of the selected probe (.npz); default: probe_model.npz next to --out")
     ap.add_argument("--lambdas", default="100,300,1000,3000")
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--bins", type=int, default=10)
@@ -155,6 +169,31 @@ def main() -> int:
     w = fit_l2(Ztr, ytr, lam_best)
     s_va, s_te = Bva @ w, Bte @ w
     p_va, p_te = sigmoid(s_va), sigmoid(s_te)
+
+    # same mean/std as standardize() above, kept for reuse on other data
+    mu = Xtr.mean(axis=0)
+    sd = Xtr.std(axis=0) + 1e-8
+    model_out = args.model_out or os.path.join(os.path.dirname(args.out) or ".", "probe_model.npz")
+    save_probe_model(
+        model_out, w, mu, sd,
+        {
+            "version": 1,
+            "kind": "l2_logistic_probe",
+            "point": sel["point"],
+            "layer": int(sel["layer"]),
+            "lambda": lam_best,
+            "label_column": "correct_filtered_b",
+            "w_layout": "[intercept, coef[D]]",
+            "apply": "z = (x - mu) / sd; score = w[0] + w[1:] @ z",
+            "standardization": "mean/std over the train split",
+            "hidden": (args.hidden_a if sel["point"] == "A" else args.hidden_c).replace("\\", "/"),
+            "meta": args.meta.replace("\\", "/"),
+            "labels": args.labels.replace("\\", "/"),
+            "rows": {"train": len(tr), "val": len(va), "test": len(te)},
+            "positives": {"train": int(ytr.sum()), "val": int(yva.sum()), "test": int(yte.sum())},
+        },
+    )
+    print(f"saved probe model: {model_out}")
 
     b0, b1 = fit_logistic(s_va, yva)
     p_va_platt = sigmoid(b0 + b1 * s_va)
@@ -261,7 +300,7 @@ def main() -> int:
     print(f"written: {args.out}")
     print(f"written: {args.curve_out}")
     print(f"written: {args.scores_out}")
-    return 0
+    print(f"written: {model_out}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,49 @@
+{
+  "split": "test",
+  "n": 1186,
+  "positives": {
+    "a": 195,
+    "b": 573
+  },
+  "base_rate": {
+    "a": 0.16441821247892074,
+    "b": 0.4831365935919056
+  },
+  "overall_cross_auroc": 0.6898524978007055,
+  "strata": {
+    "a_correct": {
+      "n": 195,
+      "positives": 173,
+      "base_rate": 0.8871794871794871,
+      "auroc": 0.7472411981082502,
+      "ci": [
+        0.6328473607229869,
+        0.8509909802244251
+      ]
+    },
+    "a_wrong": {
+      "n": 991,
+      "positives": 400,
+      "base_rate": 0.4036326942482341,
+      "auroc": 0.5904314720812183,
+      "ci": [
+        0.5553398940118718,
+        0.6260384202869723
+      ]
+    }
+  },
+  "conditional_auroc_weighted": 0.6162138469338921,
+  "logistic": {
+    "fit_split": "val",
+    "eval_split": "test",
+    "n_fit": 1186,
+    "auroc_label_a_only": 0.6330153253105347,
+    "auroc_label_a_plus_score_a": 0.6965571432231835,
+    "delta": 0.06354181791264879
+  },
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "scores_a": "out/main_gemma4e2b/probe_scores.csv",
+  "scores_b": "out/main_gptoss20b_v2/probe_scores.csv",
+  "note": "cross AUROC within strata of A's label; logistic fits on fit_split"
+}

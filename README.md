@@ -649,6 +649,39 @@ val 0.9157, **test AUROC 0.9248** [0.909, 0.939], AUPRC 0.9197; контроли
 `out/main_gptoss20b_dupinstr/` (дефектный промпт) в результаты не входят.
 Команды — в разделе 5, шаг 9.
 
+### 3.11 Кросс-модельная проверка проб (шаг 9)
+
+Пробы разных моделей лежат в разных пространствах (D = 1024, 1536, 2880), поэтому веса
+переносить между ними нельзя. Проверен более слабый, но корректный вариант: скор одной
+модели против **метки другой** на общих строках одного сплита
+(`pipeline/cross_probe_scores.py`). У каждой модели своя правильность ответа, поэтому
+«кросс» отвечает на вопрос, переносится ли сигнал уверенности между моделями, а не
+направление пробы.
+
+Тест (общие строки 1186–1189; на val та же картина, кросс AUROC 0.668–0.802):
+
+| источник скора → метка | родной AUROC источника | родной AUROC цели | **кросс AUROC** | контроль: метка источника → метка цели | согласие меток |
+|---|---|---|---|---|---|
+| Qwen → Gemma | 0.858 | 0.936 | 0.771 [0.732, 0.807] | 0.722 | 0.849 |
+| Gemma → Qwen | 0.936 | 0.858 | 0.753 [0.712, 0.792] | 0.705 | 0.849 |
+| gpt-oss → Qwen | 0.925 | 0.857 | 0.801 [0.766, 0.836] | 0.735 | 0.633 |
+| Qwen → gpt-oss | 0.857 | 0.925 | 0.679 [0.648, 0.709] | 0.620 | 0.633 |
+| gpt-oss → Gemma | 0.925 | 0.935 | 0.832 [0.803, 0.863] | 0.742 | 0.644 |
+| Gemma → gpt-oss | 0.935 | 0.925 | 0.690 [0.658, 0.719] | 0.633 | 0.644 |
+
+- Перенос есть, но частичный: 0.68–0.83 против 0.86–0.94 у родных проб. «Очень плохо»
+  (≈0.5) не получилось — у моделей есть общий сигнал, в основном сложность вопроса.
+- Контроль «знать исход источника» даёт 0.62–0.74; скор gpt-oss его заметно
+  превосходит (0.80/0.83), скоры малых моделей при предсказании gpt-oss — нет
+  (0.68/0.69 при контроле 0.62/0.63). Причина, вероятно, в базовых долях: 0.49 у
+  gpt-oss против 0.15–0.16 у малых.
+- Согласие меток 63–85 %, корреляция скоров 0.44–0.50.
+- Это не перенос весов: сравнение предсказаний. AUPRC между парами не сравнивается
+  (разные доли правильных ответов).
+
+Артефакты: `out/cross_<a>_<b>_test.json` и `..._val.json` (шесть файлов), команды —
+раздел 5, шаг 10.
+
 ---
 
 ## 4. Итоговая сводка
@@ -672,10 +705,11 @@ val 0.9157, **test AUROC 0.9248** [0.909, 0.939], AUPRC 0.9197; контроли
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
 | Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ |
+| Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json` |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/compare_probes.py` |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–15) |
+| Подробный технический отчёт | `report.md` (пункты 1–16) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -883,6 +917,20 @@ python save_probe_model.py --dir out\main_gemma4e2b
 Проверка при пересборке: AUROC на тесте совпадает с `probe.json` до 1e-9, скоры — с
 `probe_scores.csv` до 5e-9 (это округление в CSV).
 
+### Шаг 10. Кросс-модельные скоры (проба одной модели → метка другой)
+
+```powershell
+python cross_probe_scores.py `
+  --scores-a out\main_qwen08\probe_scores.csv --labels-a out\main_qwen08\labels.csv `
+  --scores-b out\main_gemma4e2b\probe_scores.csv --labels-b out\main_gemma4e2b\labels.csv `
+  --split test --out out\cross_qwen08_gemma4e2b_test.json
+# то же для пар qwen/gpt-oss и gemma/gpt-oss и для --split val
+```
+
+Берутся только строки, которые обе модели отдали в одном сплите; печатаются родные
+AUROC (на том же подмножестве), кросс AUROC с bootstrap-интервалом, контроль
+«метка → метка» и согласие меток (`report.md`, §16).
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -967,11 +1015,10 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   Gemma D=1536, gpt-oss D=2880. Вектор признаков Qwen (1024) не умножить на веса
   Gemma-пробы (1536). Сами веса теперь сохраняются рядом с `probe.json` в
   `probe_model.npz` (`w`, `mu`, `sd`), но это не снимает несовпадения размерностей.
-  Скрипт `pipeline/cross_model_test.py` (не в git) делал именно невозможное —
-  `np.dot(hs_qwen, w_gemma)` и `probe['coefficients']`; результат не запускался.
-  Корректные варианты: (а) прогнать Gemma на ответах Qwen и применить Gemma-пробу к
-  состояниям Gemma (это перенос на другой текст, а не на другое пространство) или
-  (б) отдельно учить линейное выравнивание пространств; ни то, ни другое не запускалось.
+  Проверять перенос весов можно только через выученное выравнивание пространств; это не
+  делалось. Более слабый вариант — скор одной пробы против метки другой — посчитан
+  (§3.11): AUROC 0.68–0.83 против 0.86–0.94 у родных проб, то есть перенос частичный,
+  и в основном он объясняется общей сложностью вопросов, а не совпадением представлений.
 
 ---
 

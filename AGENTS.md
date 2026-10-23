@@ -438,8 +438,8 @@ filtered_b / correct). 20 строк: 0 skipped, 0 truncated; смесь стр�
 
 ## Текущее состояние (2026-10-22, 20:45)
 
-- Коммиты: `3a9ac41` (батчирование), `f33f450` (docs), `7ea246c`
-  (`pipeline/make_gptoss_prompt.py`), `b76dae1` (чек-лист и инцидент) — в `origin/main`.
+- Коммиты по gpt-oss и батчингу (включая `3a9ac41`, `f33f450`, `7ea246c`, `b76dae1`) —
+  в `origin/main`.
 - **gpt-oss-20b прогнан полностью** (6000 строк, `--batch-rows 8 -ngl 11`, вход
   `gptoss20b_final6000_q_v2.jsonl`): 6000/6000 ok, truncated 27, 10733.5 s (0.56 ex/s),
   метки strict 0.494 / filtered_b 0.490, baseline test 0.828/0.841, проба C/16
@@ -447,7 +447,14 @@ filtered_b / correct). 20 строк: 0 skipped, 0 truncated; смесь стр�
 - `pipeline\out\main_gptoss20b` (325/6000, остановлен вручную) и
   `main_gptoss20b_dupinstr` (промпт с дублем инструкции) — не используются, в git не
   входят, но и не удаляются.
-- Документация: §15 в `report.md`, §3.10 и правки §3.2/§4/§5/§6 в `README.md`,
+- Документация: §15–§16 в `report.md`, §3.10/§3.11 и правки §3.2/§4/§5/§6 в `README.md`,
   раздел про полный прогон в `AGENTS.md`.
+- Веса выбранных проб сохраняются в `pipeline\out\main_<tag>\probe_model.npz`
+  (`w`, `mu`, `sd`, JSON `meta`); для старых прогонов — `save_probe_model.py --dir`.
+- Кросс-модельные скоры (проба одной модели → метка другой, `cross_probe_scores.py`,
+  6 JSON в `pipeline\out\cross_*_{test,val}.json`), тест: gpt-oss→Gemma 0.832,
+  gpt-oss→Qwen 0.801, Qwen→Gemma 0.771, Gemma→Qwen 0.753, Gemma→gpt-oss 0.690,
+  Qwen→gpt-oss 0.679 при родных 0.86–0.94. Это сравнение предсказаний, а не перенос
+  весов: веса между D=1024/1536/2880 не переносятся.
 - Пилоты малых моделей с батчингом (`hsbatch\qwen_p20_*`, `gemma_p20_*`): работает,
   но выигрыш ~×1.2; для массовых прогонов b8 оправдан только на gpt-oss.

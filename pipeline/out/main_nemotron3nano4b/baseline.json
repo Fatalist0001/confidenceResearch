@@ -1,0 +1,9 @@
+{
+  "model": "nemotron3nano4b",
+  "n_samples": 5266,
+  "n_correct": 0,
+  "accuracy": 0.0,
+  "expected_random": 0.5,
+  "random_diff": 0.5,
+  "note": "All entries show \"failed to capture hidden states\", using random baseline"
+}

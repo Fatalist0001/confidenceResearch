@@ -1,0 +1,20 @@
+{
+  "position_A": {
+    "val_auroc": 0.5,
+    "test_auroc": 0.5,
+    "val_auprc": 0.5,
+    "test_auprc": 0.5,
+    "best_layer": -1,
+    "best_lambda": -1,
+    "method": "random_baseline"
+  },
+  "position_C": {
+    "val_auroc": 0.5,
+    "test_auroc": 0.5,
+    "val_auprc": 0.5,
+    "test_auprc": 0.5,
+    "best_layer": -1,
+    "best_lambda": -1,
+    "method": "random_baseline"
+  }
+}

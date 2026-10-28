@@ -1,0 +1,57 @@
+{
+  "split": "test",
+  "n_common": 1195,
+  "positives": {
+    "a": 178,
+    "b": 326
+  },
+  "base_rate": {
+    "a": 0.1489539748953975,
+    "b": 0.27280334728033473
+  },
+  "own": {
+    "a_on_a": {
+      "auroc": 0.8570481588280137,
+      "ci": [
+        0.8247232602268058,
+        0.8850663722804964
+      ]
+    },
+    "b_on_b": {
+      "auroc": 0.882531927961764,
+      "ci": [
+        0.8607477734258526,
+        0.9019037579557236
+      ]
+    }
+  },
+  "cross": {
+    "b_on_a": {
+      "auroc": 0.7936097577143615,
+      "ci": [
+        0.7554283207279126,
+        0.829247682125103
+      ]
+    },
+    "a_on_b": {
+      "auroc": 0.7317380530473642,
+      "ci": [
+        0.6974037144175145,
+        0.766342113700936
+      ]
+    }
+  },
+  "corr_scores_pearson": 0.5376312700002722,
+  "label_agreement": 0.799163179916318,
+  "cross_label_control": {
+    "b_label_from_a_label": 0.6759867840476678,
+    "a_label_from_b_label": 0.7754079524488195
+  },
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "scores_a": "out/main_qwen08/probe_scores.csv",
+  "scores_b": "out/main_nemotron3nano4b_v2/probe_scores.csv",
+  "labels_a": "out/main_qwen08/labels.csv",
+  "labels_b": "out/main_nemotron3nano4b_v2/labels.csv",
+  "note": "a = first model, b = second; cross = score of one model vs the other model's label"
+}

@@ -1,0 +1,30 @@
+{
+  "split": "test",
+  "a": "out/main_gptoss20b_v2/probe_scores.csv",
+  "b": "out/main_nemotron3nano4b_v2/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1192,
+    "pos_a": 575,
+    "pos_b": 326,
+    "base_rate_a": 0.4823825503355705,
+    "base_rate_b": 0.27348993288590606,
+    "label_mismatch_rows": 335,
+    "a_auroc": 0.9247889507434289,
+    "b_auroc": 0.8820895733858514,
+    "a_auprc": 0.919650416967386,
+    "b_auprc": 0.7370168107659755,
+    "delta_auroc": -0.04269937735757756,
+    "delta_auprc": -0.18263360620141056
+  },
+  "delta_auroc_ci": [
+    -0.06742949441479781,
+    -0.02056226522566633
+  ],
+  "delta_auprc_ci": [
+    -0.23030617259338804,
+    -0.13814198772209055
+  ],
+  "share_b_higher_auroc": 0.0
+}

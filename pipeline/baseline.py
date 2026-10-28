@@ -26,8 +26,16 @@ def norm_path(p):
 
 
 def read_meta(path):
-    with open(path, encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    out = []
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for i, line in enumerate(f, 1):
+            if not line.strip():
+                continue
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                raise SystemExit(f"{path}:{i}: invalid JSON ({e}); interrupted run? see verify_run.py")
+    return out
 
 
 def read_labels(path):
@@ -137,6 +145,7 @@ def ece(y, p, bins=10):
 
 
 def sigmoid(x):
+    x = np.clip(x, -500.0, 500.0)
     return 1.0 / (1.0 + np.exp(-x))
 
 

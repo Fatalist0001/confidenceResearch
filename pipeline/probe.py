@@ -26,8 +26,16 @@ from baseline import auroc, auprc, fit_logistic, metrics, sigmoid
 
 
 def read_jsonl(path):
-    with open(path, encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    out = []
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for i, line in enumerate(f, 1):
+            if not line.strip():
+                continue
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                raise SystemExit(f"{path}:{i}: invalid JSON ({e}); interrupted run? see verify_run.py")
+    return out
 
 
 def read_labels(path):
@@ -35,16 +43,69 @@ def read_labels(path):
         return {int(r["row"]): r for r in csv.DictReader(f)}
 
 
-def split_indices(meta, labels):
+def split_rows(meta, labels):
+    """npy row indices per split.
+
+    The hidden-state arrays are indexed by the `row` field of meta.jsonl, not by
+    the position of the record in the file, so a gap in meta.jsonl (interrupted
+    run) cannot shift the features.
+    """
     out = {}
-    for i, rec in enumerate(meta):
-        lab = labels[int(rec["row"])]
+    for rec in meta:
+        row = int(rec["row"])
+        lab = labels.get(row)
+        if lab is None:
+            raise SystemExit(f"row {row} from meta has no line in the labels file")
+        if lab["split"].strip() and lab["split"] != rec["split"]:
+            raise SystemExit(f"split mismatch at row {row}: labels={lab['split']} meta={rec['split']}")
         if rec.get("status") != "ok" or not rec.get("generated") or rec.get("truncated"):
             continue
         if lab["correct_filtered_b"].strip() == "":
             continue
-        out.setdefault(rec["split"], []).append(i)
+        out.setdefault(rec["split"], []).append(row)
     return out
+
+
+def check_arrays(paths, rows, n_embd=None):
+    """Shape/range checks; returns {point: (shape, layers)}."""
+    info = {}
+    max_row = max(rows) if rows else -1
+    for point, path in paths:
+        arr = np.load(path, mmap_mode="r")
+        if arr.ndim != 3:
+            raise SystemExit(f"{path}: expected a 3-D array [N, L, D], got shape {arr.shape}")
+        if arr.dtype != np.float16:
+            raise SystemExit(f"{path}: expected float16, got {arr.dtype}")
+        if arr.shape[0] <= max_row:
+            raise SystemExit(f"{path}: {arr.shape[0]} rows, but meta refers to row {max_row}")
+        if n_embd is not None and arr.shape[2] != n_embd:
+            raise SystemExit(f"{path}: D={arr.shape[2]}, config says n_embd={n_embd}")
+        info[point] = arr
+    if info["A"].shape != info["C"].shape:
+        raise SystemExit(f"hidden_a {info['A'].shape} and hidden_c {info['C'].shape} differ")
+    return info
+
+
+def usable_layers(arr, rows, probe=256):
+    """Layers that are not all-zero on a sample of the used rows."""
+    keep, dropped = [], []
+    sample = rows[:probe]
+    for layer in range(arr.shape[1]):
+        block = np.asarray(arr[sample, layer, :])
+        if block.size and float(np.abs(block).max()) == 0.0:
+            dropped.append(layer)
+        else:
+            keep.append(layer)
+    return keep, dropped
+
+
+def read_config(hidden_a):
+    """config.json written next to the arrays, if any."""
+    path = os.path.join(os.path.dirname(hidden_a) or ".", "config.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def fit_l2(X, y, lam, max_iter=40, max_step=2.0, tol=1e-6):
@@ -111,11 +172,32 @@ def main() -> int:
 
     meta = read_jsonl(args.meta)
     labels = read_labels(args.labels)
-    idx = split_indices(meta, labels)
+    cfg = read_config(args.hidden_a)
+    n_embd = int(cfg["n_embd"]) if cfg and "n_embd" in cfg else None
+    idx = split_rows(meta, labels)
+    for split in ("train", "val", "test"):
+        if not idx.get(split):
+            counts = {k: len(v) for k, v in idx.items()}
+            raise SystemExit(
+                f"no usable rows for split '{split}' (have {counts}); "
+                "check status/generated/truncated in meta.jsonl and labels.csv"
+            )
     tr, va, te = idx["train"], idx["val"], idx["test"]
-    ytr = np.array([int(labels[meta[i]["row"]]["correct_filtered_b"]) for i in tr], dtype=float)
-    yva = np.array([int(labels[meta[i]["row"]]["correct_filtered_b"]) for i in va], dtype=float)
-    yte = np.array([int(labels[meta[i]["row"]]["correct_filtered_b"]) for i in te], dtype=float)
+
+    arrays = check_arrays((("A", args.hidden_a), ("C", args.hidden_c)), tr + va + te, n_embd)
+    n_layers_total = arrays["A"].shape[1]
+    if cfg and "layers" in cfg:
+        if len(cfg["layers"]) != n_layers_total:
+            raise SystemExit(
+                f"{args.hidden_a}: {n_layers_total} layers in the array, "
+                f"{len(cfg['layers'])} in config.json"
+            )
+        layer_ids = [int(x) for x in cfg["layers"]]
+    else:
+        layer_ids = list(range(n_layers_total))
+    ytr = np.array([int(labels[r]["correct_filtered_b"]) for r in tr], dtype=float)
+    yva = np.array([int(labels[r]["correct_filtered_b"]) for r in va], dtype=float)
+    yte = np.array([int(labels[r]["correct_filtered_b"]) for r in te], dtype=float)
     lambdas = [float(x) for x in args.lambdas.split(",")]
 
     print(f"rows: train {len(tr)} ({int(ytr.sum())}+), val {len(va)} ({int(yva.sum())}+), "
@@ -123,9 +205,14 @@ def main() -> int:
 
     curve = []
     for point, path in (("A", args.hidden_a), ("C", args.hidden_c)):
-        arr = np.load(path, mmap_mode="r")
-        n_layers = arr.shape[1]
-        for layer in range(n_layers):
+        arr = arrays[point]
+        keep, dropped = usable_layers(arr, tr)
+        if not keep:
+            raise SystemExit(f"{path}: every layer is all-zero on the train rows, nothing to fit")
+        if dropped:
+            print(f"point {point}: skipping {len(dropped)} all-zero layer(s): "
+                  f"{[layer_ids[i] for i in dropped]}")
+        for layer in keep:
             Xtr = np.asarray(arr[tr, layer, :], dtype=np.float64)
             Xva = np.asarray(arr[va, layer, :], dtype=np.float64)
             Xte = np.asarray(arr[te, layer, :], dtype=np.float64)
@@ -138,13 +225,14 @@ def main() -> int:
                     {
                         "point": point,
                         "layer": layer,
+                        "layer_id": layer_ids[layer],
                         "lambda": lam,
                         "train_auroc": auroc(ytr, s_tr),
                         "val_auroc": auroc(yva, s_va),
                         "val_auprc": auprc(yva, s_va),
                     }
                 )
-        print(f"point {point}: {n_layers} layers x {len(lambdas)} lambdas done")
+        print(f"point {point}: {len(keep)} layers x {len(lambdas)} lambdas done")
 
     lam_mean = {}
     for lam in lambdas:
@@ -160,7 +248,7 @@ def main() -> int:
           f"(val AUROC {sel['val_auroc']:.4f}, val AUPRC {sel['val_auprc']:.4f})")
 
     # refit the selected config on train (same lambda, same standardization)
-    arr = np.load(args.hidden_a if sel["point"] == "A" else args.hidden_c, mmap_mode="r")
+    arr = arrays[sel["point"]]
     Xtr = np.asarray(arr[tr, sel["layer"], :], dtype=np.float64)
     Xva = np.asarray(arr[va, sel["layer"], :], dtype=np.float64)
     Xte = np.asarray(arr[te, sel["layer"], :], dtype=np.float64)
@@ -181,6 +269,7 @@ def main() -> int:
             "kind": "l2_logistic_probe",
             "point": sel["point"],
             "layer": int(sel["layer"]),
+            "layer_id": layer_ids[int(sel["layer"])],
             "lambda": lam_best,
             "label_column": "correct_filtered_b",
             "w_layout": "[intercept, coef[D]]",
@@ -221,7 +310,7 @@ def main() -> int:
     l0 = [c for c in curve if c["lambda"] == lam_best and c["layer"] == 0]
     layer0 = {}
     for c in l0:
-        arr = np.load(args.hidden_a if c["point"] == "A" else args.hidden_c, mmap_mode="r")
+        arr = arrays[c["point"]]
         Xtr0 = np.asarray(arr[tr, 0, :], dtype=np.float64)
         Xva0 = np.asarray(arr[va, 0, :], dtype=np.float64)
         Xte0 = np.asarray(arr[te, 0, :], dtype=np.float64)
@@ -240,12 +329,14 @@ def main() -> int:
         "rows": {"train": len(tr), "val": len(va), "test": len(te)},
         "positives": {"train": int(ytr.sum()), "val": int(yva.sum()), "test": int(yte.sum())},
         "lambdas": lambdas,
+        "layer_ids": layer_ids,
         "lambda_mean_val_auroc": {f"{k:g}": v for k, v in lam_mean.items()},
         "selected_lambda": lam_best,
         "selection_rule": "lambda: max mean val AUROC over all configs; config: max val AUROC",
         "selected": {
             "point": sel["point"],
             "layer": int(sel["layer"]),
+            "layer_id": layer_ids[int(sel["layer"])],
             "val_auroc": sel["val_auroc"],
             "val_auprc": sel["val_auprc"],
         },
@@ -266,6 +357,7 @@ def main() -> int:
     with open(args.scores_out, "w", encoding="utf-8", newline="") as f:
         wr = csv.writer(f)
         wr.writerow(["id", "row", "split", "y", "score", "prob", "prob_platt"])
+        meta_by_row = {int(r["row"]): r for r in meta}
         for split, rows, y, s, p in (
             ("val", va, yva, s_va, p_va_platt),
             ("test", te, yte, s_te, p_te_platt),
@@ -273,8 +365,8 @@ def main() -> int:
             for i, yy, ss, pp in zip(rows, y, s, p):
                 wr.writerow(
                     [
-                        meta[i]["id"],
-                        meta[i]["row"],
+                        meta_by_row[i]["id"],
+                        meta_by_row[i]["row"],
                         split,
                         int(yy),
                         f"{ss:.9g}",

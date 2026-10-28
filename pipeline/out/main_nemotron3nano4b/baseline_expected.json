@@ -1,7 +1,0 @@
-{
-  "test_auroc": 0.5,
-  "test_auprc": 0.5,
-  "test_accuracy": 1.0,
-  "test_samples": 468,
-  "method": "random_baseline"
-}

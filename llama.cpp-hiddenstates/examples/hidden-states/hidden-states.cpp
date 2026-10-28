@@ -130,6 +130,11 @@ struct hs_state {
     int n_cap_a = 0;
 
     bool dump_tensors = false;
+
+    // probe pass: record which layers actually emit l_out (some architectures,
+    // e.g. nemotron_h, expose it only on a subset of layers)
+    bool discover = false;
+    std::vector<uint8_t> found;
 };
 
 static void reset_capture(hs_state & st) {
@@ -143,6 +148,17 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
     auto * st = (hs_state *) user_data;
 
     if (ask) {
+        if (st->discover) {
+            if (strncmp(t->name, "l_out-", 6) == 0) {
+                int l = -1;
+                if (sscanf(t->name, "l_out-%d", &l) == 1 && l >= 0 && l < st->n_layer &&
+                        st->found.size() == (size_t) st->n_layer) {
+                    st->found[(size_t) l] = 1;
+                }
+                return true;
+            }
+            return false;
+        }
         if (st->dump_tensors) {
             if (strncmp(t->name, "l_out-", 6) == 0) {
                 LOG_INF("tensor: %s shape=[%lld x %lld] type=%s\n", t->name,
@@ -156,6 +172,10 @@ static bool cb_eval(struct ggml_tensor * t, bool ask, void * user_data) {
 
     if (!st->enabled) {
         return true;
+    }
+
+    if (st->discover) {
+        return true; // names were collected in the ask phase
     }
 
     int layer = -1;
@@ -570,6 +590,31 @@ static int decode_multi(
     return rc;
 }
 
+// Some architectures (nemotron_h, granite-hybrid, ...) expose l_out only on a
+// subset of layers. Decode a single token and collect the names that really
+// exist, so that --layers all keeps only the layers that can be captured.
+static std::vector<int> probe_lout_layers(llama_context * ctx, hs_state & st, llama_token tok) {
+    st.found.assign((size_t) st.n_layer, 0);
+    st.discover = true;
+    st.enabled  = true;
+
+    const int rc = decode_ids(ctx, { tok }, 0, { 0 });
+
+    st.enabled  = false;
+    st.discover = false;
+
+    std::vector<int> out;
+    if (rc != 0) {
+        return out;
+    }
+    for (int l = 0; l < st.n_layer; ++l) {
+        if (st.found[(size_t) l]) {
+            out.push_back(l);
+        }
+    }
+    return out;
+}
+
 struct hs_opts {
     std::string batch_path;
     std::string out_dir;
@@ -688,26 +733,18 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     st.n_layer = llama_model_n_layer(model);
     st.n_embd  = llama_model_n_embd(model);
+    const int64_t D = st.n_embd;
 
     std::vector<int> layers;
     if (!parse_layers(layers_spec, st.n_layer, layers)) {
         LOG_ERR("%s : bad --layers value '%s' (n_layer=%d)\n", __func__, layers_spec.c_str(), st.n_layer);
         return 1;
     }
-    st.layer_row.assign((size_t) st.n_layer, -1);
-    for (size_t i = 0; i < layers.size(); ++i) {
-        st.layer_row[(size_t) layers[i]] = (int) i;
-    }
+    const std::vector<int> layers_requested = layers;
+
     st.cap_c.assign((size_t) st.n_layer, 0);
     st.cap_a.assign((size_t) st.n_layer, 0);
-
-    const int64_t L_sel = (int64_t) layers.size();
-    const int64_t D     = st.n_embd;
-
-    st.hs_c.assign((size_t) batch_rows * L_sel * D, 0.0f);
-    st.hs_a.assign((size_t) batch_rows * L_sel * D, 0.0f);
     st.want_a = true;
-    reset_capture(st);
 
     common_chat_templates_ptr tmpls;
     if (!no_template) {
@@ -726,6 +763,62 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     llama_memory_t mem = llama_get_memory(ctx);
 
+    // keep only the selected layers that really emit l_out; on hybrid models
+    // (nemotron_h) the SSM/attention layers have no l_out and would otherwise
+    // leave zero rows and mark every example as skipped
+    if (!layers.empty()) {
+        llama_token probe_tok = llama_vocab_bos(vocab);
+        if (probe_tok < 0) {
+            probe_tok = llama_vocab_eos(vocab);
+        }
+        if (probe_tok < 0 || probe_tok >= llama_vocab_n_tokens(vocab)) {
+            probe_tok = 0;
+        }
+
+        llama_memory_clear(mem, true);
+        const std::vector<int> avail = probe_lout_layers(ctx, st, probe_tok);
+        llama_memory_clear(mem, true);
+
+        if (avail.empty()) {
+            LOG_WRN("%s : could not probe l_out layers, keeping the selection as is\n", __func__);
+        } else {
+            std::vector<int> kept;
+            std::vector<int> dropped;
+            for (int l : layers) {
+                if (std::binary_search(avail.begin(), avail.end(), l)) {
+                    kept.push_back(l);
+                } else {
+                    dropped.push_back(l);
+                }
+            }
+            if (!dropped.empty()) {
+                std::string s;
+                for (int l : dropped) {
+                    s += (s.empty() ? "" : ",") + std::to_string(l);
+                }
+                LOG_WRN("%s : %zu of %zu selected layers have no l_out, dropped: %s\n",
+                        __func__, dropped.size(), layers.size(), s.c_str());
+                layers = kept;
+            }
+            LOG_INF("%s : l_out is available on %zu layer(s)\n", __func__, avail.size());
+        }
+    }
+    if (layers.empty()) {
+        LOG_ERR("%s : none of the selected layers emits l_out\n", __func__);
+        return 1;
+    }
+
+    st.layer_row.assign((size_t) st.n_layer, -1);
+    for (size_t i = 0; i < layers.size(); ++i) {
+        st.layer_row[(size_t) layers[i]] = (int) i;
+    }
+
+    const int64_t L_sel = (int64_t) layers.size();
+
+    st.hs_c.assign((size_t) batch_rows * L_sel * D, 0.0f);
+    st.hs_a.assign((size_t) batch_rows * L_sel * D, 0.0f);
+    reset_capture(st);
+
     // padding token for equal-length batched passes; it sits after the real
     // tokens, so causal attention keeps the states of the real ones unchanged
     llama_token pad_token = llama_vocab_eos(vocab);
@@ -736,6 +829,10 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     LOG_INF("model: n_layer=%d n_embd=%d | selected layers=%lld | max_len=%d | batch_rows=%d | template=%s | thinking=%s\n",
             st.n_layer, st.n_embd, (long long) L_sel, max_len, batch_rows, no_template ? "no" : "yes", thinking ? "yes" : "no");
+    if (layers.size() != layers_requested.size()) {
+        LOG_INF("selected layers after l_out probe: %zu of %zu requested\n",
+                layers.size(), layers_requested.size());
+    }
 
     // ---- read input ----------------------------------------------------
     std::vector<hs_row> rows;
@@ -823,6 +920,9 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         cfg["n_layers"]           = st.n_layer;
         cfg["n_embd"]             = st.n_embd;
         cfg["layers"]             = layers;
+        if (layers != layers_requested) {
+            cfg["layers_requested"] = layers_requested;
+        }
         cfg["n_layers_selected"]  = L_sel;
         cfg["max_len"]            = max_len;
         cfg["max_new_tokens"]     = max_new;
@@ -872,6 +972,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     int64_t n_gen_rows  = 0; // rows that went through generation
     int64_t n_retok     = 0; // .. whose text re-tokenizes back to different ids
     bool    logged_prompt = false;
+    bool    warned_capture = false;
 
     auto write_meta = [&](const json & j) {
         meta << j.dump(-1, ' ', false, json::error_handler_t::replace) << "\n";
@@ -907,6 +1008,18 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         st.enabled = false;
 
         if (rc != 0 || st.n_cap_c != (int) L_sel || st.n_cap_a != (int) L_sel) {
+            if (!warned_capture) {
+                std::string miss;
+                for (int l = 0; l < st.n_layer; ++l) {
+                    if (st.layer_row[(size_t) l] >= 0 && !st.cap_c[(size_t) l]) {
+                        miss += (miss.empty() ? "" : ",") + std::to_string(l);
+                    }
+                }
+                LOG_ERR("%s : captured %d/%lld layers (C), %d/%lld (A), missing: %s\n",
+                        __func__, st.n_cap_c, (long long) L_sel, st.n_cap_a, (long long) L_sel,
+                        miss.empty() ? "none" : miss.c_str());
+                warned_capture = true;
+            }
             return false;
         }
         out_c = st.hs_c;
@@ -918,14 +1031,14 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         json j;
         j["id"]        = p.r->id;
         j["row"]       = p.r->row;
-        j["n_tokens"]  = 0;
-        j["pos_a"]     = -1;
-        j["pos_c"]     = -1;
+        j["n_tokens"]  = p.n_tokens;
+        j["pos_a"]     = p.pos_a;
+        j["pos_c"]     = p.pos_c;
         j["answer"]    = p.answer_text;
-        j["generated"] = false;
-        j["truncated"] = false;
-        j["logprobs"]  = nullptr;
-        j["entropies"] = nullptr;
+        j["generated"] = p.generated;
+        j["truncated"] = p.truncated;
+        j["logprobs"]  = p.logprobs.empty() ? json(nullptr) : json(p.logprobs);
+        j["entropies"] = p.entropies.empty() ? json(nullptr) : json(p.entropies);
         j["status"]    = "skipped";
         j["reason"]    = reason;
         merge_extra(j, p.r->extra);

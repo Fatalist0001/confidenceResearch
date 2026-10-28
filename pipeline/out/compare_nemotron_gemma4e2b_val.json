@@ -1,0 +1,30 @@
+{
+  "split": "val",
+  "a": "out/main_gemma4e2b/probe_scores.csv",
+  "b": "out/main_nemotron3nano4b_v2/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1190,
+    "pos_a": 215,
+    "pos_b": 314,
+    "base_rate_a": 0.18067226890756302,
+    "base_rate_b": 0.2638655462184874,
+    "label_mismatch_rows": 231,
+    "a_auroc": 0.9078783542039356,
+    "b_auroc": 0.9055165343338277,
+    "a_auprc": 0.7089908712730787,
+    "b_auprc": 0.7913164813529835,
+    "delta_auroc": -0.002361819870107862,
+    "delta_auprc": 0.0823256100799048
+  },
+  "delta_auroc_ci": [
+    -0.0291140195931495,
+    0.025055913797342955
+  ],
+  "delta_auprc_ci": [
+    0.020705264220877366,
+    0.14832445123155855
+  ],
+  "share_b_higher_auroc": 0.449
+}

@@ -703,6 +703,66 @@ AUROC внутри страт, остаётся 0.59–0.82 (в основном
 Артефакты: `out/cross_<a>_<b>_test.json` и `..._val.json` (шесть файлов),
 `out/cross_strata_<a>_<b>_{test,val}.json` (двенадцать), команды — раздел 5, шаг 10.
 
+### 3.12 Четвёртая модель: Nemotron 3 Nano 4B (шаг 10)
+
+`NVIDIA-Nemotron-3-Nano-4B-Q4_K_M.gguf` — архитектура `nemotron_h`, гибрид Mamba/SSM и
+attention, 42 слоя, D = 3136. **`l_out` у неё есть только на 17 слоях из 42**
+(`1,3,5,8,10,13,15,18,20,22,25,27,29,33,37,39,41`): SSM/attention блоки эмитят лишь
+`nemotron_h_block_out`. Прежняя версия инструмента требовала захвата *всех* выбранных
+слоёв, поэтому `--layers all` давал `skipped` на каждой строке и нулевые массивы
+(подробности — `report.md`, §17.1). Теперь инструмент сам делает пробный decode на BOS,
+оставляет только слои с `l_out`, пишет исходный список в `config.json` как
+`layers_requested` и сохраняет в `skipped`-строках реальные поля генерации.
+
+Прогон: **6000/6000 ok, 0 skipped, `truncated` 5 (0.08 %), 1320.6 s (22 мин), 4.54 ex/s**,
+`retokenize mismatch` 19/6000 (0.3 %), массивы `[6000, 17, 3136]` по 610 МБ,
+`layers_requested` 42 → 17. Батчинг здесь не нужен: `--batch-rows 1` и `4` дают на 50
+строках одинаковые 10.4 с. Ответы короткие (медиана 3 токена), пустых и вырожденных нет.
+
+Разметка: strict 0.295, relaxed 0.296, **filtered_b 0.285**; без метки 5 строк — все
+`truncated`. Baseline test: logprob 0.802, entropy 0.816 (сырая `exp(lp0)` калибрована
+плохо, ECE 0.124). Проба: λ = 3000, победила **точка C, слой 20** (49 % глубины),
+val 0.9059, **test AUROC 0.8819** [0.860, 0.901], AUPRC 0.7357; контроли:
+перемешанные метки 0.481 ± 0.035, слой 0 (C) 0.650, разрыв val→test −0.024.
+
+| | Qwen3.5-0.8B | Gemma 4 E2B | gpt-oss-20b | Nemotron 3 Nano 4B |
+|---|---|---|---|---|
+| слоёв × D | 24 × 1024 | 35 × 1536 | 24 × 2880 | 42 × 3136 (17 с `l_out`) |
+| доля правильных (filtered_b) | 0.168 | 0.182 | 0.490 | 0.285 |
+| baseline logprob, test AUROC | 0.739 | 0.705 | 0.828 | 0.802 |
+| baseline entropy, test AUROC | 0.767 | 0.712 | 0.841 | 0.816 |
+| проба: точка, слой | C, 13 | C, 19 | C, 16 | C, 20 |
+| проба: глубина слоя | 57 % | 56 % | 70 % | 49 % |
+| проба: val AUROC | 0.890 | 0.908 | 0.916 | 0.906 |
+| **проба: test AUROC** | **0.857** [0.825, 0.885] | **0.935** [0.918, 0.950] | **0.925** [0.909, 0.939] | **0.882** [0.860, 0.901] |
+| проба: test AUPRC | 0.593 | 0.744 | 0.920 (доля 0.49) | 0.736 (доля 0.29) |
+| контроль: слой 0 (C), test | 0.718 | 0.780 | 0.684 | 0.650 |
+| контроль: перемешанные метки | 0.490 ± 0.052 | 0.521 ± 0.056 | 0.494 ± 0.074 | 0.481 ± 0.035 |
+
+Парные bootstrap-сравнения на тесте (`compare_probes.py`, ресэмплинг по вопросам):
+
+- Nemotron vs Qwen: ΔAUROC **+0.026** [−0.005, +0.060], ΔAUPRC +0.148 (интервал задевает
+  ноль по AUROC: выигрыш не строгий);
+- Nemotron vs Gemma: ΔAUROC **−0.054** [−0.079, −0.028], ΔAUPRC −0.009 (по AUPRC паритет,
+  но доли правильных разные — сравнивать нельзя);
+- Nemotron vs gpt-oss: ΔAUROC **−0.043** [−0.067, −0.021], ΔAUPRC −0.183.
+
+То есть 4B-модель по пробам между малой парой и 20B: лучше 0.8B, хуже Gemma 4 E2B и
+gpt-oss. Разрыв «проба минус baseline logprob» +0.08 AUROC, контроль «слой 0» самый
+низкий из четырёх (0.650), то есть прирост от глубоких слоёв относительно начала сети
+больше. Лучший слой — 49 % глубины, чуть мельче остальных (56–70 %).
+
+**Кросс-модельные скоры с Nemotron** (метод §3.11, тест): Nemotron→Qwen 0.794,
+Qwen→Nemotron 0.732, Nemotron→Gemma 0.812, Gemma→Nemotron 0.725, Nemotron→gpt-oss 0.744,
+gpt-oss→Nemotron 0.815 — против родных 0.86–0.94 и контроля «метка → метка» 0.68–0.78.
+Корреляция скоров самая высокая из всех пар у Nemotron с gpt-oss (0.58).
+
+Артефакты: `out/main_nemotron3nano4b_v2/` (`meta.jsonl`, `labels.csv`, `baseline.*`,
+`probe.*`, `probe_model.npz`, `verify.json`, `config.json`); непригодные
+`out/main_nemotron3nano4b/` и `out/pilot_nemotron3nano4b/` помечены `README-invalid.md`;
+кросс-скоры `out/cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json`.
+Команды — раздел 5, шаг 11.
+
 ---
 
 ## 4. Итоговая сводка
@@ -725,13 +785,14 @@ AUROC внутри страт, остаётся 0.59–0.82 (в основном
 | Прогон и проба Gemma | `pipeline/out/main_gemma4e2b/` (meta, labels, baseline, probe, config), пилот `pipeline/out/pilot_gemma4e2b/` |
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
-| Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ |
-| Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json` |
+| Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
+| Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
+| Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–16) |
+| Подробный технический отчёт | `report.md` (пункты 1–17) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -962,6 +1023,36 @@ python cross_probe_strata.py `
   --split test --fit-split val --out out\cross_strata_qwen08_gemma4e2b_test.json
 ```
 
+### Шаг 11. Nemotron 3 Nano 4B
+
+Модель гибридная, `l_out` есть только на 17 слоях из 42 — инструмент определяет это сам
+(пробный decode на BOS) и выбрасывает остальные выбранные слои, поэтому `--layers all`
+безопасен; исходный список остаётся в `config.json` как `layers_requested`.
+
+```powershell
+# пилот 200 (проверка: 17 слоёв, [200, 17, 3136], 4.5 ex/s)
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <путь к Nemotron>.gguf `
+  --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\pilot_nemotron3nano4b_v2
+
+# полный прогон (~22 мин)
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <путь к Nemotron>.gguf `
+  --batch data\main.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\main_nemotron3nano4b_v2
+
+# обязательно до probe.py: проверка каталога (формы, row без дыр, нулевые слои, метки)
+python label.py --meta out\main_nemotron3nano4b_v2\meta.jsonl --out out\main_nemotron3nano4b_v2\labels.csv
+python verify_run.py --dir out\main_nemotron3nano4b_v2 --full
+python baseline.py --meta out\main_nemotron3nano4b_v2\meta.jsonl --labels out\main_nemotron3nano4b_v2\labels.csv `
+  --out out\main_nemotron3nano4b_v2\baseline.json --scores-out out\main_nemotron3nano4b_v2\baseline_scores.csv
+python probe.py --hidden-a out\main_nemotron3nano4b_v2\hidden_a.npy --hidden-c out\main_nemotron3nano4b_v2\hidden_c.npy `
+  --meta out\main_nemotron3nano4b_v2\meta.jsonl --labels out\main_nemotron3nano4b_v2\labels.csv `
+  --out out\main_nemotron3nano4b_v2\probe.json --curve-out out\main_nemotron3nano4b_v2\probe_curve.csv `
+  --scores-out out\main_nemotron3nano4b_v2\probe_scores.csv
+```
+
+(`report.md`, §17; batch-rows на этой модели не помогает — доминирует генерация)
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -974,10 +1065,18 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 ## 6. Ограничения и известные особенности
 
-- **Проверено на трёх моделях:** Gemma 4 E2B Q4_K_M (35 слоёв, D=1536),
-  Qwen3.5-0.8B-BF16 (24 слоя, D=1024) и gpt-oss-20b-MXFP4 (24 слоя, D=2880).
-  Выводы про инструмент для остальных моделей не проверялись (`report.md`, шапка, §8,
-  §15).
+- **Проверено на четырёх моделях:** Gemma 4 E2B Q4_K_M (35 слоёв, D=1536),
+  Qwen3.5-0.8B-BF16 (24 слоя, D=1024), gpt-oss-20b-MXFP4 (24 слоя, D=2880) и
+  NVIDIA-Nemotron-3-Nano-4B Q4_K_M (42 слоя, D=3136). Выводы про инструмент для
+  остальных моделей не проверялись (`report.md`, шапка, §8, §15, §17).
+- **У Nemotron 3 Nano 4B `l_out` есть только на 17 слоях из 42** (`nemotron_h`:
+  SSM/attention блоки эмитят только `nemotron_h_block_out`). Поэтому список слоёв в
+  `config.json` короче `n_layers`, а `layers_requested` хранит исходный. Кривая «по
+  слоям» у неё с шагом: 1, 3, 5, 8, 10, 13, 15, 18, 20, 22, 25, 27, 29, 33, 37, 39, 41
+  — промежуточных слоёв получить нельзя (`report.md`, §17.1).
+- **Старые каталоги Nemotron непригодны** (`out/main_nemotron3nano4b`,
+  `out/pilot_nemotron3nano4b`): прогон старой сборкой давал `skipped` на всех строках и
+  нулевые массивы. В анализ они не идут и помечены `README-invalid.md`.
 - **Метки получены автоматикой и проверены выборкой.** Ручных меток всего 269:
   123 в `audit_human.csv` и 146 в `audit2_human.csv`. В случайной выборке из 100 строк
   строгое правило дало 3 ошибки, фильтр — 0; **доверительных границ для оценки шума
@@ -1061,7 +1160,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 1. **Анализ** — reliability diagram, разбор ответов на «уверенно верно / угадал /
    ошибся» по logprob; кривые качества по слоям (на val) уже есть в `probe_curve.csv`
-   для обеих моделей. При желании — повторная проверка выбранной пары с другим
+   для всех четырёх моделей. При желании — повторная проверка выбранной пары с другим
    разбиением train/val.
 2. **Другие размеры** — Qwen3.5 2B / 4B / 9B (для 9B на 6 ГБ нужен квант или другая GPU).
 3. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
@@ -1141,6 +1240,11 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
     исследовалось; протокол (сетка λ, выбор по val) не менялся.
 15. **Логи полного прогона gpt-oss** сохранены только в `%TEMP%\opencode\hsbatch\`
     (`gptoss6000_v2run.err.log`), в репозиторий не входят, как и логи других прогонов.
+16. **Почему у Nemotron 3 Nano 4B лучший слой на 49 % глубины** (слой 20 из 42), а у
+    остальных на 56–70 %, — не исследовалось; протокол не менялся. Список слоёв у неё
+    неполный (17 из 42), поэтому «настоящий» оптимум мог попасть между слоями с `l_out`.
+17. **Детерминизм полного прогона Nemotron не проверялся** — побайтовое совпадение
+    проверено только на 2 строках (`hidden_a/c.npy`, `meta.jsonl`, `config.json`).
 
 ### Расхождения между `report.md` и файлами (не исправлены)
 
@@ -1182,3 +1286,9 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
     Первый остановлен вручную (массивы предвыделены, строки после 325 — нули), второй
     получен на промпте с продублированной инструкцией. Оба оставлены на диске как следы
     экспериментов; действительный прогон — `out/main_gptoss20b_v2/`.
+11. **Старые каталоги Nemotron (`out/main_nemotron3nano4b`, `out/pilot_nemotron3nano4b`)
+    в git не входят и в анализ не идут** — там `skipped` на всех строках и нулевые
+    массивы (ошибка старой сборки инструмента, `report.md`, §17.1). Помечены
+    `README-invalid.md`; действительный прогон — `out/main_nemotron3nano4b_v2/`.
+    В коммите `3ad2230` отчёт содержал фиктивные результаты по этим каталогам
+    (AUROC 0.500 на нулевых массивах) — они удалены вместе со скриптами-обходами.

@@ -1,0 +1,57 @@
+{
+  "split": "test",
+  "n_common": 1186,
+  "positives": {
+    "a": 305,
+    "b": 150
+  },
+  "base_rate": {
+    "a": 0.2571669477234401,
+    "b": 0.12647554806070826
+  },
+  "own": {
+    "a_on_a": {
+      "auroc": 0.8855064103756908,
+      "ci": [
+        0.8626526747053671,
+        0.9074675116681619
+      ]
+    },
+    "b_on_b": {
+      "auroc": 0.8700965250965251,
+      "ci": [
+        0.8384432386153277,
+        0.8997828296070088
+      ]
+    }
+  },
+  "cross": {
+    "b_on_a": {
+      "auroc": 0.7309875141884222,
+      "ci": [
+        0.6943996944379542,
+        0.7663587810541846
+      ]
+    },
+    "a_on_b": {
+      "auroc": 0.7964092664092665,
+      "ci": [
+        0.7597467806788111,
+        0.8344411408873753
+      ]
+    }
+  },
+  "corr_scores_pearson": 0.5263225902692551,
+  "label_agreement": 0.8001686340640809,
+  "cross_label_control": {
+    "b_label_from_a_label": 0.7687387387387388,
+    "a_label_from_b_label": 0.6554195121043523
+  },
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "scores_a": "out/main_qwen35_2b_q4/probe_scores.csv",
+  "scores_b": "out/main_qwen08_q4/probe_scores.csv",
+  "labels_a": "out/main_qwen35_2b_q4/labels.csv",
+  "labels_b": "out/main_qwen08_q4/labels.csv",
+  "note": "a = first model, b = second; cross = score of one model vs the other model's label"
+}

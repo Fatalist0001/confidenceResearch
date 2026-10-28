@@ -1,0 +1,137 @@
+{
+  "dir": "out/main_qwen35_4b_q4",
+  "fails": 0,
+  "warns": 0,
+  "checks": [
+    {
+      "check": "file config.json",
+      "ok": true,
+      "detail": "out\\main_qwen35_4b_q4\\config.json"
+    },
+    {
+      "check": "file meta.jsonl",
+      "ok": true,
+      "detail": "out\\main_qwen35_4b_q4\\meta.jsonl"
+    },
+    {
+      "check": "file hidden_a.npy",
+      "ok": true,
+      "detail": "out\\main_qwen35_4b_q4\\hidden_a.npy"
+    },
+    {
+      "check": "file hidden_c.npy",
+      "ok": true,
+      "detail": "out\\main_qwen35_4b_q4\\hidden_c.npy"
+    },
+    {
+      "check": "config: layers == n_layers_selected",
+      "ok": true,
+      "detail": "32 vs 32"
+    },
+    {
+      "check": "config: layers unique and in range",
+      "ok": true,
+      "detail": "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]"
+    },
+    {
+      "check": "meta: every line is valid JSON",
+      "ok": true,
+      "detail": "6000 lines"
+    },
+    {
+      "check": "meta: not empty",
+      "ok": true,
+      "detail": "6000 lines"
+    },
+    {
+      "check": "meta: row indices contiguous from 0",
+      "ok": true,
+      "detail": "6000 rows"
+    },
+    {
+      "check": "meta: duplicate ids match the input file",
+      "ok": true,
+      "detail": "1 duplicated id(s) also duplicated in data\\main.jsonl: ['bb_956']"
+    },
+    {
+      "check": "meta: all rows have a split",
+      "ok": true,
+      "detail": "{'train': 3600, 'val': 1200, 'test': 1200}"
+    },
+    {
+      "check": "meta: at least one ok row",
+      "ok": true,
+      "detail": "{'ok': 6000}"
+    },
+    {
+      "check": "meta: ok rows have consistent pos_a/pos_c/n_tokens",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "hidden_a.npy: shape (6000, 32, 2560)",
+      "ok": true,
+      "detail": "(6000, 32, 2560)"
+    },
+    {
+      "check": "hidden_a.npy: dtype float16",
+      "ok": true,
+      "detail": "float16"
+    },
+    {
+      "check": "hidden_c.npy: shape (6000, 32, 2560)",
+      "ok": true,
+      "detail": "(6000, 32, 2560)"
+    },
+    {
+      "check": "hidden_c.npy: dtype float16",
+      "ok": true,
+      "detail": "float16"
+    },
+    {
+      "check": "hidden_a.npy and hidden_c.npy have the same shape",
+      "ok": true,
+      "detail": "(6000, 32, 2560) vs (6000, 32, 2560)"
+    },
+    {
+      "check": "hidden states are non-zero on ok rows (sampled)",
+      "ok": true,
+      "detail": "0 of 5980 sampled rows are all-zero; sample []"
+    },
+    {
+      "check": "hidden states are zero on skipped rows (sampled)",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "no NaN/Inf in sampled rows",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "every layer has non-zero values (sampled)",
+      "ok": true,
+      "detail": "zero layers: []"
+    },
+    {
+      "check": "labels: one row per meta row",
+      "ok": true,
+      "detail": "6000 vs 6000"
+    },
+    {
+      "check": "labels: split matches meta",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "labels: both classes present",
+      "ok": true,
+      "detail": "2714/5980"
+    },
+    {
+      "check": "labels: train/val/test all non-empty",
+      "ok": true,
+      "detail": "[]"
+    }
+  ]
+}

@@ -197,6 +197,8 @@ wrote out\main_qwen08\hidden_a.npy  shape=[6000, 24, 1024]
 
 Доля обрывов на Qwen высокая именно потому, что модель отвечает коротко, а потом
 продолжает развёрнутым текстом и упирается в бюджет токенов (`report.md`, §8.3).
+Остальные размеры серии — 2B (24 слоя, D = 2048) и 4B (32 слоя, D = 2560), оба в
+Q4_K_M — в §3.14.
 
 **gpt-oss-20b-MXFP4** — архитектура `gpt-oss` (`LLM_ARCH_OPENAI_MOE`), **24 слоя**,
 **D = 2880**, MoE с 32 экспертами, файл 12.1 ГБ. Reasoning штатными флагами не
@@ -806,6 +808,54 @@ val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли
 Пилоты: `out/pilot_qwen08_q4`, `out/pilot_qwen08_iq2` (IQ2 отброшен: 196/200
 `truncated`). Команды — раздел 5, шаг 12.
 
+### 3.14 Серия размеров Qwen 3.5: 2B и 4B в Q4_K_M (шаг 13)
+
+Продолжение §3.13: те же вход (`data/main.jsonl`, 6000), флаги и протокол пробы, только
+другие файлы модели — `Qwen3.5-2B-Q4_K_M.gguf` (**24 слоя, D = 2048**) и
+`Qwen3.5-4B-Q4_K_M.gguf` (**32 слоя, D = 2560**), обе от unsloth. 9B пока не скачан.
+
+| | 0.8B Q4 (якорь) | 2B Q4 | 4B Q4 |
+|---|---|---|---|
+| итог | 6000 / 0 | 6000 / 0 | 6000 / 0 |
+| `truncated` / `retokenize` | 22 / 38 | 32 / 23 | 20 / 13 |
+| время | 731.8 s (8.20 ex/s) | 866.0 s (6.93 ex/s) | 1483.5 s (4.04 ex/s) |
+| массивы | `[6000, 24, 1024]` | `[6000, 24, 2048]` | `[6000, 32, 2560]` |
+| `verify_run.py --full` | 0 failed | 0 failed | 0 failed |
+| strict / `filtered_b` | 0.143 / 0.118 | 0.265 / 0.253 | 0.456 / 0.454 |
+| baseline test (logprob / entropy) | 0.680 / 0.717 | 0.783 / 0.794 | 0.870 / 0.878 |
+| проба: λ / пара | 1000 / C, 13 | **3000 / C, 12** | **3000 / C, 15** |
+| глубина слоя | 57 % | 52 % | 48 % |
+| val AUROC | 0.8838 | 0.8948 | 0.9218 |
+| **test AUROC** | 0.8709 [0.840, 0.900] | **0.8855** [0.865, 0.906] | **0.9180** [0.902, 0.933] |
+| контроли: shuffled / layer0 C | 0.503 / 0.716 | 0.525 / 0.644 | 0.522 / 0.659 |
+
+Парные сравнения (bootstrap по вопросам, `compare_probes.py`) против якоря:
+
+| сравнение | ΔAUROC test [95 % CI] | доля bootstrap, где B лучше |
+|---|---|---|
+| 2B vs 0.8B | +0.0154 [−0.019, +0.051] | 0.81 |
+| **4B vs 0.8B** | **+0.0482 [+0.018, +0.080]** | **1.00** |
+| **4B vs 2B** | **+0.0321 [+0.008, +0.054]** | **1.00** |
+
+Выводы:
+
+- **2B от 0.8B статистически не отличается**, **4B достоверно лучше обеих** (интервал не
+  задевает ноль, на test 4B выше во всех 1000 bootstrap-выборках).
+- Глубина победившего слоя держится около **~50 %** у всех размеров (12/24 и 15/32), а
+  точная цифра в пределах ±3 слоёв нестабильна: у 2B слои 9–14 отличаются на 0.01 AUROC.
+  Лямбда у обоих новых размеров формально 3000, но 1000 даёт то же качество (±0.003).
+- **Проба добавляет тем меньше, чем сильнее baseline:** +0.154 / +0.092 / +0.040 AUROC над
+  энтропией первого токена для 0.8B / 2B / 4B. У 4B скрытые состояния дают лишь +0.04.
+- AUPRC между размерами не сравнивать: базовые доли 0.118 / 0.253 / 0.454, поэтому 0.90 у
+  4B «высок по построению».
+- Один вырожденный ответ у 2B (`#`, `dpql_1540`, row 2083) — метка пустая, строка не
+  удалена. Пустых ответов нет.
+
+Артефакты: `out/main_qwen35_2b_q4/`, `out/main_qwen35_4b_q4/` (тот же набор файлов, что в
+§3.13), сравнения `out/compare_qwen08q4_qwen35_{2b,4b}_{test,val}.json` и
+`out/compare_qwen35_2b_4b_{test,val}.json`, пилоты `out/pilot_qwen35_{2b,4b}_q4`.
+Команды — раздел 5, шаг 13; подробности — `report.md`, §19.
+
 ---
 
 ## 4. Итоговая сводка
@@ -831,6 +881,7 @@ val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
 | Прогон и проба Qwen3.5-0.8B в Q4_K_M (якорь кванта) | `pipeline/out/main_qwen08_q4/` (meta, labels, baseline, probe, config, verify.json, `probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`) |
 | Сравнение квантов BF16 vs Q4 | `pipeline/out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py` |
+| Прогоны и пробы Qwen3.5-2B и 4B в Q4_K_M | `pipeline/out/main_qwen35_2b_q4/`, `pipeline/out/main_qwen35_4b_q4/`; сравнения `out/compare_qwen08q4_qwen35_{2b,4b}_{test,val}.json`, `out/compare_qwen35_2b_4b_{test,val}.json`; пилоты `out/pilot_qwen35_{2b,4b}_q4` |
 | Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
 | Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
@@ -1129,6 +1180,40 @@ python apply_probe_model.py --model out\main_qwen08\probe_model.npz --dir out\ma
 (`report.md`, §18; `apply_probe_model.py` переносит сохранённые `w`/`mu`/`sd` на другой
 прогон того же размера и считает AUROC/AUPRC по меткам целевого прогона)
 
+### Шаг 13. Следующие размеры серии: 2B и 4B в Q4_K_M
+
+Отличие от шага 12 — только файл модели (вход, флаги и протокол те же). Пилот обязателен:
+он предсказывает время полного прогона (±3 %) и ловит обрезки.
+
+```powershell
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe `
+  -m "D:\Lm studio\.lmstudio\models\unsloth\Qwen3.5-2B-GGUF\Qwen3.5-2B-Q4_K_M.gguf" `
+  --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\pilot_qwen35_2b_q4
+
+# полный прогон (~15 мин): та же команда с --batch data\main.jsonl --out out\main_qwen35_2b_q4
+# для 4B: Qwen3.5-4B-Q4_K_M.gguf, out\main_qwen35_4b_q4 (~25 мин)
+
+# дальше — те же шаги 3, 6, 7 с путями out\main_qwen35_<размер>_q4
+python label.py --meta out\main_qwen35_2b_q4\meta.jsonl --out out\main_qwen35_2b_q4\labels.csv
+python verify_run.py --dir out\main_qwen35_2b_q4 --full
+python baseline.py --meta out\main_qwen35_2b_q4\meta.jsonl --labels out\main_qwen35_2b_q4\labels.csv `
+  --out out\main_qwen35_2b_q4\baseline.json --scores-out out\main_qwen35_2b_q4\baseline_scores.csv
+python probe.py --hidden-a out\main_qwen35_2b_q4\hidden_a.npy --hidden-c out\main_qwen35_2b_q4\hidden_c.npy `
+  --meta out\main_qwen35_2b_q4\meta.jsonl --labels out\main_qwen35_2b_q4\labels.csv `
+  --out out\main_qwen35_2b_q4\probe.json --curve-out out\main_qwen35_2b_q4\probe_curve.csv `
+  --scores-out out\main_qwen35_2b_q4\probe_scores.csv
+
+# сравнение с якорем и между размерами
+python compare_probes.py --a out\main_qwen08_q4\probe_scores.csv `
+  --b out\main_qwen35_2b_q4\probe_scores.csv --split test --out out\compare_qwen08q4_qwen35_2b_test.json
+python compare_probes.py --a out\main_qwen35_2b_q4\probe_scores.csv `
+  --b out\main_qwen35_4b_q4\probe_scores.csv --split test --out out\compare_qwen35_2b_4b_test.json
+```
+
+(`report.md`, §19: 2B — C/12, test 0.8855; 4B — C/15, test 0.9180; оба λ = 3000. `probe.py`
+на 32 слоях и D = 2560 идёт ~20 мин на CPU, его удобно запускать в фоне)
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -1236,6 +1321,16 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   Значительная часть объясняется общей сложностью вопросов, но скор добавляет сигнал и
   сверх бинарного исхода (стратификация в §3.11), хотя совпадением представлений это
   по-прежнему не является.
+- **Вклад пробы уменьшается с ростом модели:** над энтропией первого токена проба даёт
+  +0.154 AUROC у 0.8B, +0.092 у 2B и только +0.040 у 4B (`report.md`, §19.6). Уверенность
+  первого токена у сильной модели сама по себе хорошо связана с правильностью, поэтому
+  «скрытые состояния против baseline» — тем менее выгодное сравнение, чем крупнее модель.
+- **Глубину победившего слоя нельзя называть точно:** у 2B слои 9–14 различаются на
+  0.01 AUROC, у 4B слои 13–18 — на 0.006. Устойчива только относительная глубина (~50 %),
+  конкретный номер слоя — в пределах ±3. Лямбда у 2B и 4B формально 3000, но 1000 даёт
+  то же качество (±0.003).
+- **9B в серии не прогнан** — файла на диске нет; все выводы о «росте с размером»
+  опираются на три точки (0.8B, 2B, 4B), причём 0.8B→2B статистически незначим.
 
 ---
 
@@ -1247,9 +1342,11 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    ошибся» по logprob; кривые качества по слоям (на val) уже есть в `probe_curve.csv`
    для всех четырёх моделей. При желании — повторная проверка выбранной пары с другим
    разбиением train/val.
-2. **Другие размеры** — Qwen3.5 2B / 4B / 9B, все в **Q4_K_M от unsloth** (якорь на
-   0.8B показал, что квант не меняет выбор пробы и качество в пределах CI, §3.13).
-   Теги прогонов: `out/main_qwen35_<размер>_q4`, затем те же шаги 3, 6, 7, 12.
+2. **Другие размеры** — 2B и 4B уже прогнаны в Q4_K_M (`out/main_qwen35_2b_q4`,
+   `out/main_qwen35_4b_q4`, §3.14: C/12 → 0.8855 и C/15 → 0.9180). Остался **9B** в
+   Q4_K_M от unsloth — тег `out/main_qwen35_9b_q4`, шаги 3, 6, 7, 13; затем сводная
+   кривая «размер → test AUROC» и вопрос, где вклад пробы перестаёт быть заметным
+   (у 4B он уже +0.04 над baseline).
 3. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
 ---

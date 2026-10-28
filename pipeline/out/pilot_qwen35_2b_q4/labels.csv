@@ -1,0 +1,203 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,1,1,1,1,1,False,2,Hyperlink,HYPERLINK
+qz_2440,1,train,0,0,0,0,0,False,7,The film is The Big Short.,Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,1,China,BHUTAN
+sfq_17775,3,train,0,0,0,0,0,False,2,The movie,AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,0,0,0,0,0,False,7,Rabindranath Tagore,Rudyard Kipling
+dpql_1548,5,train,0,0,0,0,0,False,11,Bunter's form teacher's surname is Bunter.,QUELCH
+qz_1800,6,train,0,0,0,0,0,False,4,The UK Singles Chart,The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,4,Robert Duvall,Gene Hackman
+sfq_22280,8,train,1,1,1,1,1,False,3,Persuasion,PERSUASION
+odql_4855,9,train,0,0,0,0,0,False,18,"The series of books illustrated by Mary Grand Pre is the ""The Little House"" series.",'HARRY POTTER'
+qb_9568,10,train,0,0,0,0,0,False,3,Muhammad Ali,George Foreman
+qw_4190,11,train,0,0,0,0,0,False,1,Spain,Mexico
+sfq_2348,12,train,0,0,0,0,0,False,4,The Nutcracker,Madame Butterfly
+wh_2109,13,train,0,0,0,0,0,False,2,Krypton,NICKEL
+bb_7429,14,train,1,1,1,1,1,False,2,Les Paul,Les Paul
+qb_5655,15,train,0,0,0,0,0,False,2,John Wood,Thomas Chippendale
+wh_833,16,train,0,0,0,0,0,False,4,The Song of Experience,UNDER MILKWOOD
+sfq_20635,17,train,0,0,0,0,0,False,2,Banane,Pineapple
+wh_2629,18,train,0,0,0,0,0,False,2,The dragon,TOAD
+qg_494,19,train,0,0,0,0,0,False,3,West Los Angeles,Watts
+qw_11386,20,train,1,1,1,1,1,False,1,Port,Port
+sfq_15472,21,train,0,0,0,0,0,False,2,Kawasaki,HONDA
+qz_1130,22,train,1,1,0,1,1,False,1,O,O
+sfq_19115,23,train,1,1,1,1,1,False,15,Steveland Judkins is better known by the name Stevie Wonder.,STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,3,Pancreas,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,2,97,97
+tc_1938,26,train,0,0,0,0,0,False,2,United Kingdom,South Africa
+bt_4125,27,train,0,0,0,0,0,False,2,Ares,Ajax
+odql_13628,28,train,0,0,0,0,0,False,2,Manchester United,Peterborough United
+qw_1816,29,train,1,1,1,1,1,False,4,Paul Gauguin,Paul Gauguin
+sfq_20015,30,train,0,0,0,0,0,False,2,Saul,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,2,A scarf,A Horse Collar
+qg_2238,32,train,0,0,0,0,0,False,5,Soyuz 1,Skylab
+odql_8256,33,train,0,0,0,0,0,False,4,1998,2004
+sfq_11176,34,train,0,0,0,0,0,False,3,Harry Maguire,Theo Walcott
+qb_8500,35,train,0,0,0,0,0,False,2,Nurse,Mildred
+wh_532,36,train,0,0,0,0,0,False,4,Elvis Presley,JIMMY BOYD
+qg_1234,37,train,1,1,1,1,1,False,4,The Golden Lasso,Lasso
+sfq_24275,38,train,1,1,1,1,1,False,3,Riyadh,RIYADH
+qg_869,39,train,1,1,1,1,1,False,2,Netherlands,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,9,Miguel de Cervantes Saavedra,(Miguel de) Cervantes
+qw_7349,41,train,0,0,0,0,0,False,2,65,364
+bb_5225,42,train,1,1,1,1,1,False,10,International Committee of the Red Cross (ICRC),The Red Cross
+dpql_5620,43,train,0,0,0,0,0,False,3,New York City,San Francisco
+bt_1591,44,train,0,0,0,0,0,False,18,Catherine Zeta Jones played the character of Catherine in The Darling Buds of May.,Mariette
+sfq_6053,45,train,0,0,0,0,0,False,3,The Royal Mint,Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,2,transgender,transvestite
+qb_5400,47,train,0,0,0,0,0,False,3,London Football Club,Fulham FC
+tc_1921,48,train,0,0,0,0,0,False,6,"Diana, Princess of Wales",Victor Edelstein
+qz_4845,49,train,0,0,0,0,0,False,15,Firenze is a fictional creature from the video game *Hollow Knight*.,Centaur
+qg_808,50,train,1,1,1,1,1,False,3,Troposphere,Troposphere
+dpql_5914,51,train,0,0,0,0,0,False,1,Honda,Vespa
+qb_866,52,train,,,,,,True,64,"The US singing duo that started out under the names Caesar and Cleo is the **Celine and Caesar** (originally known as **Celine and Caesar** before becoming **Celine and Caesar**).
+
+Wait, let me correct that. The duo is **Celine and Caesar**, but they started under the",Sonny and Cher
+qz_2466,53,train,0,0,0,0,0,False,2,Tom Cruise,Will Smith
+bb_1292,54,train,1,1,1,1,1,False,1,September,September
+sfq_8782,55,train,0,0,0,0,0,False,3,Micronesia,VANUATU
+tc_1686,56,train,1,1,1,1,1,False,3,Woodrow Wilson,Woodrow Wilson
+qg_4604,57,train,0,0,0,0,0,False,3,The Continental Army,National Guard
+odql_10315,58,train,0,0,0,0,0,False,3,Led Zeppelin,'THE YARDBIRDS'.
+dpql_277,59,train,1,1,0,0,1,False,5,Dolores Haze,Lolita
+wh_3251,60,train,1,1,1,1,1,False,1,Jordan,JORDAN
+sfq_17002,61,train,0,0,0,0,0,False,33,"The Washington Post reporters Carl Bernstein and Bob Woodward wrote an account of the Watergate scandal, published in 1974, titled ""The Watergate Story.""",All the President's Men
+bt_2111,62,train,0,0,0,0,0,False,2,Alberta,Prince Edward Island
+qf_1053,63,train,1,1,1,1,1,False,3,Robben Island,Robben Island
+qf_527,64,train,0,0,0,0,0,False,2,Vodka,coffee
+jp_4336,65,train,1,1,1,1,1,False,3,Grey's Anatomy,Grey's Anatomy
+bb_2130,66,train,0,0,0,0,0,False,5,The Great Horned Owl,Bittern
+wh_3298,67,train,1,1,1,1,1,False,3,Mantle,THE MANTLE
+qw_11908,68,train,0,0,0,0,0,False,2,19,15
+qw_5777,69,train,0,0,0,0,0,False,5,The Great Train Robbery,The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,1,water,Sea
+dpql_2028,71,train,1,1,1,1,1,False,4,Sulfur dioxide,Sulphur
+jp_1350,72,train,0,0,0,0,0,False,49,"Pangaea and Gondwana were supercontinents that existed during the late Paleozoic and early Mesozoic eras, respectively, representing the supercontinent that formed from the assembly of the ancient supercontinents Laurasia and Gondwana.",Continents
+qb_9676,73,train,1,1,1,1,1,False,1,Yellow,Yellow
+qw_12980,74,train,0,0,0,0,0,False,9,"The Beatles' ""Abbey Road"" poster",Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,1,Eye,Eye
+qb_1757,76,train,0,0,0,0,0,False,2,12,Four
+sfq_22467,77,train,0,0,0,0,0,False,5,1920s,1960's
+qz_340,78,train,1,1,1,1,1,False,3,Oscar Wilde,Oscar Wilde
+qz_3023,79,train,0,0,0,0,0,False,6,Prince Charles and Lady Diana Spencer,The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,4,1912,1912
+qf_2053,81,train,0,0,0,0,0,False,2,Darwin,Northern Territory
+qb_5139,82,train,0,0,0,0,0,False,9,Nur al-Din al-Qasim,Saddam Hussein
+qw_9422,83,train,0,0,0,0,0,False,2,Robert Burns,William Wordsworth
+qw_1606,84,train,0,0,0,0,0,False,2,Prince Edward,Anne
+qf_2232,85,train,0,0,0,0,0,False,5,"Washington, D.C.",Honolulu
+odql_8838,86,train,0,0,0,0,0,False,18,"The Spotters Guide series was named after the children's game ""Spot the difference.""",I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,11,The TV programme is *The Great British Bake Off*.,Time Team
+dpql_3499,88,train,0,0,0,0,0,False,2,Manchester United,Blackburn Rovers
+dpql_5268,89,train,0,0,0,0,0,False,2,Venus,Mercury
+sfq_14187,90,train,1,1,1,1,1,False,1,Manchester,MANCHESTER
+qw_6247,91,train,0,0,0,0,0,False,3,Kung Fu,Baritsu
+qg_675,92,train,1,1,1,1,1,False,2,Kidney,Kidneys
+odql_15048,93,train,0,0,0,0,0,False,1,Barcelona,Zaragoza
+bt_1718,94,train,0,0,0,0,0,False,3,Robert Louis Stevenson,London
+bt_3844,95,train,0,0,0,0,0,False,3,MV Queen Mary,Sea Empress
+qb_1751,96,train,0,0,0,0,0,False,4,Golden Retriever,Labrador Retriever
+qg_48,97,train,0,0,0,0,0,False,3,Julian Calendar,Mayan
+sfq_15080,98,train,0,0,0,0,0,False,2,Zeus,Boreas
+wh_3819,99,train,0,0,0,0,0,False,1,England,SPAIN
+qg_3215,100,train,0,0,0,0,0,False,3,Coca-Cola,Miller Lite Beer
+qb_6288,101,train,0,0,0,0,0,False,1,February,June
+qf_3155,102,train,0,0,0,0,0,False,2,Roger Moore,Timothy Dalton
+bb_5704,103,train,0,0,0,0,0,False,4,Jack Donohue,David Letterman
+qg_3384,104,train,1,1,1,1,1,False,4,The Valkyries,Valkyries
+qg_1358,105,train,1,1,1,1,1,False,2,George Lucas,George Lucas
+odql_2344,106,train,0,0,0,0,0,False,2,Saint Helena,SAO TOME
+odql_14551,107,train,1,1,1,1,1,False,2,Joy Division,'JOY DIVISION'
+odql_9627,108,train,0,0,0,0,0,False,5,The Dukes of Wellington,THE BARRETTS
+wh_4018,109,train,1,1,1,1,1,False,1,Java,JAVA
+odql_11679,110,train,0,0,0,0,0,False,2,Maui,TASMANIA
+sfq_24154,111,train,0,0,0,0,0,False,2,Albert Einstein,Benjamin Franklin
+sfq_11824,112,train,0,0,0,0,0,False,6,Peregrine falcon,TERN
+qg_3551,113,train,0,0,0,0,0,False,1,Argentina,Bolivia
+tb_666,114,train,0,0,0,0,0,False,2,Coffee sauce,Red-eye gravy
+bb_912,115,train,1,1,1,1,1,False,2,Jerez,Jerez
+sfq_634,116,train,1,1,1,1,1,False,3,Bitter almonds,ALMONDS
+sfq_2414,117,train,0,0,0,0,0,False,2,The disciples,Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,5,Treaty of Utrecht,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,3,Scorpio,Libra
+jp_1975,120,val,0,0,0,0,0,False,5,Coup d'état,Tet
+odql_9226,121,val,0,0,0,0,0,False,4,Operation Chastise,MULBERRY
+jp_2293,122,val,0,0,0,0,0,False,21,"Kriss Kross will make you a ""Kris Kriss"" (a play on their name).",Jump
+jp_3910,123,val,0,1,0,0,0,False,3,The Rothschilds,Rothschild
+odql_3654,124,val,0,0,0,0,0,False,53,"Donald Neilson was better known as the ""King of the 1970s"" due to his role as the leader of the ""New Wave"" of the British music scene, which included bands like The Clash, The Jam, and The Kinks.",'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,3,Muhammad Ali,THOMAS HEARNS
+qw_10079,126,val,0,0,0,0,0,False,3,The Royal Society,The British Museum
+sfq_7254,127,val,0,0,0,0,0,False,2,The Beatles,PROCUL HARUM
+sfq_80,128,val,0,0,0,0,0,False,3,Annie Ross,ANGELA RIPPON
+odql_9592,129,val,0,0,0,0,0,False,3,Columbia University,CORNELL
+odql_4457,130,val,0,0,0,0,0,False,4,Jack S. Johnson,Alan Freed
+bt_2428,131,val,0,0,0,0,0,False,3,Hillsborough,Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,1,China,South Korea
+sfq_24622,133,val,0,0,0,0,0,False,3,Theodore Roosevelt,James A Garfield
+qb_3553,134,val,0,0,0,0,0,False,4,Eleanor Atkinson,T E Lawrence
+odql_2368,135,val,0,0,0,0,0,False,2,Zinc,COPPER
+sfq_23299,136,val,0,0,0,0,0,False,2,The Beatles,DR HOOK
+bb_4587,137,val,1,1,1,1,1,False,27,"360 Varial, Ollie, Nollie, and Frontside Air are terms in the sport of skateboarding.",Skateboarding
+wh_4300,138,val,0,0,0,0,0,False,3,Stephen Sondheim,WILLY RUSSELL
+bb_92,139,val,1,1,1,1,1,False,1,Chess,Chess
+qb_7956,140,val,0,0,0,0,0,False,60,"The firework is the ""Saint's Cross"" (also known as the ""Cross of the Martyr"" or ""St. Cross""). It is named after the Cross of Saint Sebastian, a saint who was said to have been martyred by being tied to a cross and burned at the stake.",Catherine Wheel
+odql_11309,141,val,1,1,1,1,1,False,3,The Law Society,The Law Society
+bt_1444,142,val,0,0,0,0,0,False,4,Arborial bearings,Heraldry
+qw_13262,143,val,0,0,0,0,0,False,3,David Tennant,Paul McGann
+sfq_6197,144,val,0,0,0,0,0,False,3,William of Orange,Lord Guildford Dudley
+bb_3905,145,val,1,1,1,1,1,False,3,Olive tree,Olive
+qw_13284,146,val,0,0,0,0,0,False,2,Montreal,Quebec
+qw_8487,147,val,0,0,0,0,0,False,4,The Severn River,Bristol Channel
+qw_45,148,val,1,1,1,1,1,False,6,HAL 9000,HAL
+sfq_5677,149,val,0,0,0,0,0,False,2,No one,NOAH
+dpql_5750,150,val,0,0,0,0,0,False,4,David Attenborough,Carl Sagan
+dpql_447,151,val,1,1,1,1,1,False,13,A gricer is a slang term for a grizzly bear.,TRAINSPOTTER
+odql_1420,152,val,0,0,0,0,0,False,4,The Wizard of Oz,'TOP OF THE POPS'
+qb_6622,153,val,0,0,0,0,0,False,4,Magic: The Gathering,Poker
+sfq_14492,154,val,0,0,0,0,0,False,3,The Luggage,Discworld
+odql_2092,155,val,0,0,0,0,0,False,2,United Kingdom,SERBIA
+jp_4329,156,val,0,0,0,0,0,False,8,None of them have dated each other.,Jessica Simpson
+qg_1929,157,val,0,0,0,0,0,False,1,Mo,Molybdenum
+odql_14378,158,val,0,0,0,0,0,False,2,Pennsylvania,TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,3,Alexander the Great,APOLLO
+wh_4343,160,test,1,1,1,1,1,False,7,Avengers: Age of Ultron,THE AVENGERS
+dpql_1884,161,test,0,0,0,0,0,False,3,Sakoku,HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,7,A group of 18 clubs,Federal
+sfq_4245,163,test,0,0,0,0,0,False,6,Gurdwara Sahib,Sikh(ism)
+sfq_20017,164,test,0,0,0,0,0,False,12,The International Campaign to Ban Landmines (ICBL),Amnesty International
+sfq_19297,165,test,0,0,0,0,0,False,2,Monza,Spa
+jp_2379,166,test,0,0,0,0,0,False,1,California,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,2,United States,Belgium
+bb_3356,168,test,0,0,0,0,0,False,5,Novak Djokovic,Rafael Nadal
+sfq_1177,169,test,1,1,1,1,1,False,3,Perseus,Perseus
+qw_13422,170,test,0,0,0,0,0,False,3,Nelson Mandela,Nikita Khruschev
+odql_6190,171,test,0,0,0,0,0,False,3,Revelation,EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,1,USA,Switzerland
+qf_2991,173,test,1,1,1,1,1,False,8,PCB stands for Printed Circuit Board.,Printed Circuit Board
+odql_13246,174,test,0,0,0,0,0,False,3,John Cleese,Rowan Atkinson
+sfq_25987,175,test,0,0,0,0,0,False,43,"The last 3 holes of which golf course are named ""Redbud"", ""Nandina"" and ""Hotly"" are at the **Bridport Golf Club** in Bridport, Devon, England.",Augusta
+qb_7931,176,test,0,0,0,0,0,False,3,Giant squid,Squirrel
+sfq_10109,177,test,0,0,0,0,0,False,1,1,Eight
+qw_3390,178,test,0,0,0,0,0,False,2,Regina,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,2,John Barry,LIONEL BART
+dpql_5223,180,test,1,1,1,1,1,False,4,Llandudno,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,3,Pulsar,PULSAR
+odql_6602,182,test,0,0,0,0,0,False,3,Congo River,NIGER
+odql_2741,183,test,0,0,0,0,0,False,1,London,HEREFORD
+qg_1847,184,test,0,0,0,0,0,False,1,Car,White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,6,"Germany, Italy, and Japan","Germany, Japan, Italy"
+qw_14421,186,test,0,0,0,0,0,False,1,Platform,Manifesto
+bb_4458,187,test,0,0,0,0,0,False,1,Dog,Cat
+dpql_3596,188,test,0,0,0,0,0,False,2,Duck,Crane
+sfq_21495,189,test,1,1,1,1,1,False,4,Hufflepuff,Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,3,Plymouth,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,2,Brussels,Madrid
+odql_1340,192,test,0,0,0,0,0,False,5,Michelle van der Voorn,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,3,Lily Stone,Deborah Kerr
+bb_4415,194,test,0,0,0,0,0,False,1,0,1
+qz_2165,195,test,0,0,0,0,0,False,2,John Peel,Max Bygraves
+sfq_23975,196,test,0,0,0,0,0,False,3,Linda Perry,Joan Rivers
+qb_4411,197,test,1,1,0,0,1,False,20,Barbara McCorquodale was better known by the name Barbara McCorquodale.,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,3,Pommel horse,RINGS
+qf_662,199,test,0,0,0,0,0,False,14,Black Nell was the horse of the famous American poet Walt Whitman.,Wild Bill Hickok's

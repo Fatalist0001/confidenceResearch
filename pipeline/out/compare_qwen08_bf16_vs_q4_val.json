@@ -1,0 +1,30 @@
+{
+  "split": "val",
+  "a": "out/main_qwen08/probe_scores.csv",
+  "b": "out/main_qwen08_q4/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1189,
+    "pos_a": 166,
+    "pos_b": 122,
+    "base_rate_a": 0.13961312026913372,
+    "base_rate_b": 0.10260723296888141,
+    "label_mismatch_rows": 84,
+    "a_auroc": 0.8894227938145544,
+    "b_auroc": 0.883432943598568,
+    "a_auprc": 0.6346515005602762,
+    "b_auprc": 0.5787243418554672,
+    "delta_auroc": -0.005989850215986303,
+    "delta_auprc": -0.05592715870480902
+  },
+  "delta_auroc_ci": [
+    -0.03795060677712504,
+    0.024173844966729755
+  ],
+  "delta_auprc_ci": [
+    -0.12853841652313944,
+    0.020416081324955558
+  ],
+  "share_b_higher_auroc": 0.362
+}

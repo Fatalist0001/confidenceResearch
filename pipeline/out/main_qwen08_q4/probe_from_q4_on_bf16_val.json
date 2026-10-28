@@ -1,0 +1,15 @@
+{
+ "model": "out\\main_qwen08_q4\\probe_model.npz",
+ "dir": "out\\main_qwen08",
+ "split": "val",
+ "point": "C",
+ "layer": 13,
+ "layer_id": 13,
+ "n": 1193,
+ "positives": 166,
+ "base_rate": 0.13914501257334452,
+ "auroc": 0.8919592684271653,
+ "auprc": 0.6321769979253229,
+ "score_mean": -2.5646215587406798,
+ "score_sd": 1.4597594995358898
+}

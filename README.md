@@ -184,6 +184,7 @@ llama.cpp — популярная библиотека-движок, котор
 | 20 вопросов TriviaQA-стиля, `--layers all` (§8.3) | 20 | 20 / 0 | 15 (75 %) | нет данных | нет данных | `(20, 24, 1024)` f16, захвачено 24/24 |
 | Пилот `--n 200` (§9.4) | 200 | 200 / 0 | 0 (0 %) | 0 (непустых 200, 100 %) | 5.31 ex/s (37.7 s) | нет данных; `retokenize mismatch 1/200` |
 | **Основной прогон 6000** (`report.md` §11.2 + `main_run1.log`) | 6000 | 6000 / 0 | 23 (0.4 %) | 0 | 4.66 ex/s (1287.1 s) | `[6000, 24, 1024]` f16, по 281.3 MiB на файл; `retokenize mismatch 29/6000` (0.5 %) |
+| **Прогон Q4_K_M, 6000** (`report.md` §18) | 6000 | 6000 / 0 | 22 (0.4 %) | 0 | **8.20 ex/s** (731.8 s) | `[6000, 24, 1024]` f16; `retokenize mismatch 38/6000` (0.6 %) |
 
 Из лога основного прогона (`main_run1.log`):
 
@@ -568,12 +569,12 @@ D=1536), тот же вход `main.jsonl` и тот же шаблон. Снач
   `exp(lp0)` у Gemma бесполезна как вероятность (ECE 0.518).
 
 Разметка: strict 0.203, relaxed 0.206, **filtered_b 0.182** — Gemma отвечает верно
-чаще Qwen (0.168). Проба: λ = 1000, победила **точка C, слой 19**.
+чаще Qwen (0.143). Проба: λ = 1000, победила **точка C, слой 19**.
 
 | | Qwen3.5-0.8B | Gemma 4 E2B |
 |---|---|---|
 | слоёв × D | 24 × 1024 | 35 × 1536 |
-| доля правильных (filtered_b) | 0.168 | 0.182 |
+| доля правильных (filtered_b) | 0.143 | 0.182 |
 | baseline logprob, test AUROC | 0.739 | 0.705 |
 | baseline entropy, test AUROC | 0.767 | 0.712 |
 | проба: точка, слой | C, 13 | C, 19 |
@@ -592,7 +593,7 @@ D=1536), тот же вход `main.jsonl` и тот же шаблон. Снач
 - парное сравнение на 1189 общих тестовых строках (`compare_probes.py`): ΔAUROC в
   пользу Gemma **+0.078** [+0.048, +0.106], ΔAUPRC **+0.151** [+0.080, +0.225], все
   1000 bootstrap-ресэмплов за Gemma. Но это не чистое сравнение моделей: метка у
-  каждой модели своя (правильность её ответа), и Gemma чаще права (0.182 против 0.168).
+  каждой модели своя (правильность её ответа), и Gemma чаще права (0.182 против 0.143).
 
 Артефакты: `out/main_gemma4e2b/` (`meta.jsonl`, `labels.csv`, `baseline.*`, `probe.*`,
 `config.json`), `out/pilot_gemma4e2b/`, `out/compare_qwen08_gemma4e2b_test.json`.
@@ -623,7 +624,7 @@ val 0.9157, **test AUROC 0.9248** [0.909, 0.939], AUPRC 0.9197; контроли
 | | Qwen3.5-0.8B | Gemma 4 E2B | gpt-oss-20b |
 |---|---|---|---|
 | слоёв × D | 24 × 1024 | 35 × 1536 | 24 × 2880 |
-| доля правильных (filtered_b) | 0.168 | 0.182 | 0.490 |
+| доля правильных (filtered_b) | 0.143 | 0.182 | 0.490 |
 | baseline logprob, test AUROC | 0.739 | 0.705 | 0.828 |
 | baseline entropy, test AUROC | 0.767 | 0.712 | 0.841 |
 | проба: точка, слой | C, 13 | C, 19 | C, 16 |
@@ -728,7 +729,7 @@ val 0.9059, **test AUROC 0.8819** [0.860, 0.901], AUPRC 0.7357; контроли
 | | Qwen3.5-0.8B | Gemma 4 E2B | gpt-oss-20b | Nemotron 3 Nano 4B |
 |---|---|---|---|---|
 | слоёв × D | 24 × 1024 | 35 × 1536 | 24 × 2880 | 42 × 3136 (17 с `l_out`) |
-| доля правильных (filtered_b) | 0.168 | 0.182 | 0.490 | 0.285 |
+| доля правильных (filtered_b) | 0.143 | 0.182 | 0.490 | 0.285 |
 | baseline logprob, test AUROC | 0.739 | 0.705 | 0.828 | 0.802 |
 | baseline entropy, test AUROC | 0.767 | 0.712 | 0.841 | 0.816 |
 | проба: точка, слой | C, 13 | C, 19 | C, 16 | C, 20 |
@@ -763,6 +764,48 @@ gpt-oss→Nemotron 0.815 — против родных 0.86–0.94 и контр
 кросс-скоры `out/cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json`.
 Команды — раздел 5, шаг 11.
 
+### 3.13 Эффект кванта: Qwen3.5-0.8B BF16 vs Q4_K_M (шаг 12)
+
+Серия сравнений размеров Qwen 3.5 пойдёт на **Q4_K_M от unsloth** (BF16 для 4B+ не
+влезает в 6 ГБ VRAM), поэтому нужен якорь: модель, у которой есть и BF16-, и
+Q4-прогон по тому же входу и протоколу. Взят Qwen3.5-0.8B: BF16-эталон — §3.8,
+Q4_K_M — `out/main_qwen08_q4` (`report.md`, §18).
+
+Прогон: **6000/6000 ok, 0 skipped, `truncated` 22, 731.8 s (8.20 ex/s)**,
+`retokenize mismatch` 38/6000 (0.6 %), массивы `[6000, 24, 1024]`,
+`verify_run.py --full` — 0 failed. Квант дал **×1.76 по скорости** при тех же формах
+и 24 слоях.
+
+Метки: strict 0.143 (854/5978), relaxed 0.147, **filtered_b 0.118** (707) — ниже, чем
+у BF16 (0.168 / 0.172 / 0.143): Q4 чаще отвечает формально верно, но вырожденно, и
+фильтр b такие строки отсекает. Baseline test: logprob 0.680, entropy 0.717 (у BF16
+0.739 / 0.767). Проба: λ = 1000, **точка C, слой 13** — ровно как у BF16;
+val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли: перемешанные
+метки 0.503 ± 0.064, слой 0 (C) 0.716.
+
+| сравнение | ΔAUROC [95 % CI] | ΔAUPRC [95 % CI] |
+|---|---|---|
+| test, BF16 → Q4 | +0.0138 [−0.0125, +0.0441] | −0.0454 [−0.108, +0.017] |
+| val, BF16 → Q4 | −0.0060 [−0.038, +0.0242] | −0.0559 [−0.129, +0.020] |
+
+Перенос весов BF16-пробы на состояния Q4 (`apply_probe_model.py`): test 0.8677 против
+0.8709 у своей пробы — то есть представления сдвинулись, но направление пробы
+устойчиво. Ответы BF16 и Q4 текстово совпадают лишь на 31.6 % строк, метка
+`correct_filtered_b` — на 93.3 %; точка A (один и тот же промпт) имеет cosine 0.975,
+точка C на строках с одинаковым ответом — 0.986.
+
+Вывод: **аномалий от Q4_K_M нет** — точка, слой и λ совпали с BF16, ΔAUROC в пределах
+нуля, перенос весов работает. Поэтому размеры Qwen 3.5 можно сравнивать на Q4_K_M;
+оговорка — метки у каждого кванта свои (Q4 реже права), а AUPRC между квантами и
+размерами сравнивать нельзя (разные базовые доли).
+
+Артефакты: `out/main_qwen08_q4/` (`probe.json`, `probe_model.npz`, `baseline.*`,
+`labels.csv`, `meta.jsonl`, `config.json`, `verify.json`, `probe_from_bf16_*.json`,
+`probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`),
+`out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py`.
+Пилоты: `out/pilot_qwen08_q4`, `out/pilot_qwen08_iq2` (IQ2 отброшен: 196/200
+`truncated`). Команды — раздел 5, шаг 12.
+
 ---
 
 ## 4. Итоговая сводка
@@ -786,13 +829,15 @@ gpt-oss→Nemotron 0.815 — против родных 0.86–0.94 и контр
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
+| Прогон и проба Qwen3.5-0.8B в Q4_K_M (якорь кванта) | `pipeline/out/main_qwen08_q4/` (meta, labels, baseline, probe, config, verify.json, `probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`) |
+| Сравнение квантов BF16 vs Q4 | `pipeline/out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py` |
 | Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
 | Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–17) |
+| Подробный технический отчёт | `report.md` (пункты 1–18) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -1053,6 +1098,37 @@ python probe.py --hidden-a out\main_nemotron3nano4b_v2\hidden_a.npy --hidden-c o
 
 (`report.md`, §17; batch-rows на этой модели не помогает — доминирует генерация)
 
+### Шаг 12. Якорь кванта: тот же Qwen 0.8B в Q4_K_M
+
+Проверка, что квант не ломает пробу (перед серией размеров). Тот же вход, те же флаги,
+только другой файл модели:
+
+```powershell
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe `
+  -m "D:\Lm studio\.lmstudio\models\unsloth\Qwen3.5-0.8B-GGUF\Qwen3.5-0.8B-Q4_K_M.gguf" `
+  --batch data\main.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\main_qwen08_q4
+
+# метки, проверка каталога, baseline, проба — те же команды, что в шагах 3, 6, 7
+python label.py --meta out\main_qwen08_q4\meta.jsonl --out out\main_qwen08_q4\labels.csv
+python verify_run.py --dir out\main_qwen08_q4 --full
+python baseline.py --meta out\main_qwen08_q4\meta.jsonl --labels out\main_qwen08_q4\labels.csv `
+  --out out\main_qwen08_q4\baseline.json --scores-out out\main_qwen08_q4\baseline_scores.csv
+python probe.py --hidden-a out\main_qwen08_q4\hidden_a.npy --hidden-c out\main_qwen08_q4\hidden_c.npy `
+  --meta out\main_qwen08_q4\meta.jsonl --labels out\main_qwen08_q4\labels.csv `
+  --out out\main_qwen08_q4\probe.json --curve-out out\main_qwen08_q4\probe_curve.csv `
+  --scores-out out\main_qwen08_q4\probe_scores.csv
+
+# парное сравнение с BF16 и перенос весов BF16-пробы на состояния Q4
+python compare_probes.py --a out\main_qwen08\probe_scores.csv --b out\main_qwen08_q4\probe_scores.csv `
+  --split test --out out\compare_qwen08_bf16_vs_q4_test.json
+python apply_probe_model.py --model out\main_qwen08\probe_model.npz --dir out\main_qwen08_q4 `
+  --split test --out out\main_qwen08_q4\probe_from_bf16_test.json
+```
+
+(`report.md`, §18; `apply_probe_model.py` переносит сохранённые `w`/`mu`/`sd` на другой
+прогон того же размера и считает AUROC/AUPRC по меткам целевого прогона)
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -1122,7 +1198,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   а не объяснение. Такие строки исключены из метрик (25 null из 6000).
 - **Qwen и Gemma сравнивались не на общей метке:** у каждой модели своя правильность
   ответа, поэтому ΔAUROC в пользу Gemma (+0.078) отражает и разную долю правильных
-  ответов (0.182 против 0.168), и разное качество проб (`report.md`, §14.6).
+  ответов (0.182 против 0.143), и разное качество проб (`report.md`, §14.6).
 - **У Gemma тест выше val** (0.935 против 0.908), у Qwen — ниже (0.857 против 0.890);
   причина не установлена — нет данных.
 - **У gpt-oss точка A другая:** промпт обрывается на `<|start|>assistant<|channel|>final<|message|>`,
@@ -1134,8 +1210,17 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   замера одиночного режима на всех 6000 строках нет — ускорение ×2.9 оценено по 200
   строкам (`report.md`, §15.7).
 - **AUPRC между моделями напрямую не сравнивать:** доля правильных ответов у gpt-oss
-  0.49 против 0.17–0.18 у малых моделей, поэтому AUPRC 0.92 высок по построению.
-  Сравнимы в первую очередь AUROC и контроли.
+  0.49 против 0.14–0.18 у малых моделей, поэтому AUPRC 0.92 высок по построению.
+  Сравнимы в первую очередь AUROC и контроли. То же внутри одной модели между квантами:
+  у Qwen в Q4 базовая доля 0.125 против 0.149 у BF16, поэтому AUPRC ниже «сам по себе»
+  (`report.md`, §18.5).
+- **Квант проверен на одной модели и одном кванте.** Пара BF16/Q4_K_M есть только у
+  Qwen3.5-0.8B: там выбор пробы (C, 13, λ = 1000) совпал, ΔAUROC на тесте в пределах
+  нуля, перенос весов даёт 0.8677 против 0.8709. Для Q5_K_M, Q8_0 и других размеров
+  отдельной проверки нет — это перенос результата, а не измерение (`report.md`, §18).
+- **Метки у разных квантов — разные события:** Q4 отвечает правильно реже (strict 0.143
+  против 0.168), поэтому в серии размеров каждая модель сравнивается по своим меткам,
+  а «доля правильных» между BF16- и Q4-прогоном одной модели не аддитивна.
 - **Первый полный прогон gpt-oss (5596 s) недействителен:** инструкция в промпте стояла
   дважды, результат лежит в `out/main_gptoss20b_dupinstr/` и в отчёты не входит
   (`report.md`, §15.2.1). Неполный прогон `out/main_gptoss20b/` (325/6000, остановлен
@@ -1162,7 +1247,9 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    ошибся» по logprob; кривые качества по слоям (на val) уже есть в `probe_curve.csv`
    для всех четырёх моделей. При желании — повторная проверка выбранной пары с другим
    разбиением train/val.
-2. **Другие размеры** — Qwen3.5 2B / 4B / 9B (для 9B на 6 ГБ нужен квант или другая GPU).
+2. **Другие размеры** — Qwen3.5 2B / 4B / 9B, все в **Q4_K_M от unsloth** (якорь на
+   0.8B показал, что квант не меняет выбор пробы и качество в пределах CI, §3.13).
+   Теги прогонов: `out/main_qwen35_<размер>_q4`, затем те же шаги 3, 6, 7, 12.
 3. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
 ---
@@ -1292,3 +1379,17 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
     `README-invalid.md`; действительный прогон — `out/main_nemotron3nano4b_v2/`.
     В коммите `3ad2230` отчёт содержал фиктивные результаты по этим каталогам
     (AUROC 0.500 на нулевых массивах) — они удалены вместе со скриптами-обходами.
+
+### Исправлено 2026-10-28
+
+1. **`report.md` хранился в двойной кодировке** — UTF-8 поверх cp1251: вместо
+   «Отчёт: извлечение…» в файле лежало «РћС‚С‡С‘С‚: РёР·РІР»РµС‡РµРЅРёРµ…». Файл
+   восстановлен обратным преобразованием (проверено побайтово: обратная замена даёт
+   ровно прежние байты), содержимое не менялось. Причина — запись из консоли Windows
+   в кодовой странице 1251.
+2. **Доля правильных у Qwen3.5-0.8B в сводных таблицах была 0.168** — это значение
+   `correct_strict`, а в колонке стояло `filtered_b`. По `out/main_qwen08/labels.csv`
+   `filtered_b` = **0.143** (856/5977), `strict` = 0.168. Исправлено в `report.md`
+   (§14.3, §14.6, §15.3, §15.6, §17.3, §17.6), в таблицах §3.9/§3.10/§3.12 и в §6
+   этого README и в `AGENTS.md`; у Gemma/gpt-oss/Nemotron значения были верны
+   (0.182 / 0.490 / 0.285).

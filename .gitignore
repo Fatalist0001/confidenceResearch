@@ -14,3 +14,5 @@
 /pipeline/out/**/*.npy
 /pipeline/out/*.log
 /pipeline/out/**/*.log
+
+.env

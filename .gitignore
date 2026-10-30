@@ -16,3 +16,4 @@
 /pipeline/out/**/*.log
 
 .env
+.vscode

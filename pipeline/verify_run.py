@@ -123,6 +123,9 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=32, help="rows to inspect in detail")
     ap.add_argument("--full", action="store_true", help="check every row instead of a sample")
     ap.add_argument("--allow-partial", action="store_true", help="accept meta with fewer rows than n_examples")
+    ap.add_argument("--input", default=None,
+                    help="batch JSONL to compare duplicate ids against; use it when config.json "
+                         "names a path from another machine (e.g. a Kaggle run)")
     args = ap.parse_args()
 
     d = args.dir
@@ -141,6 +144,8 @@ def main() -> int:
 
     with open(cfg_path, encoding="utf-8") as f:
         cfg = json.load(f)
+    if args.input:
+        cfg["batch"] = args.input
     layers = [int(x) for x in cfg.get("layers", [])]
     n_examples = int(cfg.get("n_examples", 0))
     n_embd = int(cfg.get("n_embd", 0))

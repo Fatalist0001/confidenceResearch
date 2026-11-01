@@ -175,6 +175,13 @@ llama.cpp — популярная библиотека-движок, котор
 | Пилот Gemma, `--n 200`, `--max-len 1024 --layers all` (§14.1) | 200 | 200 / 0 | 0 | 0 | 4.93 ex/s (40.6 s) | `[200, 35, 1536]` f16, по 20.5 MiB |
 | **Основной прогон Gemma, 6000** (§14.1) | 6000 | 6000 / 0 | 13 (0.2 %) | 9 нулевых + 3 вырожденных | 4.77 ex/s (1258.1 s) | `[6000, 35, 1536]` f16, по 615.2 MiB; `retokenize mismatch 32/6000` (0.5 %) |
 
+**Gemma 4 E4B Q4_K_M** — та же архитектура `gemma4`, **42 слоя**, **D = 2560** (§3.16).
+
+| Прогон | Примеров | ok / skipped | truncated | Пустые ответы | Скорость | Массивы |
+|---|---|---|---|---|---|---|
+| Пилот 200, `--layer all` (§3.16) | 200 | 200 / 0 | 0 | 0 | 4.64 ex/s (43.1 s) | `[200, 42, 2560]` f16; mismatch 0/200 |
+| **Основной прогон 6000** (§3.16) | 6000 | 6000 / 0 | 1 (0.02 %) | 0 | **4.93 ex/s** (1216.4 s) | `[6000, 42, 2560]` f16, по 1.20 ГиБ; mismatch 12/6000 (0.2 %) |
+
 **Qwen3.5-0.8B-BF16** — файл 1.4 ГБ, **24 слоя**, размерность **D = 1024**,
 гибридная архитектура: полное внимание каждым 4-м слоем (3, 7, 11, 15, 19, 23 —
 6 слоёв), остальные **18 слоёв** — рекуррентное (линейное) внимание (`report.md`, §8).
@@ -932,6 +939,165 @@ val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли
 `out/compare_qwen35_4b_qwen35_9b_{test,val}.json`, кросс-скоры 12 файлов
 `out/cross_*qwen35_9b*`, пилот `out/pilot_qwen35_9b_q4`. Команды — раздел 5, шаг 14.
 
+### 3.16 Пятая модель: Gemma 4 E4B — прогон, проба, сравнение со всеми (шаг 15)
+
+`gemma-4-E4B-it-Q4_K_M.gguf` (архитектура `gemma4`, **42 слоя, D = 2560**) — та же серия
+Gemma, что E2B, но вдвое крупнее по числу параметров. Вход, флаги и протокол пробы те же,
+что у E2B и серии Qwen 3.5: `--batch data/main.jsonl --generate --max-new-tokens 64
+--max-len 1024 --layers all -ngl 99`, проба — λ из сетки `{100, 300, 1000, 3000}` по
+среднему val AUROC, пара (точка, слой) по max val AUROC, тест один раз.
+
+| | значение |
+|---|---|
+| пилот 200 | 200/200 ok, 0 `truncated`, **43.1 s (4.64 ex/s)**, `retokenize mismatch` 0/200, `[200, 42, 2560]` |
+| итог полного прогона | 6000/6000 ok, **0 skipped**, `truncated` 1 |
+| время | **1216.4 s (20.3 мин), 4.93 ex/s**; `retokenize mismatch` 12/6000 (0.2 %) |
+| массивы | `[6000, 42, 2560]` f16, по 1.20 ГиБ; все 42 слоя с `l_out`; `verify_run.py` — 0 failed |
+| разметка | strict 2332/5999 = 0.389, relaxed 0.392, `filtered_b` **0.383** (2295/5999); null 1 |
+| baseline val (logprob / энтропия) | 0.827 / 0.848 |
+| baseline test (logprob / энтропия) | **0.843 / 0.861** (AUPRC 0.762 / 0.778) |
+| проба: λ / пара | **3000 / точка C, слой 21** (50 % глубины) |
+| val / **test AUROC** | 0.9249 / **0.9312 [0.917, 0.944]** |
+| AUPRC, Brier, ECE (test) | 0.8922 [0.867, 0.916] / 0.104 / 0.045 (после Платта — 0.102 / 0.018) |
+| контроли | перемешанные метки 0.498 ± 0.048 (5 перестановок); слой 0: A 0.674 / 0.683, C 0.754 / 0.757 (val / test) |
+| детерминизм | `probe2*` побайтово совпадает с `probe*`: SHA-256 `probe_curve.csv` = `probe2_curve.csv` (`E8DEC092…9910`), `probe_scores.csv` = `probe2_scores.csv` (`4A6B9135…C505`) |
+| прирост над энтропией первого токена | **+0.070 AUROC** (+0.088 над logprob) |
+
+Пилот предсказал полный прогон точно: 43.1 s × 30 = 1293 s против фактических 1216 s
+(ошибка 6 %, в сторону переоценки).
+
+**Аномалии разметки — практически нет.** Пустых ответов 0, маркеров `thought` /
+`<|channel>` 0 (в отличие от E2B, где их было 4 среди обрезанных). Единственный
+`truncated` — `qg_3418`, отказной ответ («I do not have access to … internal corporate
+announcement…») обрезан на 64 токенах, метка пустая. Ответы короткие: средняя длина
+15.3 символа, 142 строки короче 3 символов — это нормальные факты (`97`, `ER`, `M6`),
+а не вырождение. 17 строк, где `strict` и `relaxed` расходятся.
+
+**Выбор пробы.** По сетке λ средний val AUROC: 0.8244 / 0.8392 / 0.8484 / 0.8491 — то
+есть λ = 1000 и 3000 неразличимы (0.0007), протокол выбрал 3000, как и у всех моделей
+серии Qwen. Победившая пара — **C / слой 21** при val 0.9249; точка A на своём лучшем
+слое (40) даёт только 0.8748, разрыв A→C +0.05 — тот же порядок, что у остальных моделей.
+Слой выбран устойчиво: при λ = 3000 слои 20, 19, 23, 24, 25 отстают от победителя на
+0.0002 / 0.0025 / 0.0033 / 0.0044 / 0.0049, то есть «плато» шириной 7 слоёв, и номер
+называть точнее ±3 нельзя. Глубина 21/42 = 50 % — ровно общая закономерность
+(13/24, 12/24, 15/32, 16/32, 19/35, 16/24 у gpt-oss).
+
+**Сравнение со всеми моделями** (парный bootstrap по вопросам, 1000 перестановок,
+`compare_probes.py`; у каждой модели своя метка правильности, поэтому ΔAUROC включает и
+разную долю правильных ответов):
+
+| против | ΔAUROC [95 % CI] | доля выборок, где E4B выше | согласие меток |
+|---|---|---|---|
+| Gemma 4 E2B (C/19) | **−0.0033 [−0.023, +0.015]** | 0.36 | 0.746 (303 расхождения на 1194) |
+| Qwen3.5-0.8B Q4 (C/13) | **+0.0606 [+0.030, +0.092]** | 1.00 | 0.707 |
+| Qwen3.5-2B Q4 (C/12) | **+0.0452 [+0.021, +0.068]** | 1.00 | 0.784 |
+| Qwen3.5-4B Q4 (C/15) | **+0.0130 [−0.005, +0.031]** | 0.93 | 0.785 |
+| Qwen3.5-9B Q4 (C/16) | **+0.0141 [−0.006, +0.032]** | 0.92 | 0.747 |
+| gpt-oss-20b (C/16) | **+0.0058 [−0.013, +0.024]** | 0.71 | 0.763 |
+| Nemotron 3 Nano 4B (C/20) | **+0.0494 [+0.028, +0.072]** | 1.00 | 0.767 |
+
+То есть E4B достоверно лучше только моделей 0.8B, 2B и Nemotron, а от E2B, 4B, 9B и
+gpt-oss статистически **не отличается** — интервалы накрывают ноль. По точечной оценке
+0.9312 — второй результат из девяти прогонов после E2B (0.9351), и разница с ней в пользу
+E2B, но по интервалу это тоже ноль.
+
+**Сводка по всем моделям** (тест, свои метки, λ = 3000 везде, кроме 0.8B Q4 = 1000):
+
+| модель | слои × D | `filtered_b` | baseline: энтропия | проба | test AUROC | прирост над энтропией |
+|---|---|---|---|---|---|---|
+| Qwen3.5-0.8B Q4 | 24 × 1024 | 0.118 | 0.717 | C 13 | 0.8709 | +0.154 |
+| Qwen3.5-2B Q4 | 24 × 2048 | 0.253 | 0.794 | C 12 | 0.8855 | +0.092 |
+| Qwen3.5-4B Q4 | 32 × 2560 | 0.454 | 0.878 | C 15 | 0.9180 | +0.040 |
+| Qwen3.5-9B Q4 | 32 × 4096 | 0.570 | 0.877 | C 16 | 0.9172 | +0.040 |
+| Gemma 4 E2B | 35 × 1536 | 0.182 | 0.712 | C 19 | **0.9351** | +0.223 |
+| **Gemma 4 E4B** | 42 × 2560 | 0.383 | 0.861 | C 21 | **0.9312** | **+0.070** |
+| gpt-oss-20b | 24 × 2880 | 0.490 | 0.841 | C 16 | 0.9248 | +0.084 |
+| Nemotron 3 Nano 4B | 17 из 42 × 3136 | 0.285 | 0.816 | C 20 | 0.8819 | +0.066 |
+
+Что из этого следует:
+
+- **Потолок ~0.92–0.935 не зависит ни от размера, ни от семейства.** Восемь моделей от
+  0.8B до 20B MoE лежат в полосе 0.925–0.935 (мощная половина) или ниже (слабая), и
+  различия внутри полосы статистически нулевые. Внутри Qwen 3.5 плато наступало на 4B;
+  здесь видно то же самое между поколениями Gemma: E4B вдвое крупнее E2B, отвечает
+  правильно **в 2.1 раза чаще** (0.383 против 0.182), а проба не лучше.
+- **Прирост над baseline зависит от того, насколько информативен первый токен.** У E4B
+  энтропия первого токена 0.861 — заметно слабее, чем у Qwen 4B/9B (0.878/0.877) при
+  более низкой доле правильных (0.383 против 0.454/0.570). Поэтому проба добавляет
+  +0.070 — больше, чем на плато Qwen (+0.040), хотя итоговый AUROC тот же. Это ещё один
+  аргумент, что ~0.93 — предел признака «один вектор слоя C + линейная логистика», а не
+  предел модели.
+- **Лучшее качество при равной доле правильных — у Gemma.** При базовой доле 0.383 E4B
+  даёт 0.9312, тогда как Qwen 2B при 0.253 даёт 0.8855, а Qwen 4B при 0.454 — 0.9180.
+  То есть на единицу «знаний» проба Gemma извлекает больше; но абсолютный потолок тот же.
+- **AUPRC между моделями не сравнивать:** у E4B 0.8922 против 0.9271 у 9B и 0.9197 у
+  gpt-oss просто потому, что базовая доля ниже (0.383 против 0.570 и 0.490). Внутри
+  одной модели AUPRC корректен.
+- **Глубина победившего слоя снова ~50 %** (21/42, как 19/35 у E2B и 13–16 у Qwen).
+  Точное значение нестабильно: у E4B семь слоёв отличаются на 0.005, у E2B было так же.
+- **Тест снова выше val** (0.9312 против 0.9249, +0.006) — как у E2B (+0.027) и в отличие
+  от Qwen. Разрыв мал и в пределах шума, но сама асимметрия у Gemma повторяется.
+
+**Кросс-проверки внутри Gemma и с Qwen 4B** (скор одной пробы против метки другой
+модели, `cross_probe_scores.py`; веса не переносятся, переносится только ранжирование):
+
+| пара (test) | своя проба | скор A на метке B | скор B на метке A | контроль «знать исход другой модели» | корреляция скоров |
+|---|---|---|---|---|---|
+| E2B ↔ E4B | 0.9351 / 0.9318 | E4B→E2B **0.8358** | E2B→E4B **0.7358** | 0.675 / 0.801 | 0.517 |
+| Qwen3.5-4B ↔ E4B | 0.9180 / 0.9311 | E4B→4B **0.8005** | 4B→E4B **0.8323** | 0.789 / 0.775 | 0.633 |
+
+Метки E2B и E4B согласуются лишь на 75 % строк, и направление «слабая → сильная»
+(0.736) хуже контроля (0.801): скор E2B фактически измеряет сложность вопроса, а не
+«правильность E4B». Обратное направление лучше контроля на +0.16. Для пары 4B ↔ E4B
+оба направления чуть выше контроля (+0.01 и +0.06), то есть сверх общей сложности
+вопросов переносится немного.
+
+**Совпадение размерности не даёт переноса весов.** У E4B и Qwen3.5-4B D = 2560, поэтому
+`apply_probe_model.py` формально срабатывает (обычно он падает с `target D != probe D`):
+проба E4B, применённая к состояниям Qwen 4B, даёт test AUROC **0.325**, обратная —
+**0.429**, то есть **хуже случайного уровня**. Размерность совпала, пространства — нет;
+это прямая иллюстрация того, почему «перенос пробы» требует выученного выравнивания
+(идея отложена, §6).
+
+Артефакты: `out/main_gemma4e4b/` (`meta.jsonl`, `labels.csv`, `baseline.*`, `probe.json`,
+`probe_curve.csv`, `probe_scores.csv`, `probe_model.npz`, `verify.json`, `config.json`,
+проверка детерминизма — `probe2*`), пилот
+`out/pilot_gemma4e4b/`, сравнения `out/compare_*_gemma4e4b_{test,val}.json` (7 пар),
+кросс-скоры `out/cross_{gemma4e2b,qwen35_4b_q4}_gemma4e4b_{test,val}.json`, перенос
+весов `out/probe_from_{gemma4e4b_on_qwen35_4b,qwen35_4b_on_gemma4e4b}_test.json`.
+Команды — раздел 5, шаг 15.
+
+### 3.17 Gemma 4 12B на Kaggle: прогон вне этой машины (шаг 16, в работе)
+
+12B в 6 ГБ VRAM не влезает, поэтому прогон идёт на Kaggle GPU (2 × Tesla T4 по 15 ГБ).
+Окружение живёт **в репозитории**, не во временном каталоге:
+
+| путь | что |
+|---|---|
+| `kaggle/gemma4_12b/make_nb.py` | генератор ноутбука (7 ячеек) и `kernel-metadata.json` |
+| `kaggle/gemma4_12b/push.ps1` | собрать датасет `odinodinodin/hs-src` из файлов проекта + запушить ядро |
+| `kaggle/gemma4_12b/_build/` | датасет и готовый ноутбук (в git не идёт) |
+| `kaggle/gemma4_12b/out/` | выгрузка `kaggle kernels output`, статусы, логи (в git не идёт) |
+| `kaggle/watch.ps1` | опрос `kernels status` до финиша, затем полный лог и квота |
+
+Ядро `odinodinodin/hs-gemma4-12b` делает всё в одной GPU-сессии: `setup` (клон
+зафиксированного `d4cff114c` + наши 3 файла из датасета) → `build`
+(`-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -j4`, сборка и модель в `/tmp`) →
+`download` (`unsloth/gemma-4-12b-it-GGUF`, Q4_K_M) → `pilot` (40 строк) → **гейт** →
+`main` (6000) → `final` (`run_summary.json`). Гейт: `ok == total`, `skipped == 0`,
+`ex/s > 0.2` и оценка полного прогона < 4 ч — иначе 6000 строк не запускаются.
+
+Статус на 2026-11-01: ядро версии 4 запущено и находится в состоянии `RUNNING`,
+израсходовано 0.62 ч GPU-квоты из 30 в неделю (включая три неудачные версии, 0.08 ч).
+Результатов 12B в этом разделе пока нет: разметка, baseline и проба будут добавлены
+после выгрузки `kernels output` в `pipeline/out/main_gemma4_12b/`. Логи запущенного ядра
+CLI не отдаёт — живой сигнал только `kernels status` (и браузер).
+
+Грабли, на которые ушло четыре версии ядра (путь монтирования датасета
+`/kaggle/input/datasets/<owner>/<dataset>`, плоская структура датасета,
+read-only `/usr/local/cuda` и stub `libcuda.so` в `/tmp/cuda_stubs`, логи только после
+финиша), описаны в `AGENTS.md`, раздел «Kaggle: GPU вне этой машины».
+
 ---
 
 ## 4. Итоговая сводка
@@ -952,6 +1118,9 @@ val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли
 | Baseline (logprob/энтропия первого токена) | `pipeline/out/main_qwen08/baseline.json`, `baseline_scores.csv` |
 | Проба (логрегрессия по слоям) | `pipeline/out/main_qwen08/probe.json`, `probe_curve.csv`, `probe_scores.csv` |
 | Прогон и проба Gemma | `pipeline/out/main_gemma4e2b/` (meta, labels, baseline, probe, config), пилот `pipeline/out/pilot_gemma4e2b/` |
+| Прогон и проба Gemma 4 E4B | `pipeline/out/main_gemma4e4b/` (meta, labels, baseline, probe, `probe_model.npz`, `verify.json`, `probe2*`, config), пилот `pipeline/out/pilot_gemma4e4b/` |
+| Сравнения проб E4B со всеми моделями | `pipeline/out/compare_*_gemma4e4b_{test,val}.json` (7 моделей × 2 сплита); кросс-скоры `pipeline/out/cross_{gemma4e2b,qwen35_4b_q4}_gemma4e4b_{test,val}.json`; перенос весов `pipeline/out/probe_from_*_test.json` |
+| Kaggle: прогон Gemma 4 12B | `kaggle/gemma4_12b/` (генератор ноутбука, `push.ps1`); выгрузка — `kaggle/gemma4_12b/out/` (в git не входит); `kaggle/watch.ps1` |
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
@@ -960,13 +1129,13 @@ val 0.8838, **test AUROC 0.8709** [0.840, 0.900], AUPRC 0.5477; контроли
 | Прогоны и пробы Qwen3.5-2B и 4B в Q4_K_M | `pipeline/out/main_qwen35_2b_q4/`, `pipeline/out/main_qwen35_4b_q4/`; сравнения `out/compare_qwen08q4_qwen35_{2b,4b}_{test,val}.json`, `out/compare_qwen35_2b_4b_{test,val}.json`; пилоты `out/pilot_qwen35_{2b,4b}_q4` |
 | Кросс-скоры внутри серии Qwen 3.5 | `pipeline/out/cross_{qwen08q4,qwen35_2b,qwen35_4b,qwen35_9b}_to_{...}_{test,val}.json` (все направления × 2 сплита, включая 12 файлов с 9B); скрипт `pipeline/cross_probe_scores.py` |
 | Прогон и проба Qwen3.5-9B в Q4_K_M | `pipeline/out/main_qwen35_9b_q4/` (+ `probe2*` — проверка детерминизма); сравнения `out/compare_qwen08q4_qwen35_9b_{test,val}.json`, `out/compare_qwen35_2b_qwen35_9b_{test,val}.json`, `out/compare_qwen35_4b_qwen35_9b_{test,val}.json`; пилот `out/pilot_qwen35_9b_q4` |
-| Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma 39 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
+| Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma E2B 39 КБ, Gemma E4B 63 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
 | Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
 | Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
 | Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–18) |
+| Подробный технический отчёт | `report.md` (пункты 1–21) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -1330,6 +1499,71 @@ python compare_probes.py --a out\main_qwen35_4b_q4\probe_scores.csv `
 (`report.md`, §20: 9B — C/16, test 0.9172 [0.901, 0.933]; против 4B разница −0.0002, то
 есть ноль — серия упирается в плато ~0.92)
 
+### Шаг 15. Пятая модель: Gemma 4 E4B (~20 мин прогон, ~35 мин проба)
+
+Отличие от шага 14 — только файл модели (42 слоя, D = 2560). Проба на 42 × 2560 идёт на
+CPU ~35 мин, её удобно пускать в фоне (`> out\main_gemma4e4b.probe.log 2>&1`).
+Детерминизм проверять в отдельные файлы `probe2*`, оригиналы не трогать.
+
+```powershell
+..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe `
+  -m "D:\Lm studio\.lmstudio\models\unsloth\gemma-4-E4B-it-GGUF\gemma-4-E4B-it-Q4_K_M.gguf" `
+  --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out out\pilot_gemma4e4b
+
+# полный прогон: те же флаги с data\main.jsonl и out\main_gemma4e4b, ОБЯЗАТЕЛЬНО в файл:
+#   ... --out out\main_gemma4e4b > out\main_gemma4e4b.log 2>&1
+
+python label.py --meta out\main_gemma4e4b\meta.jsonl --out out\main_gemma4e4b\labels.csv
+python verify_run.py --dir out\main_gemma4e4b --full --json out\main_gemma4e4b\verify.json
+python baseline.py --meta out\main_gemma4e4b\meta.jsonl --labels out\main_gemma4e4b\labels.csv `
+  --out out\main_gemma4e4b\baseline.json --scores-out out\main_gemma4e4b\baseline_scores.csv
+python probe.py --hidden-a out\main_gemma4e4b\hidden_a.npy --hidden-c out\main_gemma4e4b\hidden_c.npy `
+  --meta out\main_gemma4e4b\meta.jsonl --labels out\main_gemma4e4b\labels.csv `
+  --out out\main_gemma4e4b\probe.json --curve-out out\main_gemma4e4b\probe_curve.csv `
+  --scores-out out\main_gemma4e4b\probe_scores.csv
+
+# детерминизм: те же команды с probe2.* / probe2_model.npz, затем
+Get-FileHash out\main_gemma4e4b\probe_curve.csv,out\main_gemma4e4b\probe2_curve.csv -Algorithm SHA256
+
+# сравнения со всеми моделями (7 пар × 2 сплита)
+python compare_probes.py --a out\main_gemma4e2b\probe_scores.csv `
+  --b out\main_gemma4e4b\probe_scores.csv --split test --out out\compare_gemma4e2b_gemma4e4b_test.json
+
+# кросс-скоры и перенос весов (у 4B и E4B D совпадает — 2560)
+python cross_probe_scores.py --scores-a out\main_qwen35_4b_q4\probe_scores.csv `
+  --labels-a out\main_qwen35_4b_q4\labels.csv --scores-b out\main_gemma4e4b\probe_scores.csv `
+  --labels-b out\main_gemma4e4b\labels.csv --split test --out out\cross_qwen35_4b_q4_gemma4e4b_test.json
+python apply_probe_model.py --model out\main_gemma4e4b\probe_model.npz --dir out\main_qwen35_4b_q4 `
+  --split test --out out\probe_from_gemma4e4b_on_qwen35_4b_test.json
+```
+
+(`report.md`, §21: E4B — C/21, test 0.9312 [0.917, 0.944]; от E2B, 4B, 9B и gpt-oss
+статистически не отличается, перенос весов между семействами при совпадающем D даёт
+0.325/0.429 — хуже случайного)
+
+### Шаг 16. Gemma 4 12B на Kaggle (GPU вне этой машины)
+
+Прогон, сборка и скачивание модели живут в `kaggle/gemma4_12b/`; подробности и грабли —
+`AGENTS.md` («Kaggle: GPU вне этой машины») и `kaggle/README.md`.
+
+```powershell
+powershell -File kaggle\gemma4_12b\push.ps1              # датасет из файлов проекта + ядро
+powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset # вход не менялся
+powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиша, снять лог и квоту
+
+$KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
+& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
+Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b\* pipeline\out\main_gemma4_12b\
+
+# дальше — как обычно: verify_run.py → label.py → baseline.py → probe.py (см. шаг 15)
+```
+
+Датасет `odinodinodin/hs-src` собирается при каждом пуше из `llama.cpp-hiddenstates\`
+(hidden-states.cpp и два CMakeLists) и `pipeline\data\` — копий исходников в репозитории
+нет. Токен `KAGGLE_API_TOKEN` берётся из `.env`. Квоту (30 ч GPU в неделю) проверять до и
+после прогона и записывать в таблицу `AGENTS.md`.
+
 ### Просмотр результата прогона
 
 ```powershell
@@ -1342,10 +1576,12 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 ## 6. Ограничения и известные особенности
 
-- **Проверено на четырёх моделях:** Gemma 4 E2B Q4_K_M (35 слоёв, D=1536),
-  Qwen3.5-0.8B-BF16 (24 слоя, D=1024), gpt-oss-20b-MXFP4 (24 слоя, D=2880) и
-  NVIDIA-Nemotron-3-Nano-4B Q4_K_M (42 слоя, D=3136). Выводы про инструмент для
-  остальных моделей не проверялись (`report.md`, шапка, §8, §15, §17).
+- **Проверено на девяти полных прогонах и четырёх семействах:** Gemma 4 E2B Q4_K_M
+  (35 слоёв, D=1536) и Gemma 4 E4B Q4_K_M (42 слоя, D=2560), Qwen3.5-0.8B (BF16 и
+  Q4_K_M, 24 слоя, D=1024), Qwen3.5 2B/4B/9B в Q4_K_M, gpt-oss-20b-MXFP4 (24 слоя,
+  D=2880) и NVIDIA-Nemotron-3-Nano-4B Q4_K_M (42 слоя с `l_out` на 17, D=3136).
+  Gemma 4 12B идёт на Kaggle, результатов пока нет (§3.17). Выводы про инструмент для
+  остальных моделей не проверялись (`report.md`, шапка, §8, §15, §17, §21).
 - **У Nemotron 3 Nano 4B `l_out` есть только на 17 слоях из 42** (`nemotron_h`:
   SSM/attention блоки эмитят только `nemotron_h_block_out`). Поэтому список слоёв в
   `config.json` короче `n_layers`, а `layers_requested` хранит исходный. Кривая «по
@@ -1434,9 +1670,11 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   теперь сохраняются рядом с `probe.json` в `probe_model.npz` (`w`, `mu`, `sd`), но это не
   снимает несовпадения размерностей.
   Проверять перенос весов можно только через выученное выравнивание пространств; это не
-  делалось (идея отложена 2026-10-28). Более слабый вариант — скор одной пробы против
-  метки другой — посчитан (§3.11 и §3.14 для серии размеров): AUROC 0.68–0.83 против
-  0.86–0.94 у родных проб, то есть перенос частичный.
+  делалось (идея отложена 2026-10-28). **Совпадение размерности переноса не даёт:**
+  у Gemma 4 E4B и Qwen3.5-4B D одинаковый (2560), `apply_probe_model.py` срабатывает, но
+  проба E4B на состояниях Qwen даёт test AUROC 0.325, обратная — 0.429, то есть хуже
+  случайного (§3.16). Скор одной пробы против метки другой — посчитан (§3.11, §3.14,
+  §3.16): AUROC 0.68–0.83 против 0.86–0.94 у родных проб, то есть перенос частичный.
   **Кросс-скор нельзя читать как «перенос пробы», и нельзя сравнивать с 0.5:** метки двух
   моделей согласуются на 63–85 % строк, поэтому одно знание «права ли другая модель» уже
   даёт 0.61–0.79. Сверх этого контроля скор добавляет +0.03…+0.10 — остальное объясняется
@@ -1462,6 +1700,26 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   знака, но на test 9B права на 186 строках, где 4B ошибается, а 4B — на 54, где
   ошибается 9B. Это прямая демонстрация того, что потолок упирается в признак, а не в
   объём знаний модели.
+- **Потолок ~0.92–0.935 не зависит от семейства.** После E4B это видно и за пределами
+  серии Qwen: E2B 0.9351, E4B 0.9312, gpt-oss 0.9248, 4B 0.9180, 9B 0.9172 — и все
+  парные различия внутри этой группы накрывают ноль (кроме пар с 0.8B, 2B и Nemotron).
+  При этом E4B вдвое крупнее E2B и отвечает правильно в 2.1 раза чаще (0.383 против
+  0.182), а проба не лучше (§3.16).
+- **Прирост пробы над baseline нельзя сравнивать между семействами без оговорки:** он
+  зависит от того, насколько информативен первый токен. У Gemma 4 E4B энтропия первого
+  токена 0.861 при доле правильных 0.383, у Qwen3.5-4B — 0.878 при 0.454, поэтому
+  прирост +0.070 против +0.040 при одинаковом итоговом AUROC. Это свойство пары
+  «модель + признак», а не «сила модели».
+- **У обеих Gemma тест выше val** (E4B 0.9312 против 0.9249, E2B 0.935 против 0.908),
+  у Qwen — ниже. Разрыв у E4B мал (+0.006), но направление повторяется; причина
+  не установлена.
+- **Проба E4B заняла ~19 мин CPU** на 42 слоях × D = 2560 (у 9B — ~37 мин на 32 × 4096).
+  Это самый дорогой CPU-шаг из малых моделей, его удобно пускать в фоне; параллельно с
+  прогоном на GPU лучше не запускать — падает ex/s у обоих.
+- **Прогон 12B на Kaggle ещё не принёс данных:** ядро `odinodinodin/hs-gemma4-12b`
+  делает сборку, скачивание, пилот 40 и только потом 6000 строк подряд; логи запущенного
+  ядра CLI не отдаёт, квота 30 ч GPU в неделю. Пока результатов нет, в отчёты 12B не
+  попадает (§3.17).
 
 ---
 
@@ -1471,7 +1729,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 1. **Анализ** — reliability diagram, разбор ответов на «уверенно верно / угадал /
    ошибся» по logprob; кривые качества по слоям (на val) уже есть в `probe_curve.csv`
-   для всех четырёх моделей. При желании — повторная проверка выбранной пары с другим
+   для всех восьми прогонов. При желании — повторная проверка выбранной пары с другим
    разбиением train/val.
 2. **Серия размеров Qwen 3.5 закрыта.** Прогнаны 0.8B, 2B, 4B, 9B в Q4_K_M
    (`out/main_qwen08_q4`, `out/main_qwen35_{2b,4b,9b}_q4`, §3.13–§3.15): test AUROC
@@ -1479,7 +1737,16 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    не влезает. Открытый вопрос — не «станет ли больше», а «даст ли другой признак больше
    0.92»: несколько слоёв/позиций или нелинейная модель вместо одного вектора и
    логистики. Это выходит за замороженный протокол и пока не делалось.
-3. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
+3. **Gemma 4 12B** — единственная серия, которая ещё не закрыта: прогон идёт на Kaggle
+   (§3.17). Ожидание по аналогии с E2B/E4B — тот же потолок ~0.93, но это проверяется
+   только измерением.
+4. **Кандидаты Liquid AI** (обсуждены, ничего не запускалось): LFM2.5-1.2B-Instruct и
+   LFM2.5-1.2B-Thinking работают на текущем билде (`arch lfm2`, `l_out` на всех слоях)
+   и дают сравнение «Liquid против Qwen 0.8B» плюс чистый эксперимент «меняет ли reasoning
+   отделимость уверенности»; LFM3-1.7B требует обновления копии llama.cpp (arch `lfm3` в
+   пине `d4cff114c` отсутствует). MoE-варианты LFM2.5 (8B-A1B, 24B-A2B) отпадают: в
+   `lfm2moe.cpp` вызова `l_out` нет, а правка ядра запрещена.
+5. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
 ---
 
@@ -1622,3 +1889,25 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    (§14.3, §14.6, §15.3, §15.6, §17.3, §17.6), в таблицах §3.9/§3.10/§3.12 и в §6
    этого README и в `AGENTS.md`; у Gemma/gpt-oss/Nemotron значения были верны
    (0.182 / 0.490 / 0.285).
+
+### Обновлено 2026-11-01
+
+1. **Добавлен прогон Gemma 4 E4B** (§3.16): 6000/6000 ok, 1 `truncated`, 1216.4 s,
+  проба C/21, test AUROC 0.9312 [0.917, 0.944]. Расхождений с файлами нет — все числа
+  взяты из `out/main_gemma4e4b/{probe.json,baseline.json,labels.csv,probe_model.npz}`.
+2. **Оговорка «проверено на четырёх моделях» устарела** и заменена на девять прогонов и
+  четыре семейства (§6); туда же добавлены выводы про общий потолок 0.92–0.935 и про то,
+  что совпадение размерности D не даёт переноса весов.
+3. **Рабочее место Kaggle перенесено в репозиторий:** `kaggle/gemma4_12b/`
+  (`make_nb.py`, `push.ps1`), `kaggle/watch.ps1`, `kaggle/README.md`; `_build/` и `out/`
+  добавлены в `.gitignore`. Датасет `odinodinodin/hs-src` собирается из файлов проекта
+  при пуше, копий исходников в репозитории нет (§3.17, `AGENTS.md`).
+4. **12B пока без результатов** — ядро `odinodinodin/hs-gemma4-12b` в состоянии
+  `RUNNING`, израсходовано 0.85 ч GPU-квоты из 30. Раздел §3.17 обновляется после
+  выгрузки `kernels output` и прогона `verify_run.py` → `label.py` → `baseline.py` →
+  `probe.py`.
+5. **Детерминизм пробы E4B подтверждён.** Повторный запуск в отдельные файлы `probe2*`
+  (`out/main_gemma4e4b/probe2.json`, `probe2_curve.csv`, `probe2_scores.csv`,
+  `probe2_model.npz`) дал побайтово те же `probe_curve.csv` и `probe_scores.csv`
+  (SHA-256 `E8DEC092…9910` и `4A6B9135…C505`), тот же λ, ту же пару C/21 и те же
+  метрики. Оригиналы `probe.*` не изменялись.

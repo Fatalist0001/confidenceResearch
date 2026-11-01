@@ -1,0 +1,30 @@
+{
+  "split": "val",
+  "a": "out/main_gptoss20b_v2/probe_scores.csv",
+  "b": "out/main_gemma4e4b/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1193,
+    "pos_a": 565,
+    "pos_b": 444,
+    "base_rate_a": 0.47359597652975693,
+    "base_rate_b": 0.3721709974853311,
+    "label_mismatch_rows": 277,
+    "a_auroc": 0.9157319204103489,
+    "b_auroc": 0.9244428006110249,
+    "a_auprc": 0.9057199624560043,
+    "b_auprc": 0.8789563679169193,
+    "delta_auroc": 0.008710880200676008,
+    "delta_auprc": -0.026763594539084945
+  },
+  "delta_auroc_ci": [
+    -0.009369214240218957,
+    0.026762386313001783
+  ],
+  "delta_auprc_ci": [
+    -0.05385630252015654,
+    -0.0013623642589291505
+  ],
+  "share_b_higher_auroc": 0.817
+}

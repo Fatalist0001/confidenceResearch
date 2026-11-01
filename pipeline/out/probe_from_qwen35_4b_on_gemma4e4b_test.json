@@ -1,0 +1,15 @@
+{
+ "model": "out\\main_qwen35_4b_q4\\probe_model.npz",
+ "dir": "out\\main_gemma4e4b",
+ "split": "test",
+ "point": "C",
+ "layer": 15,
+ "layer_id": 15,
+ "n": 1200,
+ "positives": 454,
+ "base_rate": 0.37833333333333335,
+ "auroc": 0.4288451772153394,
+ "auprc": 0.3435297514325969,
+ "score_mean": 4.844964336258619,
+ "score_sd": 2.3139609113052253
+}

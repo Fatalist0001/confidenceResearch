@@ -17,3 +17,7 @@
 
 .env
 .vscode
+
+# Kaggle: собранный датасет/ноутбук и скачанные выходы ядер
+/kaggle/**/_build/
+/kaggle/**/out/

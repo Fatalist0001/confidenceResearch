@@ -821,8 +821,11 @@ llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон нап�
   `make_lfm_final_prompt.py`, `data/{pilot,main}_lfm25_final.jsonl`, `--no-template`;
   A = последний токен `Final answer:`, C стандартная;
 - LFM3: штатный `<think></think>`, 1025 ответов с лишним `</think>`, модель часто
-  многословна и самоисправляется; final-cue ухудшил пилот. Причина 41.8% обрезок не
-  установлена и не считается тем же явлением, что запланированный Thinking-режим;
+  многословна и самоисправляется; final-cue ухудшил пилот. Точная причина 41.8% обрезок
+  не доказана. Официально `enable_thinking=false` бывает нестабилен; GGUF рекомендует
+  temp 0.1 / top_k 50 / repeat penalty 1.1, а наш raw `hs_argmax` sampler не использует.
+  Вероятна комбинация sampler mismatch + no-thinking + лимита 64; проверить позже через
+  обычный `llama-cli` на том же файле, не смешивать с Thinking-экспериментом;
 - Gemma E4B BOS: по сравнению со старым прогоном `filtered_b` 0.383→0.470, probe
   0.9312→0.9186; парная Δ −0.0126 [-0.0259,+0.0012];
 - Gemma 12B: valid v3 находится в `out\main_gemma4_12b_v3`; probe намеренно не считать
@@ -906,9 +909,10 @@ Gemma C/19–22, Yandex C/14–20. Это общий среднеслойный 
   валидный v3: 6000/6000, 21 truncated, 2012.1 s, `filtered_b` 0.572, baseline
   0.813/0.826, verify 0 failed. Probe **отложена по решению пользователя**.
 - **LiquidAI no-thinking часть завершена:** LFM2.5-1.2B C/9 test 0.8812;
-  LFM2.5-2.6B C/17 0.8812; LFM3 C/12 0.8608 с оговоркой 41.8% обрезок неизвестной
-  причины. Thinking 1.2B — намеренно отложенная reasoning-пара: позже прогнать с
-  ограниченным reasoning budget (`report.md` §24).
+  LFM2.5-2.6B C/17 0.8812; LFM3 C/12 0.8608 с оговоркой 41.8% обрезок (вероятны
+  sampler mismatch + нестабильный no-thinking + лимит 64). Thinking 1.2B — намеренно
+  отложенная reasoning-пара: позже прогнать с ограниченным reasoning budget
+  (`report.md` §24).
 - **Новые BOS/Yandex-прогоны:** Gemma E4B BOS C/20 test 0.9186 (`filtered_b` 0.470);
   YandexGPT C/16 test 0.9062 (`filtered_b` 0.568). Победители снова около середины
   глубины (`report.md` §26–27).

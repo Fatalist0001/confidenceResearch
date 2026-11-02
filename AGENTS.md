@@ -95,116 +95,377 @@ llama-hidden-states.exe -m <gguf> --batch input.jsonl --out <dir> \
 
 Просмотр: `python llama.cpp-hiddenstates\examples\hidden-states\load_example.py <out_dir> --k 3`.
 
-## Пайплайн пробы для новой модели
+## Актуальный operational runbook для новой модели
 
-Протокол пробы **заморожен**: признаки — вектор скрытого состояния слоя L в точке A или C,
-стандартизация по train, L2-логистическая регрессия; λ из сетки `{100,300,1000,3000}`
-по среднему val AUROC, пара (точка, слой) по max val AUROC, тест считается **один раз**.
-При смене модели меняется только `<tag>` и путь к GGUF. Данные те же:
-`pipeline/data/main.jsonl` (6000) и `pipeline/data/pilot.jsonl` (200), сплиты уже внутри.
-Тег: `main_qwen08`, `main_gemma4e2b`, дальше `main_<модель>_<размер>`; для серии
-размеров Qwen 3.5 — `main_qwen35_<размер>_q4` (все веса **Q4_K_M от unsloth**, см.
-раздел «Квантование» ниже).
+Этот раздел — главный источник команд. Исторические команды ниже нужны для контекста и
+могут содержать старые пути/теги. Протокол **заморожен**: один вектор слоя в A или C,
+стандартизация по train, L2-logistic probe, λ `{100,300,1000,3000}`, λ по среднему val
+AUROC, точка/слой по max val AUROC, test один раз.
 
-**0. Подготовка.** Python — `pipeline\.venv\Scripts\python.exe` (numpy; sklearn не нужен).
-Все команды — из каталога `pipeline\`, выходы — в `out\<tag>\`.
+### 0. Переменные и тег
 
-**1. Пилот 200** (проверить время, обрезки, формы; ~40 с):
+Все команды выполнять из `pipeline\`:
 
 ```powershell
-..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe -m <gguf> `
-  --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
-  --out out\pilot_<tag>
+cd D:\VScode_pr\confidenceResearch\pipeline
+
+$PY    = '.\.venv\Scripts\python.exe'
+$BIN   = '..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe'
+$DUMP  = '..\llama.cpp-hiddenstates-new\build\bin\Release\hs-prompt-dump.exe'
+$MODEL = 'D:\path\model.gguf'
+$TAG   = 'model_size_quant'              # без main_/pilot_
+$PILOT_INPUT = 'data\pilot.jsonl'
+$MAIN_INPUT  = 'data\main.jsonl'
+$PILOT = "out\pilot_$TAG"
+$MAIN  = "out\main_$TAG"
 ```
 
-Смотреть: `ok=200 skipped=0`, `truncated`, `in ... s (X ex/s)`, `retokenize mismatch`,
-`shape=[200, n_layers, n_embd]`. Полный прогон ≈ время пилота × 30.
+Имена не повторять. Если `$PILOT` или `$MAIN` уже существуют, выбрать новый тег; не
+запускать resume поверх финального каталога.
 
-**2. Полный прогон 6000** (~20 мин на RTX 3050; лог — в файл, т.к. консоль теряет вывод):
+### 1. Preflight до загрузки весов
 
 ```powershell
-..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe -m <gguf> `
-  --batch data\main.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
-  --out out\main_<tag> 2>&1 | Tee-Object out\main_<tag>.log
+& $BIN --version
+& $DUMP $MODEL
+
+& $PY -c "import json; p=r'$MAIN_INPUT'; r=[json.loads(x) for x in open(p,encoding='utf-8') if x.strip()]; print('rows',len(r),'empty',sum(not x.get('question','').strip() for x in r),'bad_instruction',sum(x.get('question','').count('Answer with just the answer')!=1 for x in r),'duplicate_ids',len(r)-len(set(x['id'] for x in r))); print('first',repr(r[0]['question'])); print('last',repr(r[-1]['question']))"
+
+if (Test-Path $PILOT) { throw "pilot output already exists: $PILOT" }
+if (Test-Path $MAIN)  { throw "main output already exists: $MAIN" }
 ```
 
-Проверить в конце: `done: 6000/6000 ok=6000 skipped=0`, число `truncated`,
-`retokenize mismatch` (~0.5 % — норма), `config.json` (`n_layers`, `n_embd`, `template: true`,
-`thinking: false`). Флаги `-b/-ub` не задавать: пакетный режим сам ставит их в `--max-len`.
+Ожидания:
 
-**3. Разметка** (`label.py`):
+- `--version`: build 12033, commit `785322d17`;
+- `rows=6000`, `empty=0`, `bad_instruction=0`, `duplicate_ids=1` (`bb_956` — норма);
+- `hs-prompt-dump`: понятный prompt, правильный BOS, одинаковое число инструкции;
+- глазами проверить первые 2–3 вопроса, начало/конец prompt и отсутствие дубля инструкции.
+
+### 2. Пилот 200
 
 ```powershell
-..\.venv\Scripts\python.exe label.py --meta out\main_<tag>\meta.jsonl --out out\main_<tag>\labels.csv
+& $BIN -m $MODEL `
+  --batch $PILOT_INPUT --generate `
+  --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out $PILOT > "$PILOT.log" 2>&1
+
+Select-String -Path "$PILOT.log" `
+  -Pattern 'l_out is available|model: n_layer|done:|retokenize mismatch|shape='
 ```
 
-Свериться: `labeled` = 6000 − `truncated` − пустые/вырожденные; доли strict / relaxed /
-filtered_a / filtered_b; сколько меток меняет каждый фильтр. Пустые генерации искать по
-`logprobs == []`, вырожденные — глазами по `answer` (у Gemma были `}`, `?`, `\r`, `\xa0`,
-`<|channel>thought` при `thinking: false`). Все аномалии — в документацию, строки не
-удалять (они и так получают пустую метку).
+Обязательный gate перед 6000:
 
-**4. Baseline** (logprob/энтропия первого токена):
+- `done: 200/200`, `ok=200`, `skipped=0`;
+- формы `[200, L, D]`, ожидаемое число `l_out`;
+- посчитать `truncated`, пустые ответы, `retokenize mismatch`;
+- прочитать минимум 10 ответов, включая обрезанные/короткие;
+- проверить мета-текст, `<think>`, `</think>`, `<|channel>`, повторы;
+- оценка времени main ≈ pilot × 30; сильное отклонение позже документировать;
+- если почти все строки `truncated`/мусорные — main **не запускать**, сначала выяснить
+  шаблон, BOS, sampler/reasoning.
+
+Быстрая пилотная разметка:
 
 ```powershell
-..\.venv\Scripts\python.exe baseline.py --meta out\main_<tag>\meta.jsonl `
-  --labels out\main_<tag>\labels.csv --out out\main_<tag>\baseline.json `
-  --scores-out out\main_<tag>\baseline_scores.csv
+& $PY label.py --meta "$PILOT\meta.jsonl" --out "$PILOT\labels.csv"
 ```
 
-Смотреть test AUROC/AUPRC и ECE сырой `exp(lp0)`: если первый токен почти всегда
-служебный, сырая вероятность бесполезна (у Gemma ECE 0.54), это нормально — baseline
-всё равно ранжирует.
-
-**5. Проба** (~5–8 мин, CPU, mmap):
+### 3. Полный прогон 6000
 
 ```powershell
-..\.venv\Scripts\python.exe probe.py --hidden-a out\main_<tag>\hidden_a.npy `
-  --hidden-c out\main_<tag>\hidden_c.npy --meta out\main_<tag>\meta.jsonl `
-  --labels out\main_<tag>\labels.csv --out out\main_<tag>\probe.json `
-  --curve-out out\main_<tag>\probe_curve.csv --scores-out out\main_<tag>\probe_scores.csv
+& $BIN -m $MODEL `
+  --batch $MAIN_INPUT --generate `
+  --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out $MAIN > "$MAIN.log" 2>&1
+
+Select-String -Path "$MAIN.log" `
+  -Pattern 'done:|retokenize mismatch|shape=' | Select-Object -Last 8
 ```
 
-Контроли в `probe.json`: перемешанные метки ≈ 0.5 ± 0.06, слой 0 заметно ниже победителя,
-разрыв val→test не больше ~0.04 (у Gemma тест оказался выше val — это аномалия, её
-описывать, а не «исправлять»). Тест не пересчитывать и слой не перевыбирать.
-Детерминизм: повторный запуск с `--out ...\probe2.json --scores-out ...\probe2.csv`
-должен дать побайтово те же `probe_curve.csv`/`probe_scores.csv`.
-Вместе с `probe.json` пишется `probe_model.npz` (`w`, `mu`, `sd`, `meta`) — переносимая
-проба: `score = w[0] + w[1:] @ ((x - mu) / sd)`. Для старых прогонов — `save_probe_model.py
---dir out\main_<tag>` (пересборка детерминированна, тест не пересчитывается).
+Не использовать `Tee-Object`: у Qwen9B вывод в консоль замедлял прогон примерно втрое.
+Не задавать `-b/-ub`: пакетный режим сам ставит их равными `--max-len`.
 
-**6. Сравнение с предыдущей моделью** (метки у моделей разные — это ожидаемо):
+Ожидания:
+
+- `done: 6000/6000`, `ok=6000`, `skipped=0`;
+- две формы `[6000, L, D]`;
+- итоговые `truncated`, mismatch, время и ex/s выписать в README каталога;
+- не удалять строки и не «чинить» ответы после прогона.
+
+### 4. Разметка и проверка каталога
+
+Порядок важен: сначала `labels.csv`, затем `verify_run.py`, потому что verify проверяет
+классы и splits меток.
 
 ```powershell
-..\.venv\Scripts\python.exe compare_probes.py --a out\main_qwen08\probe_scores.csv `
-  --b out\main_<tag>\probe_scores.csv --split test --out out\compare_qwen08_<tag>_test.json
+& $PY label.py `
+  --meta "$MAIN\meta.jsonl" `
+  --out "$MAIN\labels.csv"
+
+& $PY verify_run.py `
+  --dir $MAIN --input $MAIN_INPUT `
+  --json "$MAIN\verify.json" --full
 ```
 
-Интерпретация: bootstrap ресэмплит вопросы, у каждой модели своя метка, поэтому ΔAUROC
-отражает и разную долю правильных ответов; в тексте это оговаривать.
+Gate:
 
-**7. Документация и коммит.** `report.md` — новый раздел (§N): прогон, аномалии, разметка
-со сплитами, baseline, проба (λ-сетка, кривая по слоям, val/test, контроли), сравнение.
-`README.md` — новый §3.N по образцу §3.9 + строки в §3.2 (прогоны), §4 (артефакты),
-§5 (команды), §6 (ограничения), «Расхождения и недостающие данные». В git — всё, кроме
-`*.npy` и логов (игнорируются `.gitignore`).
+- `verify: OK: 0 failed, 0 warnings`;
+- meta/labels по 6000 строк, row без дыр;
+- формы/dtype совпадают с config;
+- нет NaN/Inf, all-zero ok-строк и нулевых слоёв;
+- `filtered_b` имеет оба класса во всех train/val/test;
+- `null = truncated + пустые/вырожденные` с объяснением расхождения;
+- аномальные ответы оставить в файлах и перечислить в README каталога/report.
 
-**Ориентиры (не менять протокол под них):**
+### 5. Baseline
 
-| модель | доля правильных (filtered_b) | baseline test AUROC | проба: точка/слой | test AUROC | test AUPRC |
-|---|---|---|---|---|---|
-| Qwen3.5-0.8B (BF16) | 0.143 | 0.739 (logprob) | C / 13 | 0.857 | 0.593 |
-| Qwen3.5-0.8B (Q4_K_M) | 0.118 | 0.680 (logprob) | C / 13 | 0.871 | 0.548 |
-| Qwen3.5-2B (Q4_K_M) | 0.253 | 0.783 (logprob) | C / 12 | 0.886 | 0.759 |
-| Qwen3.5-4B (Q4_K_M) | 0.454 | 0.870 (logprob) | C / 15 | 0.918 | 0.903 |
-| Qwen3.5-9B (Q4_K_M) | 0.570 | 0.870 (logprob) | C / 16 | 0.917 | 0.927 |
-| Gemma 4 E2B | 0.182 | 0.705 (logprob) | C / 19 | 0.935 | 0.744 |
+```powershell
+& $PY baseline.py `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\baseline.json" `
+  --scores-out "$MAIN\baseline_scores.csv"
+```
 
-Победивший слой у всех — ~50 % глубины (13/24, 12/24, 15/32, 16/32, 19/35); если у новой
-модели он окажется на слое 0 или качество упадёт до baseline, это результат, а не повод
-менять сетку λ или точки. Внутри серии Qwen 3.5 качество пробы упирается в ~0.92 на 4B
-и на 9B не растёт — новый ориентир не «выше», а «не ниже» (см. раздел «Серия размеров»).
+Записать test AUROC/AUPRC logprob и entropy, base rate, Brier/ECE. Служебный первый токен
+может давать плохую сырую `exp(lp0)` — ranking AUROC при этом остаётся валидным.
+
+### 6. Probe
+
+Не запускать одновременно с локальной GPU-генерацией: CPU/RAM-нагрузка замедляет оба
+процесса.
+
+```powershell
+& $PY probe.py `
+  --hidden-a "$MAIN\hidden_a.npy" `
+  --hidden-c "$MAIN\hidden_c.npy" `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\probe.json" `
+  --curve-out "$MAIN\probe_curve.csv" `
+  --scores-out "$MAIN\probe_scores.csv" `
+  --model-out "$MAIN\probe_model.npz"
+```
+
+Проверить:
+
+- λ выбрана только по среднему val AUROC;
+- точка/слой выбраны только по val;
+- test посчитан один раз, по нему ничего не перевыбирать;
+- shuffled test AUROC примерно 0.5;
+- layer 0 обычно ниже победителя; если нет — описать, не подгонять;
+- val→test gap обычно не больше ~0.04; любое отклонение документировать;
+- `probe_scores.csv` содержит val+test, `probe_model.npz` существует;
+- победитель на слое 0 или результат около baseline — допустимый научный результат.
+
+Если старый валидный каталог не содержит `probe_model.npz`, восстановить его без изменения
+протокола: `& $PY save_probe_model.py --dir $MAIN`.
+
+### 7. Проверка детерминизма probe
+
+Оригинальные `probe.*` не перезаписывать:
+
+```powershell
+& $PY probe.py `
+  --hidden-a "$MAIN\hidden_a.npy" `
+  --hidden-c "$MAIN\hidden_c.npy" `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\probe2.json" `
+  --curve-out "$MAIN\probe2_curve.csv" `
+  --scores-out "$MAIN\probe2_scores.csv" `
+  --model-out "$MAIN\probe2_model.npz"
+
+Get-FileHash "$MAIN\probe_curve.csv", "$MAIN\probe2_curve.csv" -Algorithm SHA256
+Get-FileHash "$MAIN\probe_scores.csv", "$MAIN\probe2_scores.csv" -Algorithm SHA256
+```
+
+Ожидание: пары SHA-256 равны, λ/точка/слой и метрики те же. Повтор нужен только как
+контроль реализации; он не разрешает менять выбор по test.
+
+### 8. Парное сравнение с референсом
+
+```powershell
+$REF = 'out\main_qwen08_q4\probe_scores.csv'
+
+& $PY compare_probes.py --a $REF --b "$MAIN\probe_scores.csv" `
+  --split test --out "out\compare_ref_${TAG}_test.json"
+
+& $PY compare_probes.py --a $REF --b "$MAIN\probe_scores.csv" `
+  --split val --out "out\compare_ref_${TAG}_val.json"
+```
+
+Bootstrap парный по row, но у моделей собственные ответы и метки. ΔAUROC отражает и
+разные ошибки/доли правильных, а не только «качество направления». AUPRC моделей с
+разным base rate напрямую не сравнивать.
+
+Для переноса сохранённой пробы на другой прогон той же модели/размерности:
+
+```powershell
+& $PY apply_probe_model.py `
+  --model "out\main_<source>\probe_model.npz" `
+  --dir "out\main_<target>" --split test `
+  --out "out\probe_<source>_on_<target>_test.json"
+```
+
+Если $D$ не совпадает, перенос весов невозможен без отдельного выравнивания пространств.
+Для проверки двух версий одного и того же прогона:
+
+```powershell
+& $PY compare_runs.py `
+  --a "out\main_<old>" --b "out\main_<new>" --per-layer `
+  --out "out\compare_runs_<old>_<new>.json"
+```
+
+### 9. Минимальный README одного прогона
+
+В `out\main_<tag>\README.md` записать:
+
+- точный GGUF, квант, arch, llama.cpp commit/build, команду и особый prompt;
+- `ok/skipped/truncated/mismatch`, время/ex/s, форму массивов;
+- strict/relaxed/filtered_a/filtered_b, null и аномалии ответов;
+- baseline lp/entropy test;
+- λ, точку/слой, val/test AUROC, CI, AUPRC, Brier/ECE;
+- shuffled/layer0, плато соседних слоёв, val→test gap;
+- парные сравнения и все ограничения выборки.
+
+После этого обновить краткую таблицу/выводы в корневом `README.md`, подробный раздел в
+`report.md`, текущее состояние здесь. В git добавлять meta/config/labels/baseline/probe,
+README и сравнения; `.npy`, логи, Kaggle output и `_build` игнорируются. Перед commit:
+`git diff --check`, проверка JSON/CSV, `git status` без посторонних файлов.
+
+### 10. Модельные исключения: команды и gates
+
+#### Qwen3.5-9B
+
+Полностью помещается в 6 ГБ только с `-ngl 99`; пик около 5860 MiB. Писать лог только в
+файл, не в `Tee-Object`. Остальная команда стандартная.
+
+#### Nemotron 3 Nano 4B
+
+Команда стандартная `--layers all -ngl 99`. Ожидать auto-filter: 42 requested → 17
+доступных `l_out`, форма `[N,17,3136]`. Обязательно `verify_run.py --full`; 42 нулевых
+слоя или массовый skipped означают старый дефектный бинарник.
+
+#### gpt-oss-20b
+
+Сначала подготовить harmony prompt с предзаполненным `final`; обычный template/reasoning
+не использовать:
+
+```powershell
+& $PY make_gptoss_prompt.py `
+  --in data\pilot.jsonl --out data\pilot_gptoss_final.jsonl
+& $PY make_gptoss_prompt.py `
+  --in data\main.jsonl --out data\main_gptoss_final.jsonl
+
+$PILOT_INPUT = 'data\pilot_gptoss_final.jsonl'
+$MAIN_INPUT  = 'data\main_gptoss_final.jsonl'
+
+& $BIN -m $MODEL --batch $PILOT_INPUT `
+  --generate --max-new-tokens 64 --max-len 1024 --layers all `
+  --no-thinking --no-template --batch-rows 8 -ngl 11 `
+  --out $PILOT > "$PILOT.log" 2>&1
+
+& $BIN -m $MODEL --batch $MAIN_INPUT `
+  --generate --max-new-tokens 64 --max-len 1024 --layers all `
+  --no-thinking --no-template --batch-rows 8 -ngl 11 `
+  --out $MAIN > "$MAIN.log" 2>&1
+```
+
+До main проверить, что инструкция в готовом prompt ровно одна. `-ngl 12+` на RTX 3050
+вызывает shared-memory spill и замедление. A — последний токен prefilled final.
+
+#### LFM2.5-2.6B
+
+Штатный шаблон открывает `<think>` даже при no-thinking. Готовить отдельный вход:
+
+```powershell
+& $PY make_lfm_final_prompt.py `
+  --in data\pilot.jsonl --out data\pilot_lfm25_final.jsonl
+& $PY make_lfm_final_prompt.py `
+  --in data\main.jsonl --out data\main_lfm25_final.jsonl
+
+$PILOT_INPUT = 'data\pilot_lfm25_final.jsonl'
+$MAIN_INPUT  = 'data\main_lfm25_final.jsonl'
+
+& $BIN -m $MODEL --batch $PILOT_INPUT `
+  --no-template --generate --max-new-tokens 64 --max-len 1024 `
+  --layers all -ngl 99 --out $PILOT > "$PILOT.log" 2>&1
+
+& $BIN -m $MODEL --batch $MAIN_INPUT `
+  --no-template --generate --max-new-tokens 64 --max-len 1024 `
+  --layers all -ngl 99 --out $MAIN > "$MAIN.log" 2>&1
+```
+
+A — последний токен `Final answer:`, C стандартная. Проверить идемпотентность входа и
+однократную инструкцию.
+
+#### LFM2.5-1.2B-Thinking
+
+Не запускать обычный full-run: no-thinking pilot дал 200/200 truncated. Модель выбрана
+для будущего reasoning-vs-Instruct эксперимента. Сначала отдельно зафиксировать reasoning
+budget, final budget, остановку/извлечение final и правила точки C; старый frozen-протокол
+не менять молча.
+
+#### LFM3-1.7B
+
+Стандартный no-thinking prompt верен, но 41.8% строк не завершились за 64 токена.
+Наиболее вероятны нестабильный `enable_thinking=false`, raw argmax без встроенных
+`temp=0.1/top_k=50/repeat_penalty=1.1` и короткий budget. Перед новым full-run сделать
+дешёвый `llama-cli` pilot на том же локальном GGUF и официальном sampler; модель заново
+не скачивать. Текущий `llama-hidden-states` sampling-флаги при генерации игнорирует.
+
+#### Gemma E2B/E4B и YandexGPT
+
+Использовать master-бинарник, штатный template и `-ngl 99`; BOS добавляется автоматически.
+До main `hs-prompt-dump` должен показывать `add_bos=true` и первый BOS id. Старые Gemma
+E2B/E4B/Nemotron без BOS не перезаписывать: это отдельные исторические результаты.
+
+#### Gemma 4 12B на Kaggle
+
+```powershell
+cd D:\VScode_pr\confidenceResearch
+
+# Перед стартом
+$env:KAGGLE_API_TOKEN = ((Get-Content .env | `
+  Select-String '^KAGGLE_API_TOKEN=').Line -replace '^KAGGLE_API_TOKEN=','').Trim()
+& 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe' quota
+
+# Обновить dataset + запустить kernel
+powershell -File kaggle\gemma4_12b\push.ps1
+
+# Ждать завершения, снять лог и новую квоту
+powershell -File kaggle\watch.ps1 `
+  -Kernel odinodinodin/hs-gemma4-12b `
+  -IntervalSec 60 -LogDir kaggle\gemma4_12b\out
+
+# Скачать в новый каталог версии, не поверх старой выгрузки
+$KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
+& $KAG kernels output odinodinodin/hs-gemma4-12b `
+  -p "kaggle\gemma4_12b\out\v<N>"
+```
+
+Kernel сам выполняет easy8 → pilot40 → gate → main. Gate: easy ≥7/8, pilot ok/skipped,
+0 мета-текста/channel leak, скорость и оценка <4 ч. После копирования main в новый
+`pipeline\out\main_<tag>` запускать verify с явным `--input data\main.jsonl`, потому что
+config содержит Kaggle-путь `/kaggle/input/...`.
+
+Для текущего `main_gemma4_12b_v3` probe отложена по решению пользователя: не запускать её
+автоматически после baseline без нового явного указания.
+
+### 11. Численные ориентиры — не цели
+
+Актуальная общая таблица находится в корневом `README.md`. Типичные здоровые признаки:
+
+- shuffled AUROC около 0.5;
+- победитель чаще C и около 50% глубины, но иной результат допустим;
+- test AUROC однослойной пробы обычно 0.86–0.94;
+- соседние слои часто отличаются на 0.004–0.01;
+- test может быть выше val; это описывать, а не исправлять;
+- рост правильности не обязан повышать probe AUROC.
+
+Нельзя менять λ-сетку, точки, split или слой ради попадания в эти ориентиры.
 
 ## Модель gpt-oss 20B (отключение reasoning, скорость)
 

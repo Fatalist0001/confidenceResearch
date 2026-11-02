@@ -19,12 +19,13 @@ powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset  # только ядр�
 
 ```powershell
 $KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
-& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
-Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
+& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out\v5
+Copy-Item kaggle\gemma4_12b\out\v5\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
 ```
 
 `main_gemma4_12b` без суффикса — непригодный прогон без ведущего `<bos>`; его не
-перезаписывать и не использовать. Валидный повтор всегда идёт в `main_gemma4_12b_v3`.
+перезаписывать и не использовать. Валидный `main_gemma4_12b_v3` завершён 2026-11-02;
+probe отложена, остальные артефакты лежат в `pipeline/out/main_gemma4_12b_v3`.
 
 Квоты и правила (пилот перед полным прогоном, запись расхода) — в `AGENTS.md`,
 раздел «Kaggle: GPU вне этой машины».
@@ -37,4 +38,4 @@ Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma
 
 Гейт ядра обязан проверять **ответы**, а не только счётчики: у `hs-gemma4-12b` v1 гейт
 прошёл при `ok=6000` и одновременно мусорных ответах (strict 9/3702). В текущих ядрах
-для этого есть easy8 (8 простых вопросов, ожидание 8/8) и счётчики мета-текста в пилоте.
+для этого есть easy8 (порог 7/8) и счётчики мета-текста/channel leak в пилоте.

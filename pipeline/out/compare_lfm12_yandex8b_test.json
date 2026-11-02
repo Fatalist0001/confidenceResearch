@@ -1,0 +1,30 @@
+{
+  "split": "test",
+  "a": "out/main_lfm25_1p2b_instruct_q4/probe_scores.csv",
+  "b": "out/main_yandexgpt5lite8b_q4/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1200,
+    "pos_a": 215,
+    "pos_b": 668,
+    "base_rate_a": 0.17916666666666667,
+    "base_rate_b": 0.5566666666666666,
+    "label_mismatch_rows": 511,
+    "a_auroc": 0.8812041081336324,
+    "b_auroc": 0.9062429651974248,
+    "a_auprc": 0.6876819930588183,
+    "b_auprc": 0.9176913081873987,
+    "delta_auroc": 0.025038857063792386,
+    "delta_auprc": 0.23000931512858047
+  },
+  "delta_auroc_ci": [
+    -0.0035049813723416886,
+    0.053803403847681584
+  ],
+  "delta_auprc_ci": [
+    0.17128516043049308,
+    0.2886986469351394
+  ],
+  "share_b_higher_auroc": 0.955
+}

@@ -1,0 +1,30 @@
+{
+  "split": "test",
+  "a": "out/main_qwen35_9b_q4/probe_scores.csv",
+  "b": "out/main_yandexgpt5lite8b_q4/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1200,
+    "pos_a": 664,
+    "pos_b": 668,
+    "base_rate_a": 0.5533333333333333,
+    "base_rate_b": 0.5566666666666666,
+    "label_mismatch_rows": 244,
+    "a_auroc": 0.9171602454594497,
+    "b_auroc": 0.9062429651974248,
+    "a_auprc": 0.9271475004890167,
+    "b_auprc": 0.9176913081873987,
+    "delta_auroc": -0.010917280262024986,
+    "delta_auprc": -0.009456192301617983
+  },
+  "delta_auroc_ci": [
+    -0.030667768848791556,
+    0.007748863870619412
+  ],
+  "delta_auprc_ci": [
+    -0.02893820759427584,
+    0.008152995897697869
+  ],
+  "share_b_higher_auroc": 0.124
+}

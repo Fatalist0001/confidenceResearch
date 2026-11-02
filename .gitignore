@@ -23,6 +23,13 @@
 /pipeline/out/**/*.log
 /pipeline/out/equiv/*/
 
+# Короткие prompt-trials перед валидными пилотами (итоги перенесены в документацию)
+/pipeline/out/pilot20_*/
+/pipeline/out/pilot20_lfm*.jsonl
+/pipeline/out/lfm_trials_*/
+/pipeline/out/lfm_prompt_trials.jsonl
+/pipeline/out/main_lfm25_final_idempotent.jsonl
+
 .env
 .vscode
 

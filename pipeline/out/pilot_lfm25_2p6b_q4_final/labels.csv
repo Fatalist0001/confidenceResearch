@@ -1,0 +1,202 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,0,0,0,0,0,False,2, Anchor,HYPERLINK
+qz_2440,1,train,0,0,0,0,0,False,15," The film is ""The Last of the Mohicans"" (1881).",Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,1, Thailand,BHUTAN
+sfq_17775,3,train,0,0,0,0,0,False,39," The song ""Up Where We Belong"" won the Oscar for Best Original Song at the 1994 Academy Awards (the 66th Academy Awards) for the film *The Color Purple*.",AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,1,1,1,1,1,False,4, Rudyard Kipling,Rudyard Kipling
+dpql_1548,5,train,0,0,0,0,0,False,20, Mr. Bunter's form teacher is Mr. Bunter himself. The surname is Bunter.,QUELCH
+qz_1800,6,train,1,1,1,1,1,False,2, The Beatles,The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,3, Robert Forster,Gene Hackman
+sfq_22280,8,train,1,1,1,1,1,False,3, Persuasion,PERSUASION
+odql_4855,9,train,0,0,0,0,0,False,5, The Magic School Bus series,'HARRY POTTER'
+qb_9568,10,train,0,0,0,0,0,False,2, Muhammad Ali,George Foreman
+qw_4190,11,train,1,1,1,1,1,False,1, Mexico,Mexico
+sfq_2348,12,train,0,0,0,0,0,False,20," The Humming Chorus is featured in the opera ""Carmen"" by Georges Bizet.",Madame Butterfly
+wh_2109,13,train,0,0,0,0,0,False,3, Krypton,NICKEL
+bb_7429,14,train,1,1,1,1,1,False,2, Les Paul,Les Paul
+qb_5655,15,train,0,0,0,0,0,False,4, Thomas Tredgold,Thomas Chippendale
+wh_833,16,train,0,0,0,0,0,False,5, *The Cure*,UNDER MILKWOOD
+sfq_20635,17,train,1,1,1,1,1,False,2, pineapple,Pineapple
+wh_2629,18,train,0,0,0,0,0,False,2, The bee,TOAD
+qg_494,19,train,1,1,1,1,1,False,3, The Watts District,Watts
+qw_11386,20,train,1,1,1,1,1,False,1, Port,Port
+sfq_15472,21,train,0,0,0,0,0,False,3,"  
+Knot",HONDA
+qz_1130,22,train,1,1,0,1,1,False,1, O,O
+sfq_19115,23,train,0,0,0,0,0,False,4, Stevie Nicks,STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,3, Pancreas,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,2, 97,97
+tc_1938,26,train,0,0,0,0,0,False,2, United Kingdom,South Africa
+bt_4125,27,train,0,0,0,0,0,False,2, Hector,Ajax
+odql_13628,28,train,0,0,0,0,0,False,4, Blackburn Rovers,Peterborough United
+qw_1816,29,train,1,1,1,1,1,False,4, Paul Gauguin,Paul Gauguin
+sfq_20015,30,train,1,1,1,1,1,False,1, Jesse,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,2, A mask,A Horse Collar
+qg_2238,32,train,0,0,0,0,0,False,5, Salyut 7,Skylab
+odql_8256,33,train,1,1,1,1,1,False,3, 2004,2004
+sfq_11176,34,train,0,0,0,0,0,False,3, Paul Ince,Theo Walcott
+qb_8500,35,train,0,0,0,0,0,False,1, Lisa,Mildred
+wh_532,36,train,0,0,0,0,0,False,16," The song ""Mommy Kissing Santa Claus"" by Bing Crosby.",JIMMY BOYD
+qg_1234,37,train,1,1,1,1,1,False,4, Lasso of Truth,Lasso
+sfq_24275,38,train,1,1,1,1,1,False,3, Riyadh,RIYADH
+qg_869,39,train,1,1,1,1,1,False,1, Netherlands,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,4, Miguel de Cervantes,(Miguel de) Cervantes
+qw_7349,41,train,1,1,1,1,1,False,2, 364,364
+bb_5225,42,train,1,1,1,1,1,False,6, International Committee of the Red Cross,The Red Cross
+dpql_5620,43,train,0,0,0,0,0,False,1, Chicago,San Francisco
+bt_1591,44,train,,,,,,True,64," The character's name is ""The Darling Buds of May"" (but this is the show's title, not the character). The correct character name is ""The Darling"" (the main character's name is ""The Darling""). However, the question asks for the name of the character in ""The Dar",Mariette
+sfq_6053,45,train,0,0,0,0,0,False,10, The 250th anniversary of the Royal Mint.,Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,6, A cross-dresser.,transvestite
+qb_5400,47,train,1,1,1,1,1,False,3, Fulham FC,Fulham FC
+tc_1921,48,train,0,0,0,0,0,False,13," Given the dress auction, the designer is Coco Chanel.",Victor Edelstein
+qz_4845,49,train,0,0,0,0,0,False,5, A mermaid.,Centaur
+qg_808,50,train,1,1,1,1,1,False,3, Troposphere,Troposphere
+dpql_5914,51,train,1,1,1,1,1,False,2, Vespa,Vespa
+qb_866,52,train,1,1,0,0,1,False,18, The US singing duo that started under the names Caesar and Cleo is The Crystals.,Sonny and Cher
+qz_2466,53,train,0,0,0,0,0,False,10, George Clooney and Gwyneth Paltrow,Will Smith
+bb_1292,54,train,1,1,1,1,1,False,1, September,September
+sfq_8782,55,train,1,1,1,1,1,False,3, Vanuatu,VANUATU
+tc_1686,56,train,1,1,1,1,1,False,3, Woodrow Wilson,Woodrow Wilson
+qg_4604,57,train,0,0,0,0,0,False,3, United States Army,National Guard
+odql_10315,58,train,1,1,1,1,1,False,3, The Yardbirds,'THE YARDBIRDS'.
+dpql_277,59,train,,,,,,True,64," The title character named Dolores Haze is from the novel ""The Haze"" by L. M. Montgomery, but she is more widely known as the protagonist of ""The Haze"" (a short story) or ""The Haze"" (a novel). However, the most famous character with the name Dol",Lolita
+wh_3251,60,train,1,1,1,1,1,False,1, Jordan,JORDAN
+sfq_17002,61,train,0,0,0,0,0,False,11," The book was called ""All the Best, Bob""",All the President's Men
+bt_2111,62,train,1,1,1,1,1,False,3, Prince Edward Island,Prince Edward Island
+qf_1053,63,train,1,1,1,1,1,False,3, Robben Island,Robben Island
+qf_527,64,train,1,1,1,1,1,False,1, Coffee,coffee
+jp_4336,65,train,1,1,1,1,1,False,3, Grey's Anatomy,Grey's Anatomy
+bb_2130,66,train,0,0,0,0,0,False,4, The puffin.,Bittern
+wh_3298,67,train,1,1,1,1,1,False,2, Mantle,THE MANTLE
+qw_11908,68,train,1,1,1,1,1,False,2, 15,15
+qw_5777,69,train,0,0,0,0,0,False,10," The film is ""The Killer Inside Me""",The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,2, open ocean,Sea
+dpql_2028,71,train,1,1,1,1,1,False,8, Sulfur dioxide (SO₂),Sulphur
+jp_1350,72,train,0,0,0,0,0,False,46," Pangaea was a supercontinent that existed during the late Paleozoic and early Mesozoic eras, and Gondwana was a supercontinent that existed during the late Paleozoic and early Mesozoic eras.",Continents
+qb_9676,73,train,1,1,1,1,1,False,49," 100 - Yellow, 101 - Red, 102 - Blue, 103 - Green, 104 - Orange, 105 - Purple, 106 - Pink, 107 - White, 108 - Black, 109 - Brown",Yellow
+qw_12980,74,train,0,0,0,0,0,False,7, A statue of John Lennon.,Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,2, The eye,Eye
+qb_1757,76,train,0,0,0,0,0,False,2, 2,Four
+sfq_22467,77,train,0,0,0,0,0,False,3, 1904,1960's
+qz_340,78,train,1,1,1,1,1,False,2, Oscar Wilde,Oscar Wilde
+qz_3023,79,train,0,0,0,0,0,False,13, The Kylie Minogue and Nicky Youre couple.,The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,3, 1912,1912
+qf_2053,81,train,0,0,0,0,0,False,2, Western Australia,Northern Territory
+qb_5139,82,train,1,1,1,1,1,False,5, Saddam Hussein,Saddam Hussein
+qw_9422,83,train,0,0,0,0,0,False,3, Emily Dickinson,William Wordsworth
+qw_1606,84,train,0,0,0,0,0,False,1, Charles,Anne
+qf_2232,85,train,0,0,0,0,0,False,22," The only place in the United States that has a royal palace is the White House in Washington, D.C.",Honolulu
+odql_8838,86,train,0,0,0,0,0,False,14," The series of spotters guides was named ""The Big Chief"".",I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,12," The TV programme is ""The Great British Bake Off"".",Time Team
+dpql_3499,88,train,0,0,0,0,0,False,2, Manchester United,Blackburn Rovers
+dpql_5268,89,train,0,0,0,0,0,False,1, Venus,Mercury
+sfq_14187,90,train,0,0,0,0,0,False,3, Cheltenham,MANCHESTER
+qw_6247,91,train,0,0,0,0,0,False,3, Kensington,Baritsu
+qg_675,92,train,,,,,,True,64," adrenal glands are located near the adrenal cortex and medulla, which are parts of the adrenal glands themselves, but the question asks ""near what organ(s)"" – the adrenal glands are located near the kidneys. However, the standard answer is that they are located on top of the kidneys. But the question says ""near what",Kidneys
+odql_15048,93,train,1,1,1,1,1,False,1, Zaragoza,Zaragoza
+bt_1718,94,train,0,0,0,0,0,False,3, R. Austin,London
+bt_3844,95,train,0,0,0,0,0,False,7, The *Brigham Bay*,Sea Empress
+qb_1751,96,train,1,1,1,1,1,False,3, Labrador Retriever,Labrador Retriever
+qg_48,97,train,0,0,0,0,0,False,5, The Gregorian calendar.,Mayan
+sfq_15080,98,train,1,1,1,1,1,False,3, Boreas,Boreas
+wh_3819,99,train,0,0,0,0,0,False,1, England,SPAIN
+qg_3215,100,train,,,,,,True,64," ""Great taste, less filling"" is the slogan for the ""Munchies"" brand of snacks, specifically their ""Munchies"" chips. However, upon verification, the exact product associated with this slogan is the ""Munchies"" brand, which is a line of potato chips. But the question asks for",Miller Lite Beer
+qb_6288,101,train,0,0,0,0,0,False,1, July,June
+qf_3155,102,train,0,0,0,0,0,False,3, Michael Gambon,Timothy Dalton
+bb_5704,103,train,0,0,0,0,0,False,10, The famous TV personality is Oprah Winfrey.,David Letterman
+qg_3384,104,train,1,1,1,1,1,False,5, The Valkyries,Valkyries
+qg_1358,105,train,1,1,1,1,1,False,2, George Lucas,George Lucas
+odql_2344,106,train,0,0,0,0,0,False,9, Saint Louis (Isle de Saint-Louis),SAO TOME
+odql_14551,107,train,1,1,1,1,1,False,2, Joy Division,'JOY DIVISION'
+odql_9627,108,train,0,0,0,0,0,False,32," The famous family that lived at '50 Wimpole Street, London, was the Dukes of York (specifically, the Duke of York and his family).",THE BARRETTS
+wh_4018,109,train,1,1,1,1,1,False,1, Java,JAVA
+odql_11679,110,train,0,0,0,0,0,False,18," The actor Errol Flynn was born on the island of Key Largo, Florida.",TASMANIA
+sfq_24154,111,train,1,1,1,1,1,False,25," The quotes ""Nothing is certain but death and taxes"" and ""Remember that time is money"" are attributed to Benjamin Franklin.",Benjamin Franklin
+sfq_11824,112,train,0,0,0,0,0,False,2, Gull,TERN
+qg_3551,113,train,1,1,1,1,1,False,1, Bolivia,Bolivia
+tb_666,114,train,,,,,,True,64," coffee and ham drippings sauce named after its appearance like a certain body organ. The sauce is called ""coffee and ham drippings"" but the specific name derived from its appearance is ""coffee and ham drippings"" or more precisely, the dish is known as ""coffee and ham drippings",Red-eye gravy
+bb_912,115,train,0,0,0,0,0,False,9, Sanlucar de Barrameda,Jerez
+sfq_634,116,train,1,1,1,1,1,False,4, Bitter almonds,ALMONDS
+sfq_2414,117,train,0,0,0,0,0,False,2, The disciples,Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,3, Treaty of Utrecht,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,4, The Scorpion,Libra
+jp_1975,120,val,1,1,1,1,1,False,2, Tet holiday,Tet
+odql_9226,121,val,1,1,1,1,1,False,2, Mulberry,MULBERRY
+jp_2293,122,val,0,0,0,0,0,False,6," ""I'm a bot.""",Jump
+jp_3910,123,val,1,1,1,1,1,False,5, The Rothschild family.,Rothschild
+odql_3654,124,val,,,,,,True,64," Donald L. Neilson was better known as ""The Man Who Killed the World"" or ""The Man Who Killed the President."" However, the most common and specific moniker is ""The Man Who Killed the President,"" referring to his 1978 assassination of President Gerald Ford. But the question asks """,'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,3, Mike Tyson,THOMAS HEARNS
+qw_10079,126,val,0,0,0,0,0,False,5, The Royal Academy of Arts,The British Museum
+sfq_7254,127,val,1,1,1,1,1,False,4, Procol Harum,PROCUL HARUM
+sfq_80,128,val,0,0,0,0,0,False,3, Jeremy Clarkson,ANGELA RIPPON
+odql_9592,129,val,0,0,0,0,0,False,4, Ithaca College,CORNELL
+odql_4457,130,val,1,1,1,1,1,False,6, **Alan Freed**,Alan Freed
+bt_2428,131,val,1,1,1,1,1,False,6, The Old Course at St Andrews,Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,2, Bahrain,South Korea
+sfq_24622,133,val,0,0,0,0,0,False,2, Abraham Lincoln,James A Garfield
+qb_3553,134,val,1,1,1,1,1,False,4, T.E. Lawrence,T E Lawrence
+odql_2368,135,val,1,1,1,1,1,False,1, copper,COPPER
+sfq_23299,136,val,0,0,0,0,0,False,3, The Spinners,DR HOOK
+bb_4587,137,val,1,1,1,1,1,False,4, skateboarding,Skateboarding
+wh_4300,138,val,0,0,0,0,0,False,19, The musical *Blood Brothers* was written by Tom Cleary and David M. Berman.,WILLY RUSSELL
+bb_92,139,val,1,1,1,1,1,False,1, Chess,Chess
+qb_7956,140,val,0,0,0,0,0,False,9," The ""Inferno"" firework.",Catherine Wheel
+odql_11309,141,val,0,0,0,0,0,False,7, The Solicitors' Bar Association,The Law Society
+bt_1444,142,val,1,1,1,1,1,False,2, heraldry,Heraldry
+qw_13262,143,val,0,0,0,0,0,False,3, Peter Lube,Paul McGann
+sfq_6197,144,val,0,0,0,0,0,False,10," Henry Grey, 1st Duke of Northampton",Lord Guildford Dudley
+bb_3905,145,val,1,1,1,1,1,False,2, Olive tree,Olive
+qw_13284,146,val,0,0,0,0,0,False,1, Montreal,Quebec
+qw_8487,147,val,0,0,0,0,0,False,16," Wales is in the west of the UK, while Devon is in the south.",Bristol Channel
+qw_45,148,val,1,1,1,1,1,False,5, HAL 9000,HAL
+sfq_5677,149,val,1,1,1,1,1,False,1, Noah,NOAH
+dpql_5750,150,val,1,1,1,1,1,False,3, Carl Sagan,Carl Sagan
+dpql_447,151,val,1,1,1,1,1,False,21, A 'gricer' is a slang term for a person who is very generous or kind.,TRAINSPOTTER
+odql_1420,152,val,0,0,0,0,0,False,9, The Prisoner (1967 TV series),'TOP OF THE POPS'
+qb_6622,153,val,1,1,1,1,1,False,1, Poker,Poker
+sfq_14492,154,val,1,1,1,1,1,False,2, Discworld,Discworld
+odql_2092,155,val,0,0,0,0,0,False,2, United Kingdom,SERBIA
+jp_4329,156,val,,,,,,True,64," Tony Romo, John Mayer, and Nick Lachey have all dated the same person. The answer is: The person is not specified in the query, but based on common knowledge, the answer is likely ""Tony Romo"" or another individual. However, the query asks ""Who has dated Tony Romo",Jessica Simpson
+qg_1929,157,val,0,0,0,0,0,False,1, Silver,Molybdenum
+odql_14378,158,val,1,1,1,1,1,False,1, Tennessee,TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,14, The Colossus of Rhodes was a bronze statue of Helios.,APOLLO
+wh_4343,160,test,1,1,1,1,1,False,2, Avengers,THE AVENGERS
+dpql_1884,161,test,1,1,1,1,1,False,4, Hara-kiri,HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,38," The German ""Bundesliga"" refers to the top-tier professional football (soccer) league in Germany, consisting of 18 clubs competing in a double round-robin format.",Federal
+sfq_4245,163,test,1,1,1,1,1,False,2, Sikhism,Sikh(ism)
+sfq_20017,164,test,,,,,,True,64," The International Year of Peace and Friendly Relations (or similar, but the specific organization is the ""International Year of Peace and Friendly Relations"" or more accurately, the ""International Year of Peace and Friendly Relations"" was established by Peter Benenson in 1961, but the organization is the ""International Year of",Amnesty International
+sfq_19297,165,test,0,0,0,0,0,False,5, Spa-Francorchamps,Spa
+jp_2379,166,test,1,1,1,1,1,False,1, Massachusetts,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,17, The Strawberry Museum in the town of Wepion is in Latvia.,Belgium
+bb_3356,168,test,0,0,0,0,0,False,3, Roger Federer,Rafael Nadal
+sfq_1177,169,test,1,1,1,1,1,False,2, Perseus,Perseus
+qw_13422,170,test,0,0,0,0,0,False,2, Malcolm X,Nikita Khruschev
+odql_6190,171,test,0,0,0,0,0,False,1, Romans,EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,7," Lake Placid, United States",Switzerland
+qf_2991,173,test,1,1,1,1,1,False,44," A Printed Circuit Board (PCB) is a flat, rigid sheet of material (typically fiberglass or composite) onto which conductive pathways are etched and printed, enabling the interconnection of electronic components.",Printed Circuit Board
+odql_13246,174,test,0,0,0,0,0,False,2, Hugh Grant,Rowan Atkinson
+sfq_25987,175,test,0,0,0,0,0,False,25," The last 3 holes of which golf course are named ""Redbud"", ""Nandina"", and ""Hotly""?",Augusta
+qb_7931,176,test,0,0,0,0,0,False,1, birds,Squirrel
+sfq_10109,177,test,1,1,1,1,1,False,2, 8,Eight
+qw_3390,178,test,1,1,1,1,1,False,1, Winnipeg,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,2, John Barry,LIONEL BART
+dpql_5223,180,test,1,1,1,1,1,False,4, Llandudno,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,3, Pulsar,PULSAR
+odql_6602,182,test,1,1,1,1,1,False,2, Niger River,NIGER
+odql_2741,183,test,0,0,0,0,0,False,6, Stratford-upon-Avon,HEREFORD
+qg_1847,184,test,0,0,0,0,0,False,3, Ford Taurus,White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,5," Germany, Italy, Japan","Germany, Japan, Italy"
+qw_14421,186,test,0,0,0,0,0,False,1, Platform,Manifesto
+bb_4458,187,test,0,0,0,0,0,False,2, Turkish Van,Cat
+dpql_3596,188,test,0,0,0,0,0,False,3, Little egret,Crane
+sfq_21495,189,test,1,1,1,1,1,False,3, Hufflepuff,Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,4, Plynlimmon,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,1, Vienna,Madrid
+odql_1340,192,test,0,0,0,0,0,False,3, Sarah Reese,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,4, Katharine Hepburn,Deborah Kerr
+bb_4415,194,test,1,1,1,1,1,False,2, 1,1
+qz_2165,195,test,0,0,0,0,0,False,2, Les Dennis,Max Bygraves
+sfq_23975,196,test,1,1,1,1,1,False,27, The late comedienne who wrote the 2014 best-selling book 'Diary of a Mad Diva' is Joan Rivers.,Joan Rivers
+qb_4411,197,test,0,0,0,0,0,False,4, Barbara Pemberton,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,4, pommel horse,RINGS
+qf_662,199,test,0,0,0,0,0,False,12, Black Nell was the horse of the outlaw Jesse James.,Wild Bill Hickok's

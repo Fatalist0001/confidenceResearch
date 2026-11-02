@@ -628,9 +628,10 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 
 Ядро `odinodinodin/hs-gemma4-12b` делает всё в одной GPU-сессии: `setup` → `build`
 (клон пинованного `d4cff114c`, наши 3 файла, `-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75`,
-`-j4`) → `download` (`unsloth/gemma-4-12b-it-GGUF`, Q4_K_M) → `pilot` (40 строк) → `gate` →
-`main` (6000) → `final` (`run_summary.json`). Гейт: `ok == total`, `skipped == 0`,
-`ex/s > 0.2`, оценка полного прогона < 4 ч; иначе 6000 строк не стартуют.
+`-j4`) → `download` (`unsloth/gemma-4-12b-it-GGUF`, Q4_K_M) → `easy8` → `pilot40` →
+`gate` → `main_gemma4_12b_v3` (6000) → `final` (`run_summary.json`). Гейт: easy ≥7/8,
+`ok == total`, `skipped == 0`, 0 мета-текста/channel leak, `ex/s > 0.2`, оценка полного
+прогона < 4 ч; иначе 6000 строк не стартуют.
 
 ### Расход GPU-часов (заполнять после каждого прогона)
 
@@ -643,6 +644,7 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 | 2026-11-01 | `hs-gemma4-12b-pin-gpu` (наш hs на пине, 1 GPU vs 2 GPU) | NvidiaTeslaT4 | **0.56** | 30 |
 | 2026-11-01 | `hs-gemma4-12b-master-gate` v1 (порт hs на master: сборка + easy8 + пилот 200) | NvidiaTeslaT4 | **0.56** | 30 |
 | 2026-11-02 | `hs-gemma4-12b-master-gate` v2 (правки BOS/suppress: сборка + easy8 8/8 + пилот 200) | NvidiaTeslaT4 | **0.47** | 30 |
+| 2026-11-02 | `hs-gemma4-12b` v5 (валидный BOS: easy8 + pilot40 + main6000) | NvidiaTeslaT4 | **1.01** | 30 |
 
 ## Сохранность данных (не перезаписывать артефакты)
 
@@ -791,7 +793,43 @@ llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон нап�
 
 Сверка: `pipeline/compare_runs.py` (ключ строки `(id, occurrence)`, т.к. `bb_956`
 дублируется; `--per-layer` показывает дрейф). Полные числа: `report.md` §23,
-`README.md` §3.18. Полный 12B на Kaggle при этом **не запускался**.
+`README.md` §3.18. Последующий валидный 12B описан отдельно ниже.
+
+## Новые прогоны: LiquidAI, Gemma BOS, Yandex и 12B (2026-11-02)
+
+Все локальные полные прогоны сделаны master-бинарником `785322d17`; Kaggle 12B — пином
+`d4cff114c` с тем же исправлением BOS. Все шесть валидных каталогов прошли
+`verify_run.py --full` без ошибок.
+
+| модель | форма | время / trunc | filtered_b | baseline lp/ent | probe λ / C-слой | test AUROC |
+|---|---:|---:|---:|---:|---:|---:|
+| LFM2.5-1.2B Instruct | 16×2048 | 299.9 s / 1 | 0.177 | 0.750/0.765 | 3000 / 9 | 0.8812 |
+| LFM2.5-2.6B | 30×2048 | 868.4 s / 128 | 0.382 | 0.766/0.780 | 3000 / 17 | 0.8812 |
+| LFM3-1.7B QAD | 24×2048 | 2090.3 s / 2509 | 0.305* | 0.728/0.725 | 1000 / 12 | 0.8608* |
+| Gemma E4B BOS/master | 42×2560 | 1197.1 s / 2 | 0.470 | 0.858/0.872 | 3000 / 20 | 0.9186 |
+| YandexGPT 5 Lite 8B | 32×4096 | 1777.7 s / 4 | 0.568 | 0.749/0.770 | 3000 / 16 | 0.9062 |
+| Gemma 12B v3 | 48×3840 | 2012.1 s / 21 | 0.572 | 0.813/0.826 | **отложена** | — |
+
+\* LFM3: 2509/6000 (41.8%) обрезаны; метрики только по 3491 завершённой строке.
+
+Особые режимы:
+
+- LFM2.5-1.2B-Thinking: пилот 200/200 truncated, полный прогон не запускать;
+- LFM2.5-2.6B: шаблон открывает `<think>` даже при thinking=false. Использовать
+  `make_lfm_final_prompt.py`, `data/{pilot,main}_lfm25_final.jsonl`, `--no-template`;
+  A = последний токен `Final answer:`, C стандартная;
+- LFM3: штатный `<think></think>`, но высокая многословность и 1025 ответов с лишним
+  `</think>`; final-cue ухудшил пилот;
+- Gemma E4B BOS: по сравнению со старым прогоном `filtered_b` 0.383→0.470, probe
+  0.9312→0.9186; парная Δ −0.0126 [-0.0259,+0.0012];
+- Gemma 12B: valid v3 находится в `out\main_gemma4_12b_v3`; probe намеренно не считать
+  до нового решения пользователя. Kaggle-сессия 61.1 мин, квота 4.98→5.99/30 ч;
+- Yandex: arch `llama`, BOS id1, C/16 test 0.9062; от Qwen9B и Gemma E4B статистически
+  не отличается.
+
+Плато соседних слоёв есть и здесь: LFM1.2 C/8–10, LFM2.6 C/15–20, LFM3 C/11–13,
+Gemma C/19–22, Yandex C/14–20. Это общий среднеслойный паттерн, а не специфика LFM.
+Полные детали: `report.md` §24–28, `README.md` §3.19–3.22.
 
 ## Проверки (повторять после любых правок)
 
@@ -862,8 +900,14 @@ llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон нап�
   новых прогонов, пин — для исторического воспроизведения (`report.md` §23).
 - **Gemma 4 12B:** первый полный каталог `main_gemma4_12b` непригоден (strict 9/3702,
   `truncated` 38 %) из-за потерянного `<bos>`, не версии llama.cpp. После исправления
-  master-гейт: easy8 8/8, пилот 200 — 1 truncated, 0 мета-текста, 2.61 ex/s. Полный
-  повтор `main_gemma4_12b_v3` пока **не запускался**.
+  валидный v3: 6000/6000, 21 truncated, 2012.1 s, `filtered_b` 0.572, baseline
+  0.813/0.826, verify 0 failed. Probe **отложена по решению пользователя**.
+- **LiquidAI завершены:** LFM2.5-1.2B C/9 test 0.8812; LFM2.5-2.6B C/17 0.8812;
+  LFM3 C/12 0.8608 с оговоркой 41.8% обрезок. Thinking 1.2B — 200/200 truncated,
+  полный прогон не делался (`report.md` §24).
+- **Новые BOS/Yandex-прогоны:** Gemma E4B BOS C/20 test 0.9186 (`filtered_b` 0.470);
+  YandexGPT C/16 test 0.9062 (`filtered_b` 0.568). Победители снова около середины
+  глубины (`report.md` §26–27).
 
 - **Gemma 4 E4B прогнана полностью** (`pipeline\out\main_gemma4e4b`, 42 слоя, D = 2560):
   6000/6000 ok, 0 skipped, truncated 1 (`qg_3418`), 1216.4 s (4.93 ex/s), mismatch 12/6000,
@@ -963,7 +1007,6 @@ llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон нап�
 - **Kaggle проверен и работает** (2026-10-30, после верификации телефона): аккаунт
   `odinodinodin`, токен `KAGGLE_API_TOKEN` в `.env`; сессия `--accelerator NvidiaTeslaT4`
   даёт **2 × Tesla T4 по 15 ГБ**, CUDA 12.8 с `nvcc`, интернет, 4 vCPU, 31 ГБ RAM,
-  20 ГБ `/kaggle/working`. На 2026-11-02 использовано **4.98/30 ч**; последний расход —
-  0.47 ч на `hs-gemma4-12b-master-gate` v2. Полный 12B не запускать без отдельного
-  разрешения. Окружение — `kaggle/gemma4_12b/{make_nb.py,push.ps1}`,
+  20 ГБ `/kaggle/working`. На 2026-11-02 использовано **5.99/30 ч**; последний расход —
+  1.01 ч на валидный `hs-gemma4-12b` v5. Окружение — `kaggle/gemma4_12b/{make_nb.py,push.ps1}`,
   `kaggle/watch.ps1`, `kaggle/README.md`.

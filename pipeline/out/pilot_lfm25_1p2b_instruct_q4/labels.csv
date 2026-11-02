@@ -1,0 +1,201 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,0,0,0,0,0,False,1,Link,HYPERLINK
+qz_2440,1,train,0,0,0,0,0,False,5,The Great Dictator,Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,3,Malaysia,BHUTAN
+sfq_17775,3,train,0,0,0,0,0,False,4,The Sound of Music,AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,0,0,0,0,0,False,3,Henry Thomas Clarke,Rudyard Kipling
+dpql_1548,5,train,0,0,0,0,0,False,2,Bunter,QUELCH
+qz_1800,6,train,1,1,1,1,1,False,2,The Beatles,The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,4,Clint Eastwood,Gene Hackman
+sfq_22280,8,train,0,0,0,0,0,False,6,Pride and Prejudice,PERSUASION
+odql_4855,9,train,0,0,0,0,0,False,17,"Mary Grand Pre's series includes ""The Little Prince"" and other children's books.",'HARRY POTTER'
+qb_9568,10,train,1,1,1,1,1,False,3,George Foreman,George Foreman
+qw_4190,11,train,0,0,0,0,0,False,2,Spain,Mexico
+sfq_2348,12,train,0,0,0,0,0,False,3,Tosca,Madame Butterfly
+wh_2109,13,train,0,0,0,0,0,False,3,Krypton,NICKEL
+bb_7429,14,train,0,0,0,0,0,False,5,Bruce Springsteen,Les Paul
+qb_5655,15,train,0,0,0,0,0,False,3,James Gibbs,Thomas Chippendale
+wh_833,16,train,0,0,0,0,0,False,4,The Great Expectations,UNDER MILKWOOD
+sfq_20635,17,train,0,1,0,0,0,False,2,Ananas,Pineapple
+wh_2629,18,train,0,0,0,0,0,False,2,Snake,TOAD
+qg_494,19,train,0,0,0,0,0,False,4,South Central Los Angeles,Watts
+qw_11386,20,train,1,1,1,1,1,False,1,Port,Port
+sfq_15472,21,train,0,0,0,0,0,False,3,Kuroda,HONDA
+qz_1130,22,train,0,0,0,0,0,False,1,A,O
+sfq_19115,23,train,1,1,0,0,1,False,4,Steveland Judkins,STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,3,Pancreas,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,1,97,97
+tc_1938,26,train,0,0,0,0,0,False,2,United Kingdom,South Africa
+bt_4125,27,train,0,0,0,0,0,False,3,Achilles,Ajax
+odql_13628,28,train,0,0,0,0,0,False,3,Manchester City,Peterborough United
+qw_1816,29,train,0,0,0,0,0,False,7,Henri de Toulouse-Lautrec,Paul Gauguin
+sfq_20015,30,train,0,0,0,0,0,False,2,Solomon,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,3,Necklace,A Horse Collar
+qg_2238,32,train,0,0,0,0,0,False,5,Salyut 3,Skylab
+odql_8256,33,train,0,0,0,0,0,False,2,2011,2004
+sfq_11176,34,train,0,0,0,0,0,False,4,Ryan Giggs,Theo Walcott
+qb_8500,35,train,0,0,0,0,0,False,1,John,Mildred
+wh_532,36,train,0,0,0,0,0,False,11,"The song is ""Santa Claus Is Coming to Town.""",JIMMY BOYD
+qg_1234,37,train,0,0,0,0,0,False,5,Power of truth-telling,Lasso
+sfq_24275,38,train,1,1,1,1,1,False,3,Riyadh,RIYADH
+qg_869,39,train,0,0,0,0,0,False,1,France,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,5,Miguel de Cervantes,(Miguel de) Cervantes
+qw_7349,41,train,0,0,0,0,0,False,1,12,364
+bb_5225,42,train,1,1,1,1,1,False,6,International Committee of the Red Cross,The Red Cross
+dpql_5620,43,train,0,0,0,0,0,False,1,London,San Francisco
+bt_1591,44,train,0,0,0,0,0,False,5,Catherine Zeta Jones,Mariette
+sfq_6053,45,train,0,0,0,0,0,False,3,Bank of England,Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,2,Transgender,transvestite
+qb_5400,47,train,0,0,0,0,0,False,14,Craven Cottage is the home of the Nottingham Forest Football Club.,Fulham FC
+tc_1921,48,train,0,0,0,0,0,False,3,Ralph Lauren,Victor Edelstein
+qz_4845,49,train,0,0,0,0,0,False,2,Creature,Centaur
+qg_808,50,train,1,1,1,1,1,False,4,Troposphere,Troposphere
+dpql_5914,51,train,0,0,0,0,0,False,2,Wasabi,Vespa
+qb_866,52,train,1,1,0,0,1,False,5,Caesar and Cleo,Sonny and Cher
+qz_2466,53,train,0,0,0,0,0,False,3,Michael Caine,Will Smith
+bb_1292,54,train,1,1,1,1,1,False,1,September,September
+sfq_8782,55,train,0,0,0,0,0,False,3,Samoa,VANUATU
+tc_1686,56,train,1,1,1,1,1,False,3,Woodrow Wilson,Woodrow Wilson
+qg_4604,57,train,0,0,0,0,0,False,2,Army,National Guard
+odql_10315,58,train,0,0,0,0,0,False,2,The Who,'THE YARDBIRDS'.
+dpql_277,59,train,1,1,0,0,1,False,5,Dolores Haze,Lolita
+wh_3251,60,train,1,1,1,1,1,False,2,Jordan,JORDAN
+sfq_17002,61,train,0,0,0,0,0,False,3,The Washington Post,All the President's Men
+bt_2111,62,train,0,0,0,0,0,False,3,Manitoba,Prince Edward Island
+qf_1053,63,train,1,1,1,1,1,False,3,Robben Island,Robben Island
+qf_527,64,train,0,0,0,0,0,False,2,Beer,coffee
+jp_4336,65,train,0,0,0,0,0,False,4,The Good Wife,Grey's Anatomy
+bb_2130,66,train,0,0,0,0,0,False,3,European nightjar,Bittern
+wh_3298,67,train,1,1,1,1,1,False,3,Mantle,THE MANTLE
+qw_11908,68,train,0,0,0,0,0,False,1,14,15
+qw_5777,69,train,0,0,0,0,0,False,4,The Great Escape,The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,2,Ocean,Sea
+dpql_2028,71,train,1,1,1,1,1,False,3,Sulfur,Sulphur
+jp_1350,72,train,0,0,0,0,0,False,16,Pangaea and Gondwana were supercontinents that existed in the past.,Continents
+qb_9676,73,train,0,0,0,0,0,False,1,Blue,Yellow
+qw_12980,74,train,0,0,0,0,0,False,3,Titanic,Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,2,Eye,Eye
+qb_1757,76,train,0,0,0,0,0,False,1,Two,Four
+sfq_22467,77,train,0,0,0,0,0,False,3,1950s,1960's
+qz_340,78,train,0,0,0,0,0,False,6,"Alfred, Lord Tennyson",Oscar Wilde
+qz_3023,79,train,0,0,0,0,0,False,4,The Blighters,The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,2,1912,1912
+qf_2053,81,train,0,0,0,0,0,False,2,Australian Territory,Northern Territory
+qb_5139,82,train,1,1,1,1,1,False,5,Saddam Hussein,Saddam Hussein
+qw_9422,83,train,1,1,1,1,1,False,3,William Wordsworth,William Wordsworth
+qw_1606,84,train,0,0,0,0,0,False,3,Prince Edward,Anne
+qf_2232,85,train,0,0,0,0,0,False,4,Hawaii,Honolulu
+odql_8838,86,train,0,0,0,0,0,False,6,The Great British Bake Off,I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,2,The Voice,Time Team
+dpql_3499,88,train,0,0,0,0,0,False,3,Manchester City,Blackburn Rovers
+dpql_5268,89,train,0,0,0,0,0,False,1,Mars,Mercury
+sfq_14187,90,train,0,0,0,0,0,False,11,"Whitworth Art Gallery in Whitworth, England.",MANCHESTER
+qw_6247,91,train,0,0,0,0,0,False,4,Krav Maga,Baritsu
+qg_675,92,train,0,0,0,0,0,False,3,Adrenal glands,Kidneys
+odql_15048,93,train,0,0,0,0,0,False,3,Bilbao,Zaragoza
+bt_1718,94,train,0,0,0,0,0,False,6,Alexander Solzhenitsyn,London
+bt_3844,95,train,0,0,0,0,0,False,3,Titan II,Sea Empress
+qb_1751,96,train,1,1,1,1,1,False,4,Labrador Retriever,Labrador Retriever
+qg_48,97,train,0,0,0,0,0,False,7,"December 21, 2012",Mayan
+sfq_15080,98,train,0,0,0,0,0,False,3,Zephyr,Boreas
+wh_3819,99,train,0,0,0,0,0,False,2,England,SPAIN
+qg_3215,100,train,0,0,0,0,0,False,2,Chips,Miller Lite Beer
+qb_6288,101,train,1,1,1,1,1,False,1,June,June
+qf_3155,102,train,0,0,0,0,0,False,3,Michael Caine,Timothy Dalton
+bb_5704,103,train,0,0,0,0,0,False,4,Jimmy Kimmel,David Letterman
+qg_3384,104,train,1,1,1,1,1,False,7,Odin's Valkyries,Valkyries
+qg_1358,105,train,0,0,0,0,0,False,2,James Cameron,George Lucas
+odql_2344,106,train,0,0,0,0,0,False,3,Madagascar,SAO TOME
+odql_14551,107,train,0,0,0,0,0,False,4,The Clancy Brothers,'JOY DIVISION'
+odql_9627,108,train,0,0,0,0,0,False,2,The Beatles,THE BARRETTS
+wh_4018,109,train,1,1,1,1,1,False,1,Java,JAVA
+odql_11679,110,train,0,0,0,0,0,False,2,Malta,TASMANIA
+sfq_24154,111,train,0,0,0,0,0,False,6,John Maynard Keynes,Benjamin Franklin
+sfq_11824,112,train,0,0,0,0,0,False,5,Common Arctic Sooty,TERN
+qg_3551,113,train,1,1,1,1,1,False,3,Bolivia,Bolivia
+tb_666,114,train,0,0,0,0,0,False,5,Hoppin' John,Red-eye gravy
+bb_912,115,train,0,0,0,0,0,False,3,Sherry,Jerez
+sfq_634,116,train,0,0,0,0,0,False,4,Hydrogen cyanide,ALMONDS
+sfq_2414,117,train,0,0,0,0,0,False,1,Peter,Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,4,Treaty of Utrecht,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,1,Star,Libra
+jp_1975,120,val,0,0,0,0,0,False,1,October,Tet
+odql_9226,121,val,0,0,0,0,0,False,5,Overseas Ports,MULBERRY
+jp_2293,122,val,0,0,0,0,0,False,5,Kriss Kross,Jump
+jp_3910,123,val,0,0,0,0,0,False,3,Morgan Family,Rothschild
+odql_3654,124,val,0,0,0,0,0,False,3,Donald Neilson,'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,2,Joe Louis,THOMAS HEARNS
+qw_10079,126,val,1,1,1,1,1,False,3,The British Museum,The British Museum
+sfq_7254,127,val,0,0,0,0,0,False,7,The Whiter Shade of Pale,PROCUL HARUM
+sfq_80,128,val,0,0,0,0,0,False,3,Caroline Wright,ANGELA RIPPON
+odql_9592,129,val,0,0,0,0,0,False,3,Columbia University,CORNELL
+odql_4457,130,val,0,0,0,0,0,False,23,"The term Rock and Roll was coined by various sources, but often attributed to musicians and cultural figures of the genre.",Alan Freed
+bt_2428,131,val,1,1,1,1,1,False,5,St. Andrews Golf Club,Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,1,Japan,South Korea
+sfq_24622,133,val,0,0,0,0,0,False,2,Andrew Johnson,James A Garfield
+qb_3553,134,val,0,0,0,0,0,False,3,Paul Auster,T E Lawrence
+odql_2368,135,val,1,1,1,1,1,False,2,Copper,COPPER
+sfq_23299,136,val,0,0,0,0,0,False,3,The Cure,DR HOOK
+bb_4587,137,val,0,0,0,0,0,False,4,Terms in cricket,Skateboarding
+wh_4300,138,val,0,0,0,0,0,False,4,Andrew Lloyd Webber,WILLY RUSSELL
+bb_92,139,val,0,0,0,0,0,False,2,FIDE,Chess
+qb_7956,140,val,0,0,0,0,0,False,6,St. George's Firework,Catherine Wheel
+odql_11309,141,val,0,0,0,0,0,False,4,Solicitors Association,The Law Society
+bt_1444,142,val,0,0,0,0,0,False,5,Armorial Bearing Study,Heraldry
+qw_13262,143,val,0,0,0,0,0,False,2,Michael Wood,Paul McGann
+sfq_6197,144,val,0,0,0,0,0,False,2,Henry VIII,Lord Guildford Dudley
+bb_3905,145,val,1,1,0,0,1,False,5,Olea europaea,Olive
+qw_13284,146,val,0,0,0,0,0,False,2,Milwaukee,Quebec
+qw_8487,147,val,0,0,0,0,0,False,3,Geographical location,Bristol Channel
+qw_45,148,val,1,1,1,1,1,False,5,HAL 9000,HAL
+sfq_5677,149,val,0,0,0,0,0,False,4,No one specified.,NOAH
+dpql_5750,150,val,1,1,1,1,1,False,3,Carl Sagan,Carl Sagan
+dpql_447,151,val,1,1,1,1,1,False,3,Gricer,TRAINSPOTTER
+odql_1420,152,val,0,0,0,0,0,False,3,The Wizard,'TOP OF THE POPS'
+qb_6622,153,val,0,0,0,0,0,False,9,"Blaze, Bubble and Shootout",Poker
+sfq_14492,154,val,0,0,0,0,0,False,23,Rincewind and 'The Luggage' appear in the series of books featuring the character Rincewind.,Discworld
+odql_2092,155,val,0,0,0,0,0,False,1,Germany,SERBIA
+jp_4329,156,val,0,0,0,0,0,False,4,Tony Romo,Jessica Simpson
+qg_1929,157,val,0,0,0,0,0,False,2,Gold,Molybdenum
+odql_14378,158,val,0,0,0,0,0,False,2,North Carolina,TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,2,Rhodes,APOLLO
+wh_4343,160,test,1,1,1,1,1,False,7,Avengers: Age of Ultron,THE AVENGERS
+dpql_1884,161,test,1,1,0,0,1,False,3,Seppuku,HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,2,League,Federal
+sfq_4245,163,test,1,1,1,1,1,False,3,Sikhism,Sikh(ism)
+sfq_20017,164,test,0,0,0,0,0,False,3,Human Rights Campaign,Amnesty International
+sfq_19297,165,test,0,0,0,0,0,False,9,Circuit de la Gare du Midi,Spa
+jp_2379,166,test,0,0,0,0,0,False,2,Alaska,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,2,Poland,Belgium
+bb_3356,168,test,1,1,1,1,1,False,5,Rafael Nadal,Rafael Nadal
+sfq_1177,169,test,0,0,0,0,0,False,2,Heracles,Perseus
+qw_13422,170,test,0,0,0,0,0,False,3,Henry Kissinger,Nikita Khruschev
+odql_6190,171,test,0,0,0,0,0,False,2,Acts,EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,2,Sweden,Switzerland
+qf_2991,173,test,0,0,0,0,0,False,2,PCB,Printed Circuit Board
+odql_13246,174,test,0,0,0,0,0,False,4,Chris Parnell,Rowan Atkinson
+sfq_25987,175,test,0,0,0,0,0,False,9,"Redbud, Nandina, Hotly",Augusta
+qb_7931,176,test,0,0,0,0,0,False,3,Grizzly,Squirrel
+sfq_10109,177,test,0,0,0,0,0,False,1,4,Eight
+qw_3390,178,test,0,0,0,0,0,False,3,Ottawa,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,6,John Landis-Mayor,LIONEL BART
+dpql_5223,180,test,0,0,0,0,0,False,2,Cardiff,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,3,Pulsar,PULSAR
+odql_6602,182,test,0,0,0,0,0,False,3,Congo River,NIGER
+odql_2741,183,test,0,0,0,0,0,False,1,London,HEREFORD
+qg_1847,184,test,0,0,0,0,0,False,3,Sedan,White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,5,"Germany, Italy, Japan","Germany, Japan, Italy"
+qw_14421,186,test,0,0,0,0,0,False,1,Platform,Manifesto
+bb_4458,187,test,0,0,0,0,0,False,4,Turkish Van,Cat
+dpql_3596,188,test,0,0,0,0,0,False,3,Demoiselle,Crane
+sfq_21495,189,test,0,0,0,0,0,False,5,Draemmle,Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,4,Plynlimon,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,1,Paris,Madrid
+odql_1340,192,test,0,0,0,0,0,False,5,Stephanie Sinclair,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,3,Elizabeth Taylor,Deborah Kerr
+bb_4415,194,test,1,1,1,1,1,False,1,1,1
+qz_2165,195,test,0,0,0,0,0,False,3,David Yates,Max Bygraves
+sfq_23975,196,test,0,0,0,0,0,False,6,Janeane Garofalo,Joan Rivers
+qb_4411,197,test,0,0,0,0,0,False,2,Barbara,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,4,pommel horse,RINGS
+qf_662,199,test,0,0,0,0,0,False,6,Black Nell was a horse.,Wild Bill Hickok's

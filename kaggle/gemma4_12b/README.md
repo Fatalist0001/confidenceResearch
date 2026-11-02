@@ -32,18 +32,25 @@ powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset # вход не мен�
 powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиша, снять лог и квоту
 
 $KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
-& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
-Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
+& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out\v5
+Copy-Item kaggle\gemma4_12b\out\v5\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
 ```
 
-Дальше — обычный конвейер из `pipeline\`: `verify_run.py --full` → `label.py` →
-`baseline.py` → `probe.py`.
+Выполнены `verify_run.py --full --input data/main.jsonl` → `label.py` → `baseline.py`.
+Проба 12B отложена по решению пользователя.
 
 `main_gemma4_12b` без суффикса — непригодный старый прогон без ведущего `<bos>`
-(`report.md` §22); не перезаписывать и не использовать. Исправленный полный v3 пока не
-запускался.
+(`report.md` §22); не перезаписывать и не использовать.
 
-## Грабли (проверено на четырёх версиях ядра)
+## Результат v5 (2026-11-02)
+
+- easy8 7/8, pilot40 40/40 без обрезок и мета-текста;
+- main 6000/6000, 21 truncated, 16 retokenize mismatch;
+- 2012.1 s (2.98 ex/s), `[6000,48,3840]`, по 2109.4 MiB;
+- `filtered_b` 0.572, baseline test 0.813/0.826;
+- сессия 61.1 мин, расход 1.01 GPU-ч; всего использовано 5.99/30 ч.
+
+## Грабли
 
 - датасет монтируется в `/kaggle/input/datasets/<owner>/<dataset>`, поэтому файлы ищутся
   `os.walk`, а не по жёсткому пути;
@@ -53,4 +60,8 @@ Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma
   найденный `libcuda.so.1` и `-DCMAKE_LIBRARY_PATH`;
 - `kaggle kernels logs` для живого ядра пуст — статус смотреть через
   `kernels status` или в браузере;
+- `Set-Content -Encoding utf8` в Windows PowerShell добавляет BOM в
+  `dataset-metadata.json`; писать через `UTF8Encoding(false)`;
+- Kaggle CLI пишет progress в stderr даже при rc=0; `push.ps1` временно переводит
+  `$ErrorActionPreference` в `Continue` и проверяет код возврата сам;
 - квота: 30 ч GPU в неделю, расход записывается в таблицу `AGENTS.md`.

@@ -227,6 +227,20 @@ Q4_K_M — в §3.14.
 потом темп упал до 0.4–0.6 ex/s из-за нехватки RAM (свободно 0.7–1 ГБ из 16), GPU при
 этом 99 %, 41–44 Вт, 53 °C, без троттлинга (`report.md`, §15.2).
 
+**Новые прогоны 2026-11-02** (`report.md`, §24–27):
+
+| модель | слои × D | ok / trunc | время | `filtered_b` | probe test AUROC |
+|---|---:|---:|---:|---:|---:|
+| LFM2.5-1.2B Instruct | 16 × 2048 | 6000 / 1 | 299.9 s | 0.177 | 0.8812 |
+| LFM2.5-2.6B final | 30 × 2048 | 6000 / 128 | 868.4 s | 0.382 | 0.8812 |
+| LFM3-1.7B QAD | 24 × 2048 | 6000 / 2509 | 2090.3 s | 0.305* | 0.8608* |
+| Gemma E4B BOS/master | 42 × 2560 | 6000 / 2 | 1197.1 s | 0.470 | 0.9186 |
+| YandexGPT 5 Lite 8B | 32 × 4096 | 6000 / 4 | 1777.7 s | 0.568 | 0.9062 |
+| Gemma 12B v3 (Kaggle) | 48 × 3840 | 6000 / 21 | 2012.1 s | 0.572 | отложена |
+
+\* LFM3 — только по 3491 завершённой строке. LFM2.5-1.2B-Thinking дала 200/200
+обрезок в пилоте и полного прогона не имеет.
+
 ### 3.3 Данные: TriviaQA
 
 **Источник:** датасет `mandarjoshi/trivia_qa`, конфиг `rc.nocontext` (без контекста
@@ -1091,10 +1105,10 @@ E2B, но по интервалу это тоже ноль.
 `tokenizer.ggml.suppress_tokens` в нашем greedy-argmax.
 
 После исправления гейт на master `785322d17` дал easy8 **8/8**, 0 мета-текста и только
-1 `truncated` на 200 строках, 2.61 ex/s. Полный повтор будет записан в новый каталог
-`main_gemma4_12b_v3`, но **пока не запускался**. Текущий гейт проверяет ответы (easy8
-не меньше 7/8), мета-текст и утечки `<|channel>`, а не только `ok/skipped`. Полный разбор —
-`report.md` §22; непригодный каталог сохранён с `README-invalid.md`.
+1 `truncated` на 200 строках, 2.61 ex/s. Затем полный v3 запущен на пине с исправлением:
+6000/6000, 21 обрезка, 2012.1 s, `[6000,48,3840]`, `filtered_b` 0.572, baseline
+0.813/0.826. Вся сессия заняла 61.1 мин и 1.01 GPU-ч. Проба 12B отложена по решению
+пользователя. Полный разбор — `report.md` §22 и §25; непригодный старый каталог сохранён.
 
 ### 3.18 Обновление llama.cpp: пин и master (шаг 17)
 
@@ -1127,6 +1141,57 @@ CPU не устранили численный дрейф, то есть это 
 шума. Master принят для новых прогонов; пин остаётся для исторической воспроизводимости.
 Артефакты — `pipeline/out/main_qwen08_q4_master/`, сравнение — `report.md` §23.
 
+### 3.19 Серия LiquidAI: четыре локальных GGUF (шаг 18)
+
+Проверены все четыре файла в каталоге `LiquidAI`. Три дали пригодные полные результаты;
+LFM2.5-1.2B-Thinking при лимите 64 обрезала 200/200 строк даже после final-cue, поэтому
+полный бессмысленный прогон не запускался.
+
+| модель | полный прогон | `filtered_b` | baseline entropy | проба: λ / точка / слой | test AUROC |
+|---|---:|---:|---:|---:|---:|
+| LFM2.5-1.2B Instruct | 299.9 s, trunc 1 | 0.177 | 0.765 | 3000 / C / 9 | **0.8812** |
+| LFM2.5-2.6B final | 868.4 s, trunc 128 | 0.382 | 0.780 | 3000 / C / 17 | **0.8812** |
+| LFM3-1.7B QAD | 2090.3 s, trunc 2509 | 0.305* | 0.725 | 1000 / C / 12 | **0.8608** |
+
+\* LFM3: метрики только по 3491 завершённой строке. LFM2.5-2.6B потребовала готовый
+prompt `<think></think>\nFinal answer:` и `--no-template`; точка A нестандартная, C обычная.
+2.6B отвечает правильно более чем вдвое чаще 1.2B, но probe AUROC не вырос:
+парная Δ=+0.0006 [-0.0262,+0.0286]. Победители снова лежат на 50–57% глубины, с широким
+плато соседних слоёв. Детали — `report.md` §24.
+
+### 3.20 Gemma 4 12B: валидный v3 (шаг 19)
+
+Kaggle v5: easy8 7/8, пилот 40 чистый, main 6000/6000. Основной шаг — 33.5 мин,
+2.98 ex/s; массивы `[6000,48,3840]` по 2109.4 MiB. Strict 0.574, `filtered_b` 0.572,
+baseline test 0.813/0.826. `verify_run.py --full` — 0 ошибок. **Проба отложена**, поэтому
+12B пока отсутствует в сравнении скрытых состояний (`report.md` §25).
+
+### 3.21 Gemma 4 E4B: повтор с исправленным BOS (шаг 20)
+
+Повтор того же GGUF на master с BOS поднял `filtered_b` с 0.383 до **0.470**. Ответы
+совпали на 2907/6000, метки — на 5140/6000; `pos_a` вырос ровно на один токен.
+
+| | старый без BOS | новый BOS/master |
+|---|---:|---:|
+| baseline entropy | 0.861 | 0.872 |
+| точка / слой | C/21 | C/20 |
+| test AUROC | 0.9312 | **0.9186** |
+
+Парная Δ нового прогона −0.0126 [-0.0259,+0.0012], то есть статистически ноль. BOS
+сильно изменил ответы и точность, но не разрушил среднеслойное направление уверенности
+(`report.md` §26).
+
+### 3.22 YandexGPT 5 Lite 8B (шаг 21)
+
+Q4_K_M, arch `llama`, 32 слоя, D=4096, BOS id 1. Полный прогон: 6000/6000, 4 обрезки,
+1777.7 s (3.38 ex/s). `filtered_b` 0.568, почти как Qwen3.5-9B (0.570), но baseline
+entropy заметно слабее: 0.770 против 0.877.
+
+Проба: λ=3000, **C/16**, val 0.8989, test **0.9062 [0.889,0.923]**, AUPRC 0.9177;
+shuffled 0.489 ± 0.031. От Qwen9B (−0.0109 [-0.0307,+0.0077]) и Gemma E4B BOS
+(−0.0125 [-0.0316,+0.0075]) статистически не отличается. От gpt-oss ниже погранично:
+−0.0195 [-0.0383,−0.0003]. Детали — `report.md` §27.
+
 ---
 
 ## 4. Итоговая сводка
@@ -1149,12 +1214,15 @@ CPU не устранили численный дрейф, то есть это 
 | Прогон и проба Gemma | `pipeline/out/main_gemma4e2b/` (meta, labels, baseline, probe, config), пилот `pipeline/out/pilot_gemma4e2b/` |
 | Прогон и проба Gemma 4 E4B | `pipeline/out/main_gemma4e4b/` (meta, labels, baseline, probe, `probe_model.npz`, `verify.json`, `probe2*`, config), пилот `pipeline/out/pilot_gemma4e4b/` |
 | Сравнения проб E4B со всеми моделями | `pipeline/out/compare_*_gemma4e4b_{test,val}.json` (7 моделей × 2 сплита); кросс-скоры `pipeline/out/cross_{gemma4e2b,qwen35_4b_q4}_gemma4e4b_{test,val}.json`; перенос весов `pipeline/out/probe_from_*_test.json` |
-| Kaggle: прогон Gemma 4 12B | `kaggle/gemma4_12b/` (генератор ноутбука, `push.ps1`); выгрузка — `kaggle/gemma4_12b/out/` (в git не входит); `kaggle/watch.ps1` |
+| Kaggle: валидный Gemma 4 12B | `pipeline/out/main_gemma4_12b_v3/` (генерация, labels, baseline, verify; probe отложена); исходная выгрузка `kaggle/gemma4_12b/out/v5/` не в git |
 | Сравнение проб Qwen и Gemma | `pipeline/out/compare_qwen08_gemma4e2b_test.json` |
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
 | Прогон и проба Qwen3.5-0.8B в Q4_K_M (якорь кванта) | `pipeline/out/main_qwen08_q4/` (meta, labels, baseline, probe, config, verify.json, `probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`) |
 | Проверка обновлённого llama.cpp на тех же 6000 строках | `pipeline/out/main_qwen08_q4_master/`; состояния/ответы — `pipeline/out/equiv/pin_vs_master_qwen08_full.json`; парный bootstrap — `pipeline/out/compare_qwen08q4_pin_vs_master_{test,val}.json` |
+| LiquidAI | `pipeline/out/main_lfm25_1p2b_instruct_q4/`, `main_lfm25_2p6b_q4_final/`, `main_lfm3_1p7b_qad_q4/`; непригодный Thinking-пилот `pilot_lfm25_1p2b_thinking_q4/` |
+| Gemma E4B с BOS/master | `pipeline/out/main_gemma4e4b_bos_master/`; сравнение со старым `compare_gemma4e4b_old_gemma4e4b_bos_{test,val}.json` |
+| YandexGPT 5 Lite 8B | `pipeline/out/main_yandexgpt5lite8b_q4/`; сравнения `pipeline/out/compare_*_yandex8b_{test,val}.json` |
 | Сравнение квантов BF16 vs Q4 | `pipeline/out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py` |
 | Прогоны и пробы Qwen3.5-2B и 4B в Q4_K_M | `pipeline/out/main_qwen35_2b_q4/`, `pipeline/out/main_qwen35_4b_q4/`; сравнения `out/compare_qwen08q4_qwen35_{2b,4b}_{test,val}.json`, `out/compare_qwen35_2b_4b_{test,val}.json`; пилоты `out/pilot_qwen35_{2b,4b}_q4` |
 | Кросс-скоры внутри серии Qwen 3.5 | `pipeline/out/cross_{qwen08q4,qwen35_2b,qwen35_4b,qwen35_9b}_to_{...}_{test,val}.json` (все направления × 2 сплита, включая 12 файлов с 9B); скрипт `pipeline/cross_probe_scores.py` |
@@ -1162,10 +1230,10 @@ CPU не устранили численный дрейф, то есть это 
 | Веса выбранных проб (переносимые) | `pipeline/out/main_<tag>/probe_model.npz`: `w` (D+1), `mu`, `sd` (D), `meta` (JSON: точка, слой, λ, формула); Qwen 27 КБ, Gemma E2B 39 КБ, Gemma E4B 63 КБ, gpt-oss 70 КБ, Nemotron 77 КБ |
 | Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
-| Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py`, `pipeline/compare_runs.py` |
+| Входы с prefill | gpt-oss: `pipeline/make_gptoss_prompt.py`; LFM2.5-2.6B: `pipeline/make_lfm_final_prompt.py` → `data/{pilot,main}_lfm25_final.jsonl` |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/make_lfm_final_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py`, `pipeline/compare_runs.py` |
 | Инструмент: пин / master | `llama.cpp-hiddenstates/` (`d4cff114c`) и `llama.cpp-hiddenstates-new/` (`785322d17`); бинарники в соответствующих `build/bin/Release/` |
-| Подробный технический отчёт | `report.md` (пункты 1–23) |
+| Подробный технический отчёт | `report.md` (пункты 1–28) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -1587,10 +1655,10 @@ powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset # вход не мен�
 powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиша, снять лог и квоту
 
 $KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
-& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
-Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
+& $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out\v5
+Copy-Item kaggle\gemma4_12b\out\v5\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
 
-# дальше — как обычно: verify_run.py → label.py → baseline.py → probe.py (см. шаг 15)
+# probe 12B отложена; выполнены verify → label → baseline
 ```
 
 Датасет `odinodinodin/hs-src` собирается при каждом пуше из `llama.cpp-hiddenstates\`
@@ -1606,6 +1674,29 @@ llama.cpp его вырезает и ждёт от токенизатора, а 
 проверено на Kaggle: easy8 **8/8**, мета-текста в пилоте 200 нет, 2.61 ex/s. Поэтому
 `main` стартует только после easy8 ≥ 7/8 и чистого пилота, а результат пишется в
 **новый** каталог `out\main_gemma4_12b_v3`.
+
+### Шаг 17. LiquidAI, Gemma E4B с BOS и YandexGPT
+
+```powershell
+cd pipeline
+
+# LFM2.5-2.6B: закрыть reasoning и предзаполнить final
+python make_lfm_final_prompt.py --in data\pilot.jsonl --out data\pilot_lfm25_final.jsonl
+python make_lfm_final_prompt.py --in data\main.jsonl  --out data\main_lfm25_final.jsonl
+..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe -m <LFM2.5-2.6B.gguf> `
+  --batch data\main_lfm25_final.jsonl --no-template --generate --max-new-tokens 64 `
+  --max-len 1024 --layers all -ngl 99 --out out\main_lfm25_2p6b_q4_final
+
+# Остальные валидные модели: обычный data\main.jsonl и шаблон GGUF
+# LFM2.5-1.2B-Instruct -> out\main_lfm25_1p2b_instruct_q4
+# LFM3-1.7B-QAD       -> out\main_lfm3_1p7b_qad_q4
+# Gemma 4 E4B         -> out\main_gemma4e4b_bos_master
+# YandexGPT 5 Lite 8B -> out\main_yandexgpt5lite8b_q4
+```
+
+Для каждой модели сначала запускать `data\pilot.jsonl`; LFM2.5-1.2B-Thinking дала
+200/200 обрезок и не прошла гейт. После полного прогона: `verify_run.py --full` →
+`label.py` → `baseline.py` → `probe.py`. Точные команды и оговорки — `report.md` §24–27.
 
 ### Сверка двух прогонов (например, после обновления llama.cpp)
 
@@ -1636,11 +1727,12 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 ## 6. Ограничения и известные особенности
 
-- **Проверено на девяти полных прогонах и четырёх семействах:** Gemma 4 E2B Q4_K_M
+- **Проверено на 15 полных прогонах и семи семействах:** Gemma 4 E2B/E4B/12B, Qwen3.5,
+  gpt-oss, Nemotron, LFM2.5, LFM3 и YandexGPT. Основные старые конфигурации: Gemma 4 E2B Q4_K_M
   (35 слоёв, D=1536) и Gemma 4 E4B Q4_K_M (42 слоя, D=2560), Qwen3.5-0.8B (BF16 и
   Q4_K_M, 24 слоя, D=1024), Qwen3.5 2B/4B/9B в Q4_K_M, gpt-oss-20b-MXFP4 (24 слоя,
   D=2880) и NVIDIA-Nemotron-3-Nano-4B Q4_K_M (42 слоя с `l_out` на 17, D=3136).
-  Валидный полный прогон Gemma 4 12B пока не запускался (§3.17). Выводы про инструмент для
+  Валидный Gemma 12B завершён, но его probe отложена (§3.20). Выводы про инструмент для
   остальных моделей не проверялись (`report.md`, шапка, §8, §15, §17, §21).
 - **Версии llama.cpp не побитово эквивалентны.** На Qwen3.5-0.8B Q4 master
   `785322d17` даёт медианный сдвиг A 0.17 % нормы и те же ответы на 75.0 % строк против
@@ -1648,6 +1740,15 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   выбраны те же C/13, а Δ test AUROC −0.0054 [−0.0225, +0.0114]. Поэтому master годится
   для новых цельных прогонов, но смешивать состояния версий или ждать побайтового
   воспроизведения старых `.npy` нельзя (§3.18, `report.md` §23).
+- **LFM2.5-1.2B-Thinking несовместима с лимитом 64:** пилот 200/200 `truncated`,
+  final-cue не помог; полный прогон намеренно не запускался. У LFM2.5-2.6B рабочий обход
+  предзаполняет `<think></think>\nFinal answer:`; её точка A поэтому нестандартна, C
+  сопоставима (§3.19, `report.md` §24).
+- **LFM3 имеет сильную выборочную потерю:** 2509/6000 (41.8%) ответов обрезаны. Probe
+  0.861 рассчитана только на 3491 завершённой строке, поэтому не описывает весь исходный
+  набор без этой оговорки.
+- **Gemma 12B пока без probe:** валидные состояния, labels и baseline сохранены, но
+  CPU-проба отложена по решению пользователя (§3.20, `report.md` §25).
 - **У Nemotron 3 Nano 4B `l_out` есть только на 17 слоях из 42** (`nemotron_h`:
   SSM/attention блоки эмитят только `nemotron_h_block_out`). Поэтому список слоёв в
   `config.json` короче `n_layers`, а `layers_requested` хранит исходный. Кривая «по
@@ -1782,9 +1883,9 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 - **Проба E4B заняла ~19 мин CPU** на 42 слоях × D = 2560 (у 9B — ~37 мин на 32 × 4096).
   Это самый дорогой CPU-шаг из малых моделей, его удобно пускать в фоне; параллельно с
   прогоном на GPU лучше не запускать — падает ex/s у обоих.
-- **Валидного полного прогона 12B пока нет:** первый каталог непригоден из-за потерянного
-  `<bos>`, исправленный гейт прошёл (easy8 8/8, пилот 200 чистый), но полный
-  `main_gemma4_12b_v3` не запускался. Квота Kaggle — 30 ч GPU в неделю (§3.17).
+- **Gemma 12B v3 валиден, но без probe:** полный Kaggle-прогон, labels и baseline готовы;
+  CPU-проба отложена по решению пользователя (§3.20). Старый каталог без BOS остаётся
+  непригодным.
 
 ---
 
@@ -1802,17 +1903,16 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    не влезает. Открытый вопрос — не «станет ли больше», а «даст ли другой признак больше
    0.92»: несколько слоёв/позиций или нелинейная модель вместо одного вектора и
    логистики. Это выходит за замороженный протокол и пока не делалось.
-3. **Gemma 4 12B** — единственная серия, которая ещё не закрыта: исправленный гейт
-   пройден, но полный повтор на Kaggle ждёт отдельного решения (§3.17). Ожидание по
-   аналогии с E2B/E4B — тот же потолок ~0.93, но это проверяется только измерением.
-4. **Кандидаты Liquid AI** (обсуждены, ничего не запускалось): LFM2.5-1.2B-Instruct и
-   LFM2.5-1.2B-Thinking работают на текущем билде (`arch lfm2`, `l_out` на всех слоях)
-   и дают сравнение «Liquid против Qwen 0.8B» плюс чистый эксперимент «меняет ли reasoning
-   отделимость уверенности»; для LFM3-1.7B теперь есть обновлённая копия
-   `llama.cpp-hiddenstates-new`, но сама модель ещё не проверялась. MoE-варианты LFM2.5
-   (8B-A1B, 24B-A2B) отпадают: в
-   `lfm2moe.cpp` вызова `l_out` нет, а правка ядра запрещена.
-5. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
+3. **Gemma 4 12B:** валидный полный прогон завершён (`filtered_b` 0.572, baseline
+   0.813/0.826), но CPU-проба отложена по решению пользователя. Это единственный
+   недосчитанный аналитический шаг (§3.20).
+4. **Серия LiquidAI завершена.** LFM2.5-1.2B и 2.6B дали одинаковый probe AUROC 0.881
+   при росте правильности 0.177→0.382; LFM3 дала 0.861, но с 41.8% обрезок. Thinking
+   1.2B несовместима с лимитом 64. MoE-варианты LFM2.5 (8B-A1B, 24B-A2B) по-прежнему
+   отпадают: в `lfm2moe.cpp` нет `l_out` (§3.19).
+5. **YandexGPT завершена:** C/16, test 0.906; статистически не отличается от Qwen9B и
+   Gemma E4B BOS. Дальше для неё полезнее перенос на другой датасет, а не ещё один слой.
+6. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
 ---
 
@@ -1981,10 +2081,10 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 ### Обновлено 2026-11-02
 
-1. **Прогон Gemma 4 12B признан непригодным:** 2298 `truncated`, strict 9/3702;
+1. **Первый прогон Gemma 4 12B признан непригодным:** 2298 `truncated`, strict 9/3702;
    причина — потерянный `<bos>` в пакетном режиме, а не версия llama.cpp (§3.17,
-   `report.md` §22). После исправления гейт master дал easy8 8/8 и чистый пилот 200.
-   Полный `main_gemma4_12b_v3` пока не запускался.
+   `report.md` §22). После исправления выполнен валидный v3: 6000/6000, 21 обрезка,
+   `filtered_b` 0.572; probe отложена (§3.20, `report.md` §25).
 2. **Добавлена вторая локальная копия llama.cpp:** `llama.cpp-hiddenstates-new` на
    `785322d17`; пин `d4cff114c` сохранён. Полная сверка Qwen Q4 показала совпадение
    меток 97.3 %, ту же пару C/13 и ΔAUROC −0.0054 [−0.0225, +0.0114], но не побитовую
@@ -1992,3 +2092,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 3. **Добавлены диагностика и сравнение:** `hs-prompt-dump` показывает рендеринг и token
    id без загрузки весов; `pipeline/compare_runs.py` сравнивает A/C, ответы, позиции,
    logprobs и метки с поддержкой дублирующихся `id`.
+4. **Прогнаны все локальные LiquidAI GGUF:** два валидных LFM2.5, LFM3 с оговоркой
+   41.8% обрезок и отрицательный Thinking-пилот (§3.19, `report.md` §24).
+5. **Повторены Gemma E4B с BOS и YandexGPT 5 Lite 8B:** Gemma C/20 test 0.9186,
+   Yandex C/16 test 0.9062 (§3.21–3.22, `report.md` §26–27).

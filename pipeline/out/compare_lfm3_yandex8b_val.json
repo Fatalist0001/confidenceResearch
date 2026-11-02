@@ -1,0 +1,30 @@
+{
+  "split": "val",
+  "a": "out/main_lfm3_1p7b_qad_q4/probe_scores.csv",
+  "b": "out/main_yandexgpt5lite8b_q4/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 685,
+    "pos_a": 189,
+    "pos_b": 428,
+    "base_rate_a": 0.2759124087591241,
+    "base_rate_b": 0.6248175182481752,
+    "label_mismatch_rows": 279,
+    "a_auroc": 0.8664234511008705,
+    "b_auroc": 0.9006327502818284,
+    "a_auprc": 0.7275415259984641,
+    "b_auprc": 0.9246612907341251,
+    "delta_auroc": 0.03420929918095794,
+    "delta_auprc": 0.19711976473566095
+  },
+  "delta_auroc_ci": [
+    -0.00043129238716743673,
+    0.06861746634950314
+  ],
+  "delta_auprc_ci": [
+    0.13349390776433395,
+    0.2566635801490167
+  ],
+  "share_b_higher_auroc": 0.972
+}

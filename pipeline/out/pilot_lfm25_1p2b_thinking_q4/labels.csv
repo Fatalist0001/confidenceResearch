@@ -1,0 +1,349 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of a word or phrase in a computer document that you can click on to move to a related document. Hmm. I remember something about hyperlinks or something like that. In documents, sometimes there's a link that points to another file.",HYPERLINK
+qz_2440,1,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which film features the Dawes Tomes Mousley Grubbs Fidelity Fiduciary Bank. Wait, first I need to figure out which movie that is. The title mentioned is ""Fidelity Fiduciary Bank"" but I'm not",Mary Poppins
+odql_9835,2,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which Asian country's flag contains an image of the mythical Thunder Dragon. Hmm, I need to recall the flags of Asian countries. The Thunder Dragon is associated with several countries, but I think Japan's flag has a dragon, but wait, Japan's",BHUTAN
+sfq_17775,3,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which film the Oscar-winning song ""Up Where We Belong"" came from. I need to figure out the answer without any explanation, just the answer.
+
+First, I recall that ""Up Where We Belong"" is a song associated with the movie """,AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which novelist, born in Bombay in 1865, was awarded the Nobel Prize for Literature in 1907. I need to figure out the answer without explanations, just the name.
+
+First, Bombay is Mumbai, India. The person was born there in",Rudyard Kipling
+dpql_1548,5,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the surname of Bunter's form teacher in the Billy Bunter stories. I need to recall if I've heard of this story before. Wait, Billy Bunter is a character from some children's literature? Maybe a book or a series where Bunter",QUELCH
+qz_1800,6,train,,,,,,True,64,"<think> Okay, let's tackle this question: ""Which act has had more Christmas number one singles than any other?"" Hmm, first I need to understand what exactly is being asked here. The question is about an ""act"" that has had more Christmas number one singles than any other. Wait, maybe I'm",The Beatles
+dpql_2349,7,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who played the sadistic sheriff in the Clint Eastwood directed film Unforgiven. I need to recall the cast of that movie. The director is Clint Eastwood, and the main character is probably the sheriff. The sadistic sher",Gene Hackman
+sfq_22280,8,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which Jane Austen novel has Frederick Wentworth as the lover of Anne Elliot. Hmm. I need to recall Austen's novels. Frederick Wentworth... Wait, I think that's from Pride and Prejudice. But wait, in",PERSUASION
+odql_4855,9,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which series of books are illustrated by Mary Grand Pre, and I need to answer with just the answer, no explanation. Hmm. First, I should recall who Mary Grand Pre is. Wait, I think she's associated with the ""A Song of Ice",'HARRY POTTER'
+qb_9568,10,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who defeated Joe Frazier to win the Heavyweight World Boxing Championship in January 1973. I need to recall who that was. Joe Frazier was a big name in boxing around that time. The champion at the time... Hmm,",George Foreman
+qw_4190,11,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking about Pedro Lascurin's presidency where he had the shortest presidency lasting less than an hour, specifically mentioning three presidents in one day on February 18, 1913. Wait, but Pedro Lascurin... Hmm, I need to check",Mexico
+sfq_2348,12,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which opera features the ""Humming Chorus,"" and I need to answer with just the answer, no explanation. Hmm.
+
+First, I remember that the Humming Chorus is associated with certain operas. Wait, maybe it's from Mozart's",Madame Butterfly
+wh_2109,13,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which chemical element's name ends with the letters KEL. Hmm. First, I need to think of chemical elements whose names end with KEL. Let me recall the periodic table elements. 
+
+Wait, the elements are usually one or two letters,",NICKEL
+bb_7429,14,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which guitar innovator and player has a range of Gibson Guitars named after him. Hmm. I need to think about guitarists associated with Gibson. Gibson has several models, like the Les Paul, Les Paul 300, maybe others. Wait, the",Les Paul
+qb_5655,15,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which author published a 1754 book titled 'The Gentleman and Cabinet-Maker’s Director'. The question specifies to answer with just the answer, no explanations, and only the final answer.
+
+First, I need to recall the author associated with",Thomas Chippendale
+wh_833,16,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which work by Dylan Thomas starts with the words ""To begin at the beginning"". I need to figure out which of his works begins with those exact words. 
+
+First, I recall that Dylan Thomas wrote several novels and poems. One of his famous works is",UNDER MILKWOOD
+sfq_20635,17,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which fruit is known as ananas in French. The answer should be the name of the fruit, but I need to make sure. The question says the answer should be just the answer, no explanation, and I have to answer with just the answer. Since",Pineapple
+wh_2629,18,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in the fairy tale Thumbelina, what creature wants the miniature girl to marry her son. I need to recall the story. Thumbelina is a tiny girl who goes into the woods and meets a fairy, but the main point here is about",TOAD
+qg_494,19,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which section of Los Angeles was devastated by six days of rioting in August 1965 after a drunk driving arrest, leading to 34 deaths and over $50 million in property damage. I need to figure out which area that refers to.
+
+First,",Watts
+qw_11386,20,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the opposite side from starboard on a ship. Hmm. I need to recall navigation terms here. On a ship, the starboard side is the side facing the direction the ship is moving, right? So the opposite side would be the port side",Port
+sfq_15472,21,train,,,,,,True,64,"<think> Okay, let's see. The question says that the name of a knot on a lasso is also the name of a Japanese motor manufacturer. I need to figure out what that name is. Hmm.
+
+First, I know that Japanese motor manufacturers have some well-known names like Toyota, Honda, N",HONDA
+qz_1130,22,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what the most common blood type in humans is, choosing between A, B, or O. I remember from biology class that blood types are determined by antigens on red blood cells, mainly ABO blood group antigens. The main types are A, B, AB",O
+sfq_19115,23,train,,,,,,True,64,"<think> Okay, let's see. The question is asking under what name Steveland Judkins is better known. I need to figure out his stage name or the nickname he goes by. Since the user says to answer with just the answer and no explanation, I should recall if Steveland Judkins is a known artist",STEVIE WONDER
+qw_14324,24,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what part of the body produces insulin. I remember that insulin is a hormone related to blood sugar regulation. The pancreas is involved in producing insulin, right? Specifically, the beta cells in the pancreas. Wait, but the question says ""part of the body,""",Pancreas
+sfq_6943,25,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the highest prime number less than 100. Hmm, prime numbers are numbers greater than 1 that have no divisors other than 1 and themselves. So I need to find the largest prime that's below 100.
+
+First, I know",97
+tc_1938,26,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which country Earl Spencer's acrimonious divorce settlement was heard. I need to figure out the answer.
+
+First, I recall that Earl Spencer was involved in a divorce case. I think he was the husband of Queen Victoria's sister, maybe?",South Africa
+bt_4125,27,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which son of Telamon fought Hector in a single combat. I need to recall Greek mythology details here. Telamon is a character from Homer's Iliad, right? He's one of the sons of Achilles' father, Agamemnon,",Ajax
+odql_13628,28,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which English football league team are known as The Posh'. I need to figure out the answer without any explanations, just the answer. 
+
+First, I should recall which teams are associated with being called ""The Posh'"". I remember that ""The",Peterborough United
+qw_1816,29,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which French artist joined a Post-Impressionist group, started the Synthetist movement, and worked in Tahiti between 1891-1893 and 1895-1901. The answer needs to be just the name, no explanations",Paul Gauguin
+sfq_20015,30,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who was the father of David in the Old Testament Bible. I need to make sure I get this right.
+
+First, I remember that David is one of the kings of Israel, and his father is mentioned in the genealogies. In the Bible, especially",Jesse
+dpql_2287,31,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what is worn around the neck in a 'gurning' contest. Hmm, first I need to figure out what a 'gurning' contest is. Wait, maybe it's a term I'm not familiar with. Alternatively, perhaps it's a mist",A Horse Collar
+qg_2238,32,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of the first space station launched by NASA between 1973 and 1979 that met a firey end over the Pacific Ocean and parts of Western Australia on July 11, 1979. Hmm. Wait, but I need to",Skylab
+odql_8256,33,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which year the 'Boxing Day Tsunami' in the Indian Ocean occurred. I need to figure out the answer without explanations, just the year.
+
+First, I should recall what I know about tsunamis in the Indian Ocean. There was a",2004
+sfq_11176,34,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking who became the youngest footballer to play for England when they were 17 years and 75 days old in May 2006. They want the answer with just the answer, no explanations, and I need to make sure I follow instructions correctly.
+
+",Theo Walcott
+qb_8500,35,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the first name of Nurse Ratched from the 1975 film 'One Flew Over the Cuckoo's Nest'. I need to make sure I get the answer right. The movie is about a mental institution where Nurse Ratched is the main antagon",Mildred
+wh_532,36,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking: ""Whose single I saw mommy kissing Santa Claus sold three million copies in 1952?"" And they want the answer with just the answer, no explanation, and just the response.
+
+First, I need to figure out what the question",JIMMY BOYD
+qg_1234,37,train,,,,,,True,64,"<think> Okay, let's see. The question is asking with what possession Wonder Woman can force people to tell the truth. Hmm. I need to figure out the answer without explanation, just the answer. 
+
+First, I remember that Wonder Woman is often associated with truth and justice. Maybe her power is tied",Lasso
+sfq_24275,38,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the capital city of Saudi Arabia. I need to make sure I get this right. I remember that Saudi Arabia is a country in the Middle East, and their capital... Hmm, I think it's Riyadh. Wait, but wait, sometimes",RIYADH
+qg_869,39,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which European country Vincent van Gogh was born on March 30, 1853. Wait, actually the question says March 30, 1853 saw his birth, and asks which European country he was born in. Wait, but the user wrote",The Netherlands
+sfq_24087,40,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote the book Don Quixote. I remember that Don Quixote is a classic novel, but I need to confirm the author. Wait, wasn't it written by Miguel de Cervantes? Yes, Cervantes. He wrote it in the early",(Miguel de) Cervantes
+qw_7349,41,train,,,,,,True,64,"<think> Okay, let's see. The question is asking how many gifts are there in the ""Twelve Days of Christmas"". I need to make sure I get the answer right. From what I remember, the Twelve Days of Christmas typically lists the gifts exchanged over twelve days, starting with the first day having one gift",364
+bb_5225,42,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which international organization Jean Henri Dunant founded in 1901 for the joint winner of the Nobel Peace Prize, which is Swiss Jean Henri Dunant. Wait, actually, wait—the question says ""the first joint winner of the Nobel Peace Prize, Swiss Jean Henri",The Red Cross
+dpql_5620,43,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which city the wheelchair-bound Robert Ironside Chief of detectives was. Hmm. I need to figure out the answer. First, I should recall if there's any notable person named Robert Ironside who was a Chief of detectives and had",San Francisco
+bt_1591,44,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of Catherine Zeta Jones character in The Darling Buds of May. Hmm. First, I need to recall what that book is about. Wait, ""The Darling Buds of May"" – I think it's a children's",Mariette
+sfq_6053,45,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking: In 2009, a special design was used on the reverse of the 50p coin to commemorate the 250th anniversary of which establishment? And they want the answer with just the answer, no explanation, and to respond with just the",Royal Botanical Gardens at Kew
+qf_1525,46,train,,,,,,True,64,"<think> Okay, let's see what the question is here. The user says: If you dress in clothes of the opposite sex, you are a what (no rude answers please!)? And they want the answer just with the answer, no explanation, and just the response. Also, they specified not to use any",transvestite
+qb_5400,47,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which English football club plays their home games at Craven Cottage. Hmm, I need to figure out which club that is. First, I should recall where Craven Cottage is located. I think Craven Cottage is a stadium in England.",Fulham FC
+tc_1921,48,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who designed the dress that made the most at Diana's dress auction. Hmm, first I need to figure out which Diana they're referring to. Since it's about a dress auction, maybe Diana is a public figure or a celebrity? Wait, maybe it",Victor Edelstein
+qz_4845,49,train,,,,,,True,64,"<think> Okay, let's see. The question is ""What kind of creature is Firenze?"" and I need to answer with just the answer, no explanation. The user said to respond with just the answer, no explanations. Since the question is about what kind of creature Firenze is, I need to figure out what """,Centaur
+qg_808,50,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the lowest level of the Earth's atmosphere. Hmm. I need to make sure I get this right. The Earth's atmosphere has different layers: the troposphere, stratosphere, mesosphere, thermosphere, and exosphere. Wait, but",Troposphere
+dpql_5914,51,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which motor scooter had a name meaning 'wasp'. Hmm. I need to think about scooter models or names that relate to wasps. Wait, maybe it's a specific model. I recall that there's a scooter called the ""W",Vespa
+qb_866,52,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which US singing duo started out under the names Caesar and Cleo. Hmm. I need to figure out the answer here. 
+
+First, I should recall any US singing duos that had those names. Wait, Caesar and Cleo... Maybe Caesar",Sonny and Cher
+qz_2466,53,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which stars in the 2008 movie Seven Pounds, and I need to answer with just the answer, no explanation. The user said to respond with just the answer, no explanation, and make sure I put only the answer.
+
+First, I should",Will Smith
+bb_1292,54,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which month the Munich Oktoberfest beer festival is held. I need to make sure I get the answer right. I remember that Oktoberfest is a big festival in Germany, specifically in Munich. The name Oktoberfest itself suggests it's related to Oktoberfest,",September
+sfq_8782,55,train,,,,,,True,64,"<think> Okay, let's see. The question is asking ""Spiritu Santo is the largest island of which island republic?"" and I need to answer with just the answer, no explanation. Hmm.
+
+First, I need to figure out which island republic has Spiritu Santo as its largest island. Wait,",VANUATU
+tc_1686,56,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which US president won the Nobel Peace Prize in 1920. Hmm, first I need to recall who the US presidents were around that time. The year 1920 is important here. Let me think... The Nobel Peace Prize winners around that period...",Woodrow Wilson
+qg_4604,57,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which US military branch had its founding on December 14, 1636, under the motto ""Always Ready, Always There"". The options might be the Army, Navy, Air Force, etc., but since it's asking for the branch that was founded on",National Guard
+odql_10315,58,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which group Jimmy Page and John Paul Jones played before they formed Led Zeppelin. The question specifies to answer with just the answer, no explanations, and only the final answer.
+
+First, I need to recall who Jimmy Page and John Paul Jones",'THE YARDBIRDS'.
+dpql_277,59,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which title character was named Dolores Haze. Hmm. I need to figure out the answer here.
+
+First, I remember that Dolores Haze is a character from a movie. Wait, which movie? Maybe ""The Wizard of Oz""",Lolita
+wh_3251,60,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which Middle Eastern country has the ancient city of Petra. I remember that Petra is a famous ancient city, often associated with Jordan. Wait, but is Jordan considered part of the Middle East? Yes, definitely. The question specifies a Middle Eastern country, and Jordan",JORDAN
+sfq_17002,61,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what the book called the Washington Post reporters Carl Bernstein and Bob Woodward wrote about the Watergate scandal was named. The answer should be just the name of the book, and I need to answer with just the answer, no explanations.
+
+Hmm,",All the President's Men
+bt_2111,62,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the smallest Canadian province. Hmm, I need to figure this out. First, I should recall what the provinces and territories are in Canada. Canada has ten provinces and three territories. The provinces are Alberta, British Columbia, Ontario, Quebec, Newfoundland and",Prince Edward Island
+qf_1053,63,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of the island where Nelson Mandela was imprisoned for 18 years. Hmm, I need to recall... I know Nelson Mandela is a famous figure associated with South Africa, specifically his role in ending apartheid. He was imprisoned for a long time",Robben Island
+qf_527,64,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the world's most popular non-alcoholic drink. I need to make sure I get the right answer here. First, I should think about what non-alcoholic drinks are popular globally. Common ones include soda, water, coffee, tea, maybe",coffee
+jp_4336,65,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which TV show takes place at the fictional Seattle Grace Hospital. Hmm, I need to recall TV shows that are set there. Wait, I think Seattle Grace Hospital is a real place, but maybe it's a fictional one? Or perhaps it's a reference",Grey's Anatomy
+bb_2130,66,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what is said to be the UK's loudest bird, and I need to answer with just the answer, no explanation. The user said to respond with just the answer, no explanation, and only the final answer.
+
+Hmm, I remember that the",Bittern
+wh_3298,67,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking what's found between the core of the Earth and its crust, and they want the answer without explanations, just the response. The key points are that two-thirds of Earth's mass is around the core and crust, so the remaining part is the mantle",THE MANTLE
+qw_11908,68,train,,,,,,True,64,"<think> Okay, let's see. The question is asking how many odd numbers are there between 12 and 42. Hmm, first I need to make sure I understand the range correctly. When they say between 12 and 42, does that include 12 and 42? Or is it exclusive?",15
+qw_5777,69,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which 1974 film about a train hijacking starring Walter Matthau and Robert Shaw was remade in 2009 with John Travolta and Denzel Washington. The answer should be just the film title, I guess.
+
+First, I need",The Taking of Pelham One Two Three
+bb_2568,70,train,,,,,,True,64,"<think> Okay, let's see. The question is ""Pelagic refers to the open what?"" and I need to answer with just the answer, no explanation. Hmm.
+
+First, I remember that ""pelagic"" relates to the oceanic regions. The term ""pelagic"" comes from Greek words meaning",Sea
+dpql_2028,71,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which element is the main polluting substance in acid rain. Hmm. I remember that acid rain is related to pollution from burning fossil fuels, especially coal and oil. The primary pollutants are sulfur dioxide (SO2) and nitrogen oxides (NOx).",Sulphur
+jp_1350,72,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what Pangaea and Gondwana were. I need to recall what those terms refer to. From what I remember, Pangaea was a supercontinent that existed during the Paleozoic Era when all the continents were combined into one supercontinent. Gondwana",Continents
+qb_9676,73,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which color corresponds to numbers 100-109 in food E Numbers 100-109 are which color? Wait, first I need to make sure I understand the question correctly. The user mentions ""E Numbers 100-109 are which colour?"" H",Yellow
+qw_12980,74,train,,,,,,True,64,"<think> Okay, let's see. The question is asking what object was unveiled outside John Lennon Airport in Liverpool in 2005. I need to figure out what that was.
+
+First, I remember that John Lennon Airport is named after John Lennon, the musician, and it's located in Liverpool,",Yellow submarine
+sfq_5258,75,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which part of the body astigmatism affects. I remember astigmatism is related to vision problems. From what I know, astigmatism is often associated with the cornea or lens of the eye, causing blurry vision. But the question specifies """,Eye
+qb_1757,76,train,,,,,,True,64,"<think> Okay, let's see. The question is asking how many stars are on the national flag of New Zealand. I need to make sure I get the answer right. I remember that New Zealand's flag has some stars, but I'm not exactly sure how many. Wait, the national flag of New Zealand is",Four
+sfq_22467,77,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which decade the English League Cup first was contested. I need to figure out the answer without explanations, just the answer.
+
+First, I should recall what the English League Cup is. Wait, maybe it's called the FA Cup? No, wait,",1960's
+qz_340,78,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote ""The Importance Of Being Earnest"". I need to make sure I get the correct author. I remember that this is a classic English novel. The title sounds familiar; I think it's from Oscar Wilde's works. Wait, Oscar Wilde",Oscar Wilde
+qz_3023,79,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which well-known couple live at Bagshot Park in Surrey. Hmm, I need to figure out the answer without explaining. The user wants just the answer, no explanations, and I have to respond with only the answer. Since I need to pick the correct",The Earl and Countess of Wessex
+qf_2298,80,train,,,,,,True,64,"<think> Okay, let's see. The question is asking in which year the SS Titanic sank. I remember that the Titanic sank in 1912. Wait, but I should make sure. The Titanic was famous for its sinking in 1912, right? The year it sank is commonly known as 1912",1912
+qf_2053,81,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which Australian Territory Darwin is the capital of. Hmm, I need to recall some geography here. Wait, Darwin is a city in Australia, right? But is it the capital of any territory? Wait, Australia itself isn't a territory; it's a",Northern Territory
+qb_5139,82,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who replaced Iraqi President Ahmed Hassan al-Bakr in July 1979. I need to make sure I get the correct answer here. 
+
+First, I recall that Ahmed Hassan al-Bakr was the president of Iraq around that time. I think",Saddam Hussein
+qw_9422,83,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote the poem ""Daffodils"". Hmm, I need to recall if I know any poet associated with daffodils. Wait, I remember that ""Daffodils"" is a famous poem by Robert Burns. Wait, no,",William Wordsworth
+qw_1606,84,train,,,,,,True,64,"<think> Okay, let's tackle this question. The question is asking which of Queen Elizabeth's children is the lowest in succession to the throne, meaning the furthest away from it. The answer should be just the name, and I need to answer without explanations, just the answer.
+
+First, I need to",Anne
+qf_2232,85,train,,,,,,True,64,"<think> Okay, let's see. The question is asking where in the United States there is the only place with a royal palace. Hmm. Wait, the user says to answer with just the answer, no explanation, and only the answer. Since I need to make sure I get this right.
+
+First,",Honolulu
+odql_8838,86,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which series of spotters guides was named after a children's game where a complete book was sent to a 'Big Chief', specifically mentioning David Bellamy the botanist as one of them. Hmm.
+
+First, I need to recall series of sp",I-SPY
+sfq_14547,87,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which TV programme's 'experts' include Francis Prior and Phil Harding. They want the answer with just the answer, no explanations, and I need to make sure I get it right.
+
+First, I need to recall which TV shows feature",Time Team
+dpql_3499,88,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which team is the only one to have won the Premier League once and then only once. Wait, actually, wait. Wait, the question says ""the only team to have won football’s Premier League once and once only."" Hmm, maybe I need to",Blackburn Rovers
+dpql_5268,89,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which planet Gustav Holst called the 'Winged Messenger'. I need to figure out the answer.
+
+First, I remember that Gustav Holst was a composer known for his works related to astronomy and mythology. He wrote a series called the Planets,",Mercury
+sfq_14187,90,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which English city the Whitworth Art Gallery is located in. I need to make sure I get the right answer. I remember that Whitworth Art Gallery is a well-known museum. From what I recall, it's part of the University of London, but wait",MANCHESTER
+qw_6247,91,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which fictional martial art Sherlock Holmes was proficient in, invented by Sir Arthur Conan Doyle. Hmm. I remember that Sherlock Holmes is associated with various detective stories, but the martial art part... Wait, I think it's the Sherlock Holmes",Baritsu
+qg_675,92,train,,,,,,True,64,"<think> Okay, let's see. The question is asking where the adrenal glands are located in the human body. I remember from biology class that the adrenal glands are part of the endocrine system. They're situated on top of the kidneys, right? Wait, no, actually, maybe they're near the adrenal medulla",Kidneys
+odql_15048,93,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which city is the capital of the Spanish region of Aragon. I need to make sure I get this right. First, I should confirm that Aragon is indeed a region in Spain. Yes, Aragon is one of the autonomous communities in Spain. Now",Zaragoza
+bt_1718,94,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote ""The Sea Wolf"". I need to make sure I get the correct answer here. First, I should recall which authors are associated with that title. ""The Sea Wolf"" – I think it might be a novel. Wait, maybe it's a",London
+bt_3844,95,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which super-tanker ran aground near Milford Haven in 1996. I need to figure out the answer without any explanations, just the answer. First, I should recall if there's a famous incident like that. Milford Haven is a place",Sea Empress
+qb_1751,96,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which breed of dog is Marley in the 2008 film 'Marley and Me'. I need to figure out the answer without any explanations, just the answer. 
+
+First, I remember that the movie 'Marley and Me' is about a",Labrador Retriever
+qg_48,97,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking about the date December 21, 2012, being considered the End of the World, possibly referencing some calendar system confusion. They mention a faulty interpretation of a civilization's calendar accounting for this. The answer needs to be just the answer,",Mayan
+sfq_15080,98,train,,,,,,True,64,"<think> Okay, let's see. The question is asking who in Greek mythology was the god of the north winds. Hmm. I need to recall Greek mythology deities related to winds. I know that Zeus is the king of the gods, but he's more associated with thunder and lightning. Then there's Poseidon",Boreas
+wh_3819,99,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which country was the birthplace of Henry V111’s first wife Catherine Of Aragon's birthplace. Wait, first wife Catherine Of Aragon? Wait, maybe I need to check the names again. Wait, the question says ""Henry V111’s first",SPAIN
+qg_3215,100,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which product is advertised with the slogan ""Great taste, less filling"". I need to figure out what product that would be. The key points here are ""great taste"" and ""less filling"". The slogan suggests that the product is tasty but not overly heavy",Miller Lite Beer
+qb_6288,101,train,,,,,,True,64,"<think> Okay, let's see. The question is asking ""Giugno is Italian for which month of the year?"" and I need to answer with just the answer, no explanation. Hmm. First, I should figure out what month Giugno refers to in Italian. Wait, the question is phrased as """,June
+qf_3155,102,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which former Bond star played the role of Mr. Rochester in a 1983 TV mini series of Jane Eyre. They want the answer with just the answer, no explanations, and I need to make sure I get it right.
+
+First,",Timothy Dalton
+bb_5704,103,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which famous TV personality ended a 33-year run of 6,082 shows in 2015. Hmm. I need to figure out the answer without explanations, just the name.
+
+First, I recall that there's a person who hosted a lot",David Letterman
+qg_3384,104,train,,,,,,True,64,"<think> Okay, let's see. The question is asking about Norse mythology where a group of female figures decides who lives and dies in battle and then transports half to Valhalla. Hmm. I remember that in Norse myths, there's a figure associated with Valhalla. Oh right, Odin",Valkyries
+qg_1358,105,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for a film director and producer who was born on May 14, 1944, and founded THX and Industrial Light and Magic. Hmm.
+
+First, I need to recall who founded THX and ILM. THX is the Theatre Audio",George Lucas
+odql_2344,106,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which African island is named after a saint whose feast day the island was discovered in 1471. Hmm. I need to figure out which African island that is. 
+
+First, I remember that some islands have names related to saints or religious figures.",SAO TOME
+odql_14551,107,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which band, formed in Salford in 1976, had Ian Curtis, Bernard Sumner, and Peter Hook as members. The options might be a specific band, but since I need to answer without explanation, just the name.
+
+First, I",'JOY DIVISION'
+odql_9627,108,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which famous family lived at '50 Wimpole Street, London. Hmm. I need to figure out the answer without explanations, just the answer.
+
+First, I recall that London has several famous families. Maybe the Beatles? No, they were in",THE BARRETTS
+wh_4018,109,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which major computer language shares its name with an Indonesian island. Hmm. First, I need to think about Indonesian islands and their names that might correspond to a computer language. The major languages associated with Indonesia include things like Java, but wait, Java is a",JAVA
+odql_11679,110,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which island the actor Errol Flynn was born on. Wait, actually, the question says ""on which island was the actor Errol Flynn born?"" Hmm, but I need to make sure I get this right. Wait, maybe there's a",TASMANIA
+sfq_24154,111,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking who attributed the quotes ""Nothing is certain but death and taxes"" and ""Remember that time is money"" to. The answer needs to be just the answer, no explanations, and I have to make sure I get it right.
+
+First, I",Benjamin Franklin
+sfq_11824,112,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which bird all three common, Arctic, and Sooty are varieties of. The options might be a specific bird family or species. Wait, the question says ""Common, Arctic and Sooty are all varieties of which bird?"" So I need to figure",TERN
+qg_3551,113,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking in which South American country unrepentant asshat Che Guevara and his band of merry men were captured and executed. First, I need to recall who Che Guevara's group was. Che Guevara was part of the ",Bolivia
+tb_666,114,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which sauce from ham drippings and coffee in Southern US cuisine is named after its appearance like a body organ, and they want the answer without explanation, just the answer.
+
+First, I need to recall Southern US sauces involving ham drippings and",Red-eye gravy
+bb_912,115,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which town the fortified wine drink Sherry is named after. Hmm. I remember that Sherry is a type of fortified wine, and I think it's associated with a specific region. Wait, maybe it's from Spain? Or maybe France? Wait,",Jerez
+sfq_634,116,train,,,,,,True,64,"<think> Okay, let's see. The question is asking for the distinctive odor of hydrogen cyanide, and I need to answer with just the answer, no explanation. The user wants me to think through it but then just provide the answer.
+
+First, I remember that hydrogen cyanide has a strong, pung",ALMONDS
+sfq_2414,117,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking ""To whom did the risen Jesus say 'Touch me not'?"" and they want the answer with just the answer, no explanation, and I need to make sure I follow instructions properly.
+
+First, I need to recall biblical references where Jesus says",Mary Magdelene
+odql_6990,118,train,,,,,,True,64,"<think> Okay, let's see. The question is asking which treaty of 1713 led to Spain ceding Gibraltar and Minorca to Great Britain. I remember from history that the Treaty of Utrecht was around 1713, but wait, was it specifically the Treaty of Utrecht? Or maybe it's the Treaty of",Utrecht
+qb_6399,119,train,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which sign of the Zodiac is represented by an object rather than a person or animal, and they want the answer with just the response, no explanations. The options are probably something like the Sun, Moon, etc., but since they want only",Libra
+jp_1975,120,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which holiday in 1968 Communist forces in Vietnam started an offensive, and I need to answer with just the answer, no explanations. The user said to answer with just the answer, so probably the answer is ""April"" or something related to the holiday.",Tet
+odql_9226,121,val,,,,,,True,64,"<think> Okay, let's see. The question is asking about the code name given to artificial harbors towed across the English Channel after D-Day landings during World War II. I need to recall what that was called.
+
+I remember that after the Normandy landings (D-Day), there were artificial har",MULBERRY
+jp_2293,122,val,,,,,,True,64,"<think> Okay, let's see. The question is ""Kriss Kross will make you what?"" and I need to answer with just the answer, no explanation. Hmm. Since I have to pick the correct answer, maybe it's a common phrase or a pun. Kriss Kross is a character",Jump
+jp_3910,123,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which Jewish banking family rose from the Frankfurt ghetto to become unthinkably wealthy. Hmm. I need to recall Jewish banking families from Frankfurt. The most famous one that comes to mind is the Rothschild family. Wait, but were they from Frankfurt?",Rothschild
+odql_3654,124,val,,,,,,True,64,"<think> Okay, let's see. The question is asking how Donald Neilson was better known in the 1970s, and I need to answer with just the answer, no explanation. The user said to respond with just the answer, no explanations. Since I have to pick the correct answer, I need to",'THE BLACK PANTHER'
+odql_7185,125,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which boxing champion had the nickname 'Hit-Man'. I need to figure out the answer without explanations, just the answer.
+
+First, I remember that ""Hit-Man"" is a nickname associated with a boxer. Wait, wasn't there a boxer named",THOMAS HEARNS
+qw_10079,126,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which London establishment was created in 1753 by Sir Harris Sloane. Hmm. I need to recall historical facts here. I remember that Sir Harris Sloane was involved with the Royal Society or maybe the British Museum? Wait, no. Wait, the",The British Museum
+sfq_7254,127,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which successful British band released ""A Whiter Shade of Pale"" as their debut single. The user wants the answer with just the answer, no explanations, and I have to make sure I pick the correct band.
+
+First, I remember that ""A",PROCUL HARUM
+sfq_80,128,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which female former TV newsreader was the first presenter of the TV programme ""Top Gear"". I need to figure out who that person was.
+
+First, I remember that ""Top Gear"" is a well-known British TV show. The host has been around",ANGELA RIPPON
+odql_9592,129,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which American university is situated in Ithaca, New York. The answer should be just the name of the university, and I need to answer with no explanations, just the answer. The user said to respond with just the answer, no explanation, and to",CORNELL
+odql_4457,130,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who coined the term ""Rock and Roll."" The user wants the answer with just the answer, no explanations, and I have to make sure I follow instructions.
+
+First, I need to recall who is associated with the origin of ""Rock and Roll."" From",Alan Freed
+bt_2428,131,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which British golf course you could find yourself in Hell Bunker, and I need to answer with just the answer, no explanation. Hmm. First, I should recall what Hell Bunker is associated with. Wait, maybe it's a specific course. I",Saint Andrews
+qb_162,132,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which Asian country hosted its first Formula One Grand Prix in October 2010. Wait, but hold on—actually, the user said ""its first Formula One Grand Prix in October 2010."" Hmm. Wait, maybe I need to parse that",South Korea
+sfq_24622,133,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which American president was assassinated by Charles Guiteau in 1881. Hmm, I need to recall historical facts here. I remember that Abraham Lincoln was assassinated in 1865, but that's later. The question specifies 1881.",James A Garfield
+qb_3553,134,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote the novel 'Seven Pillars of Wisdom'. I need to make sure I get the answer right. First, I recall that ""Seven Pillars of Wisdom"" is a book I've heard about before. Wait, wasn't that by La",T E Lawrence
+odql_2368,135,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which metallic element develops a green deposit called verdigris when exposed to air or seawater. Hmm, I remember that verdigris is associated with copper. Wait, but maybe it's another metal? Or perhaps it's copper. Let me think. When",COPPER
+sfq_23299,136,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which US pop group had a 1979 UK No.1 single hit with the song ""When You're in Love with a Beautiful Woman"". Hmm.
+
+First, I need to figure out which US group this is. The song mentioned is ""When",DR HOOK
+bb_4587,137,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which terms are in ""360 Varial, Ollie, Nollie, and Frontside Air"". The answer should be just the answer, no explanations. The user says to answer with just the answer, no explanation.
+
+Hmm, first I",Skateboarding
+wh_4300,138,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote the musical ""Blood Brothers"". I need to make sure I get the answer right. First, I should recall which musicals are associated with Blood Brothers. Wait, ""Blood Brothers"" might refer to a specific production. Hmm, I think there",WILLY RUSSELL
+bb_92,139,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which activity FIDE is the world federation of. The options might be chess, but I need to recall. Wait, FIDE stands for Fédération Internationale des Échecs, which is the international chess federation. So FIDE is the body that govern",Chess
+qb_7956,140,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which firework is named after an instrument of torture on which a saint was martyred. Hmm. I need to recall some historical firework names related to torture instruments.
+
+Wait, the instrument mentioned is an instrument of torture where a saint died.",Catherine Wheel
+odql_11309,141,val,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of the professional body that represents solicitors in England and Wales. I need to recall which organization that is. I know that in the UK, there are various professional bodies for different legal professions. For solicitors specifically, I think it's the",The Law Society
+bt_1444,142,val,,,,,,True,64,"<think> Okay, let's see. The question is asking what the study of armorial bearings is called, and I need to answer with just the answer, no explanations. The user wants the response to be the answer alone, nothing else. Since the question is ""What is the study of armorial bearings",Heraldry
+qw_13262,143,val,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which actors who portrayed Dr Who, from the UK TV series, appeared almost exclusively on radio, film, written works, and comic strips. They want the answer with just the answer, no explanation, and I need to make sure I pick the right",Paul McGann
+sfq_6197,144,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who was the husband of Lady Jane Grey. I need to make sure I get this right.
+
+First, I remember that Lady Jane Grey was the Queen Regent of England in the late 16th century. She was the youngest sister of Queen Mary I",Lord Guildford Dudley
+bb_3905,145,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which plant, named Olea europaea, is an ancient widely used metaphor for peace. The answer should be just the plant's name, right? Wait, the question says the answer should be the plant's name, which is Olea europaea",Olive
+qw_13284,146,val,,,,,,True,64,"<think> Okay, let's see. The question is asking: ""Travelling up the St Lawrence River from its mouth, which is the first major city on its shores? Answer with just the answer, no explanation.""
+
+First, I need to figure out where the mouth of the St Lawrence River is. The",Quebec
+qw_8487,147,val,,,,,,True,64,"<think> Okay, let's tackle this question: ""What separates Wales from Devon, England?"" The user wants the answer with just the response, no explanations, and they specified to answer with just the answer. Since I need to pick the correct answer, I should think about what distinguishes Wales and Devon. ",Bristol Channel
+qw_45,148,val,,,,,,True,64,"<think> Okay, let's see. The question is asking for the name of the computer in Stanley Kubrick's 2001: A Space Odyssey. Hmm, I need to recall if I've heard of any specific computer mentioned in that movie. Wait, I remember that in the film, there's a",HAL
+sfq_5677,149,val,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking according to the Old Testament who was the first person to have a hangover. They want the answer with just the answer, no explanation, and I need to make sure I follow instructions.
+
+First, I need to recall if there's a biblical",NOAH
+dpql_5750,150,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who presented the 1980 blockbuster documentary series ""Cosmos: A Personal Voyage."" I need to make sure I get the answer right. First, I should recall which documentary series that is. ""Cosmos: A Personal Voyage",Carl Sagan
+dpql_447,151,val,,,,,,True,64,"<think> Okay, let's see. The question is asking what a 'gricer' is a slang term for, and I need to answer with just the answer, no explanations. Hmm.
+
+First, I remember that ""gricer"" might be related to agriculture. Wait, maybe it's",TRAINSPOTTER
+odql_1420,152,val,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which television program has had all these four songs: ""Whole Lotta Love"", ""Yellow Pearl"", ""The Wizard"", and ""Get Out Of That"" as theme tunes. Then they want the answer just with the answer, no",'TOP OF THE POPS'
+qb_6622,153,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which card game Blaze, Bubble, and Shootout are all terms used in. The user wants the answer with just the answer, no explanation, and I have to make sure I pick the correct game.
+
+First, I need to recall the",Poker
+sfq_14492,154,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which series of books Rincewind and 'The Luggage' appear in, and I need to answer with just the answer, no explanations. Hmm.
+
+First, I should recall what Rincewind and 'The Luggage' refer to",Discworld
+odql_2092,155,val,,,,,,True,64,"<think> Okay, let's see. The question is asking in which country the Eurovision Song Contest will be held later this month. I need to figure out the answer without any explanation, just the country name.
+
+First, I should recall that Eurovision usually happens in May or June each year. Wait, but the question",SERBIA
+jp_4329,156,val,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking who has dated Tony Romo, John Mayer, and Nick Lachey. The answer needs to be just the answer, no explanations, and I have to make sure I pick the correct person.
+
+First, I need to recall who these individuals",Jessica Simpson
+qg_1929,157,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which silver-white metallic element is used as an alloy in high-speed cutting tools. The answer should be the symbol for that element. The options probably relate to common elements used in such alloys. 
+
+First, I know that high-speed cutting tools often use elements",Molybdenum
+odql_14378,158,val,,,,,,True,64,"<think> Okay, let's see. The question is asking which US state was known as the 'State of Franklin' from 1784 until 1788. I need to figure out the answer without any explanations, just the answer. 
+
+First, I remember that the State of Franklin was a short-lived state",TENNESSEE
+odql_8433,159,val,,,,,,True,64,"<think> Okay, let's see. The question is asking who the 'Colossus of Rhodes' was. I remember that the Colossus of Rhodes was a famous statue. From what I recall, it was a giant statue in Rhodes, Greece. But who was it made of? I think it was a",APOLLO
+wh_4343,160,test,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which superhero film produced by Marvel Studios, written and directed by Joss Whedon, was the highest grossing worldwide in 2012. They want the answer with just the response, no explanations, and I need to make sure I pick",THE AVENGERS
+dpql_1884,161,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what other name Seppuku is known by, besides being called Seppuku by a military man. The user wants the answer with just the answer, no explanations.
+
+First, I need to recall what Seppuku is. From what I remember,",HARA-KIRI
+bb_4945,162,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what ""Bundes in the German 'Bundesliga' soccer league refers to."" So I need to figure out what the term ""Bundes"" refers to in the context of the German Bundesliga.
+
+First, I know that ""Bundes"" is a",Federal
+sfq_4245,163,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which religion's holy book is the Adi Granth. I need to figure out the answer. First, I should recall what the Adi Granth refers to. I know that the Adi Granth is associated with Sikhism. The term ""Ad",Sikh(ism)
+sfq_20017,164,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which organization was founded by Peter Benenson in London in 1961. I need to recall who Peter Benenson is associated with. I remember he was involved with the Seneca Falls Convention, but wait, that was in 1848 related to women's",Amnesty International
+sfq_19297,165,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which Formula One racetrack is in the Ardennes. Hmm, I need to recall where the Ardennes is located. The Ardennes is a region in northeastern France, right? It's known for its forests and mountains, like the",Spa
+jp_2379,166,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which U.S. state was the first to legalize same-sex marriage in 2004. Hmm, I need to recall some history here. I know that same-sex marriage became legal in different states at different times. The key point is 2004",Massachusetts
+qb_603,167,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which country the Strawberry Museum in Wepion is in. I need to figure out the answer. First, I should recall if I've heard of the Strawberry Museum before. Wait, maybe it's a fictional place or a real one?",Belgium
+bb_3356,168,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who won his seventh French Open Tennis Championship in 2012. Hmm, I need to figure out who that was. First, I should recall the winners of the French Open around that time. The French Open is a major tournament, and the winner is",Rafael Nadal
+sfq_1177,169,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which hero was the son of Zeus by Danae. Hmm. I need to recall Greek mythology here. Zeus is the king of the gods, right? Danae was a mortal queen, I think. Wait, the question says ""son of Zeus by",Perseus
+qw_13422,170,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who in 1960 made international news by banging his shoe on a table in the UN. Hmm. I need to figure out the answer.
+
+First, I should recall any notable events from 1960 involving someone in the UN doing something like",Nikita Khruschev
+odql_6190,171,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which book is the sixth book of the New Testament following Acts. Wait, but Acts is part of the Old Testament, right? Wait, maybe I need to parse this carefully. The user says ""following Acts"", but Acts is a book in the New",EPISTLE TO THE ROMANS
+bb_743,172,test,,,,,,True,64,"<think> Okay, let's see. The question is asking in which country the 1948 Winter Olympics were held. I need to make sure I get the answer right. First, I remember that the 1948 Winter Olympics were held in some country. Wait, wasn't there a shift from summer to winter?",Switzerland
+qf_2991,173,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what a PCB is in electronics, and I need to answer with just the answer, no explanation. The user said to respond with just the answer, no explanation, and only the final answer. Since the question is ""what is a PCB?"" the answer should",Printed Circuit Board
+odql_13246,174,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who plays the title character in the 2003 film Johnny English. I need to figure out the answer without any explanation, just the name. 
+
+First, I should recall the movie. Johnny English is a 2003 film directed by David Hall.",Rowan Atkinson
+sfq_25987,175,test,,,,,,True,64,"<think> Okay, let's see what the user is asking here. They want to know if the last three holes of a golf course named ""Redbud"", ""Nandina"", and ""Hotly"" are the last three holes. Wait, actually the question is phrased as ""The last 3 holes of",Augusta
+qb_7931,176,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which creature Grizzled Giant, Southern Flying, and Provost’s are all types of. The answer should be just the answer, no explanation, and I have to make sure I pick the correct one.
+
+First, I need to figure out what these",Squirrel
+sfq_10109,177,test,,,,,,True,64,"<think> Okay, let's see. The question is asking how many balls are used in bar billiards, and I need to answer with just the answer, no explanation. Hmm. Wait, bar billiards... I think in some versions, like the traditional English billiards, you have one ball",Eight
+qw_3390,178,test,,,,,,True,64,"<think> Okay, let's see. The question is asking for the capital of the province of Manitoba in Canada. I need to make sure I get this right. First, I remember that provinces in Canada have their own capitals, but sometimes people might confuse provinces with territories or other regions. Manitoba is a province,",Winnipeg
+wh_3377,179,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who wrote the title song for the James Bond film ""From Russia With Love"". I need to make sure I get the right answer here.
+
+First, I recall that James Bond movies often have memorable themes. The title song for ""From Russia With Love""",LIONEL BART
+dpql_5223,180,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which Welsh town is close to the Great Orme, which is the prominent headland known as the Great Orme. Hmm. I need to recall where the Great Orme is located. Wait, Great Orme is part of the Orme area,",LLANDUDNO
+sfq_178,181,test,,,,,,True,64,"<think> Okay, let's see. The question is asking for the general name of a rotating star that emits a regular beat of radiation. Hmm. I need to recall what term describes such a star. 
+
+First, rotating star that emits regular radiation... Well, a star that rotates might have",PULSAR
+odql_6602,182,test,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking which river in West Africa rises in the Fouta Djallan Highlands only 150 miles from the Atlantic but has a length of over 4000 kilometers before flowing into the Atlantic. They want the answer with just the response, no explanations",NIGER
+odql_2741,183,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which town was the birthplace of David Garrick. Wait, first I need to make sure I have the right person. David Garrick... Hmm, I think he might be referring to David Garrick, the actor? Or maybe someone else? Wait",HEREFORD
+qg_1847,184,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what type of vehicle OJ Simpson was riding in during that chase on June 17, 1994. The answer needs to be just the answer, no explanations, and I have to answer with just the answer. The user mentioned to respond with the answer",White Ford Bronco
+bb_3197,185,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which main three countries constituted the Axis Powers. I remember that the Axis Powers were a group of countries during World War II. The main ones were Germany, Italy, and Japan. Wait, but sometimes people might confuse them with other countries like Britain or France,","Germany, Japan, Italy"
+qw_14421,186,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what name is given to the declaration of aims and policies of a political party before an election. Hmm. I need to recall political terms related to party platforms.
+
+I remember that when a political party sets out its goals or policies before an election, they",Manifesto
+bb_4458,187,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which breed of Turkish Van is domestic. Wait, the question says ""The Turkish Van (or Turkish Vankedisi), originally from the eastern Turkish lakeside city of Van, is domestic breed of?"" So I need to confirm what the Turkish Van is.",Cat
+dpql_3596,188,test,,,,,,True,64,"<think> Okay, let's see. The question is: ""The demoiselle is a small variety of which wading bird? Answer with just the answer, no explanation.""
+
+Hmm, I need to figure out what the answer is. The term ""demoiselle"" – I think it's a French",Crane
+sfq_21495,189,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which fourth house at Hogwarts School there are besides Gryfford, Ravenclaw, and Slytherin. From what I remember, the four houses are Gryffindor, Ravenclaw, Slytherin, and the",Hufflepuff
+odql_2555,190,test,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking, ""Risen in Plynlimmon, which is the only English city through which the River Wye flows?"" Wait, first, I need to parse this correctly. The question seems a bit confusing. ""Risen in Plynlimmon",HEREFORD
+dpql_5706,191,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which is the EU’s highest capital city. Hmm. First, I need to make sure I understand what ""highest capital city"" means here. Maybe it refers to the largest city in the European Union? Or perhaps the capital city of the EU itself",Madrid
+odql_1340,192,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who became the first BDO Women's World Darts Champion in 2001, winning her sixth world title in January 2006. Wait, hold on. Wait, the wording says ""who became the first BDO Women's World Darts Champion",TRINA GULLIVER
+sfq_7793,193,test,,,,,,True,64,"<think> Okay, let's see. The question is asking who played the female lead in the 1957 film 'An Affair To Remember'. I need to make sure I get the right answer. First, I should recall the cast of that movie. Wait, I'm not sure about the exact details here.",Deborah Kerr
+bb_4415,194,test,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking how many North American railway metro systems are busier than Mexico City's metro. They want the answer with just the answer, no explanations, and I need to make sure I follow instructions.
+
+First, I need to figure out which North American metro",1
+qz_2165,195,test,,,,,,True,64,"<think> Okay, let's tackle this question. The user is asking who presented ""Family Fortunes"" in the two years between Bob Monkhouse and Les Dennis. First, I need to figure out the timeline here. Bob Monkhouse was a TV presenter, and Les Dennis was another presenter. The",Max Bygraves
+sfq_23975,196,test,,,,,,True,64,"<think> Okay, let's see. The question is asking which late comedienne wrote the 2014 best-selling book 'Diary of a Mad Diva'. I need to figure out the answer without explanations, just the name.
+
+First, I should recall who wrote that book. The title is 'Di",Joan Rivers
+qb_4411,197,test,,,,,,True,64,"<think> Okay, let's see. The question is asking what novelist Barbara McCorquodale was better known by what name. I need to recall who she was. Wait, Barbara McCorquodale—I think she was an American author. Maybe she wrote about Native American themes or something? Wait, actually",Barbara Cartland
+sfq_9583,198,test,,,,,,True,64,"<think> Okay, let's see. The question says there are two gymnastics events where men compete but women don't, and they're asking which ones those are, specifically mentioning pommel horse and another. The user wants the answer with just the answer, no explanation, and I have to pick the correct event",RINGS
+qf_662,199,test,,,,,,True,64,"<think> Okay, let's tackle this question: ""Whose horse was Black Nell?"" The user is asking which horse was associated with Black Nell. Hmm, I need to figure this out. 
+
+First, I should recall any references where Black Nell is mentioned in relation to a horse. Wait, maybe Black Nell",Wild Bill Hickok's

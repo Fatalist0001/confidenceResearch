@@ -19,6 +19,16 @@ if (-not $KAG) {
 $env:KAGGLE_API_TOKEN = (Get-Content (Join-Path $root '.env') |
     Select-String -Pattern '^KAGGLE_API_TOKEN=').Line.Substring(17).Trim()
 
+function Invoke-KaggleCommand {
+    param([string[]]$Arguments)
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $output = @(& $KAG @Arguments 2>&1)
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $oldPreference
+    return [pscustomobject]@{ Output = $output; ExitCode = $exitCode }
+}
+
 $build = Join-Path $here '_build'
 $ds    = Join-Path $build 'ds'
 New-Item -ItemType Directory -Force -Path $ds | Out-Null
@@ -35,14 +45,21 @@ $dsMeta = @{
     id       = 'odinodinodin/hs-src'
     licenses = @(@{ name = 'other' })
 }
-$dsMeta | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $ds 'dataset-metadata.json') -Encoding utf8
+$dsMetaJson = $dsMeta | ConvertTo-Json -Depth 5
+[IO.File]::WriteAllText(
+    (Join-Path $ds 'dataset-metadata.json'),
+    $dsMetaJson,
+    [Text.UTF8Encoding]::new($false))
 
 if (-not $SkipDataset) {
-    & $KAG datasets version -p $ds -m "hs sources $(Get-Date -Format 'yyyy-MM-dd HH:mm')" 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) {
+    $result = Invoke-KaggleCommand @('datasets', 'version', '-p', $ds, '-m', "hs sources $(Get-Date -Format 'yyyy-MM-dd HH:mm')")
+    if ($result.ExitCode -ne 0) {
         Write-Host 'datasets version failed, trying create'
-        & $KAG datasets create -p $ds 2>&1 | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw 'dataset upload failed' }
+        $result = Invoke-KaggleCommand @('datasets', 'create', '-p', $ds)
+        if ($result.ExitCode -ne 0) {
+            $result.Output | Select-Object -Last 10
+            throw 'dataset upload failed'
+        }
     }
     Write-Host 'dataset pushed'
 }
@@ -51,5 +68,10 @@ if (-not $SkipDataset) {
 & python (Join-Path $here 'make_nb.py')
 if ($LASTEXITCODE -ne 0) { throw 'make_nb.py failed' }
 
-& $KAG kernels push -p (Join-Path $build 'kernel') --accelerator NvidiaTeslaT4 2>&1 | Select-Object -Last 2
-& $KAG quota 2>&1
+$result = Invoke-KaggleCommand @('kernels', 'push', '-p', (Join-Path $build 'kernel'), '--accelerator', 'NvidiaTeslaT4')
+$result.Output | Select-Object -Last 2
+if ($result.ExitCode -ne 0) { throw 'kernel push failed' }
+
+$result = Invoke-KaggleCommand @('quota')
+$result.Output
+if ($result.ExitCode -ne 0) { throw 'quota failed' }

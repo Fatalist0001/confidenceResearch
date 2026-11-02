@@ -1,0 +1,201 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,1,1,1,1,1,False,2, hyperlink,HYPERLINK
+qz_2440,1,train,0,0,0,0,0,False,3, the hangover,Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,2, mongolia,BHUTAN
+sfq_17775,3,train,0,0,0,0,0,False,6, the movie An Unmarried Woman,AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,1,1,1,1,1,False,5, rudyard kipling,Rudyard Kipling
+dpql_1548,5,train,0,0,0,0,0,False,3, Farnum,QUELCH
+qz_1800,6,train,1,1,1,1,1,False,3, the beatles,The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,5, антонио бандерас,Gene Hackman
+sfq_22280,8,train,1,1,1,1,1,False,2, persuasion,PERSUASION
+odql_4855,9,train,0,0,0,0,0,False,4, The Hunger Games,'HARRY POTTER'
+qb_9568,10,train,0,0,0,0,0,False,3, muhammad ali,George Foreman
+qw_4190,11,train,1,1,1,1,1,False,2, mexico,Mexico
+sfq_2348,12,train,0,0,0,0,0,False,2, rusalka,Madame Butterfly
+wh_2109,13,train,1,1,1,1,1,False,1, nickel,NICKEL
+bb_7429,14,train,0,0,0,0,0,False,2, lespaul,Les Paul
+qb_5655,15,train,0,0,0,0,0,False,10, george james drew and thomas sheraton,Thomas Chippendale
+wh_833,16,train,0,0,0,0,0,False,6, under milton's microscope,UNDER MILKWOOD
+sfq_20635,17,train,1,1,1,1,1,False,1, pineapple,Pineapple
+wh_2629,18,train,1,1,1,1,1,False,3, the toad,TOAD
+qg_494,19,train,1,1,1,1,1,False,1, watts,Watts
+qw_11386,20,train,1,1,1,1,1,False,1, port,Port
+sfq_15472,21,train,1,1,1,1,1,False,2, honda,HONDA
+qz_1130,22,train,1,1,0,1,1,False,1, O,O
+sfq_19115,23,train,0,0,0,0,0,False,4, steve miller,STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,2, Pancreas,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,3, 97,97
+tc_1938,26,train,0,0,0,0,0,False,1, uk,South Africa
+bt_4125,27,train,1,1,1,1,1,False,1, ajax,Ajax
+odql_13628,28,train,0,0,0,0,0,False,3, portsmouth,Peterborough United
+qw_1816,29,train,0,0,0,0,0,False,5, paul-gauguin,Paul Gauguin
+sfq_20015,30,train,1,1,1,1,1,False,1, Jesse,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,5, a gurning mug,A Horse Collar
+qg_2238,32,train,1,1,1,1,1,False,3, skylab,Skylab
+odql_8256,33,train,1,1,1,1,1,False,5, 2004,2004
+sfq_11176,34,train,0,0,0,0,0,False,4, andy carroll,Theo Walcott
+qb_8500,35,train,0,0,0,0,0,False,16," The character is simply referred to as Nurse Ratched, without a first name.",Mildred
+wh_532,36,train,0,0,0,0,0,False,3, frank loesser,JIMMY BOYD
+qg_1234,37,train,1,1,1,1,1,False,4, lasso of truth,Lasso
+sfq_24275,38,train,1,1,1,1,1,False,1, Riyadh,RIYADH
+qg_869,39,train,1,1,1,1,1,False,2, netherlands,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,5, Miguel de Cervantes,(Miguel de) Cervantes
+qw_7349,41,train,1,1,1,1,1,False,4, 364,364
+bb_5225,42,train,1,1,1,1,1,False,7, the international committee of the red cross,The Red Cross
+dpql_5620,43,train,1,1,1,1,1,False,3, san francisco,San Francisco
+bt_1591,44,train,0,0,0,0,0,False,4, Dolly Winfield,Mariette
+sfq_6053,45,train,0,0,0,0,0,False,4, bank of england,Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,6, transgender or cross-dresser,transvestite
+qb_5400,47,train,0,0,0,0,0,False,2, Fulham,Fulham FC
+tc_1921,48,train,0,0,0,0,0,False,3, Elizabeth Emanuel,Victor Edelstein
+qz_4845,49,train,1,1,1,1,1,False,2, centaur,Centaur
+qg_808,50,train,1,1,1,1,1,False,3, troposphere,Troposphere
+dpql_5914,51,train,1,1,1,1,1,False,2, vespa,Vespa
+qb_866,52,train,0,0,0,0,0,False,7, roger and kelly hornby,Sonny and Cher
+qz_2466,53,train,1,1,1,1,1,False,2, will smith,Will Smith
+bb_1292,54,train,1,1,1,1,1,False,1, september,September
+sfq_8782,55,train,1,1,1,1,1,False,3, vanuatu,VANUATU
+tc_1686,56,train,1,1,1,1,1,False,4, woodrow wilson,Woodrow Wilson
+qg_4604,57,train,0,0,0,0,0,False,3, national-guard,National Guard
+odql_10315,58,train,1,1,1,1,1,False,3, the yardbirds,'THE YARDBIRDS'.
+dpql_277,59,train,1,1,1,1,1,False,21," lobster johnny's aunt in the novel ""Lolita"" by vladimir nabokov",Lolita
+wh_3251,60,train,1,1,1,1,1,False,2, jordan,JORDAN
+sfq_17002,61,train,1,1,1,1,1,False,6, all the president's men,All the President's Men
+bt_2111,62,train,1,1,1,1,1,False,4, prince edward island,Prince Edward Island
+qf_1053,63,train,0,0,0,0,0,False,2, robben,Robben Island
+qf_527,64,train,0,0,0,0,0,False,1, Water,coffee
+jp_4336,65,train,1,1,1,1,1,False,6, grey's-anatomy,Grey's Anatomy
+bb_2130,66,train,1,1,1,1,1,False,3, The bittern,Bittern
+wh_3298,67,train,1,1,1,1,1,False,2, mantle,THE MANTLE
+qw_11908,68,train,1,1,1,1,1,False,3, 15,15
+qw_5777,69,train,1,1,1,1,1,False,11, the taking of pelham 1 2 3,The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,1, ocean,Sea
+dpql_2028,71,train,1,1,1,1,1,False,6, sulfur dioxide and nitrogen oxides,Sulphur
+jp_1350,72,train,,,,,,True,64," Pangaea was a supercontinent that existed during the late Paleozoic and early Mesozoic eras, around 300 million years ago. Gondwana was a southern supercontinent that existed around 550 million years ago and included present-day continents such as Africa, South America",Continents
+qb_9676,73,train,1,1,1,1,1,False,1, yellow,Yellow
+qw_12980,74,train,0,0,0,0,0,False,8, a bronze statue of john lennon,Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,1, eye,Eye
+qb_1757,76,train,1,1,1,1,1,False,2, 4,Four
+sfq_22467,77,train,1,1,1,1,1,False,6, 1960s,1960's
+qz_340,78,train,1,1,1,1,1,False,3, Oscar Wilde,Oscar Wilde
+qz_3023,79,train,0,0,0,0,0,False,4, the Beckhams,The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,5, 1912,1912
+qf_2053,81,train,1,1,1,1,1,False,2, northern territory,Northern Territory
+qb_5139,82,train,1,1,1,1,1,False,5, Saddam Hussein,Saddam Hussein
+qw_9422,83,train,1,1,1,1,1,False,3, William Wordsworth,William Wordsworth
+qw_1606,84,train,0,0,0,0,0,False,2, Prince Louis,Anne
+qf_2232,85,train,0,0,0,0,0,False,3, hawaii,Honolulu
+odql_8838,86,train,0,0,0,0,0,False,3, big blue book,I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,5, antiques_roadshow,Time Team
+dpql_3499,88,train,0,0,0,0,0,False,3, birmingham city,Blackburn Rovers
+dpql_5268,89,train,1,1,1,1,1,False,1, mercury,Mercury
+sfq_14187,90,train,0,0,0,0,0,False,3, lancaster,MANCHESTER
+qw_6247,91,train,0,0,0,0,0,False,1, Boxing,Baritsu
+qg_675,92,train,1,1,1,1,1,False,1, kidneys,Kidneys
+odql_15048,93,train,1,1,1,1,1,False,3, Zaragoza,Zaragoza
+bt_1718,94,train,1,1,1,1,1,False,2, Jack London,London
+bt_3844,95,train,0,0,0,0,0,False,4, capsize africa,Sea Empress
+qb_1751,96,train,1,1,1,1,1,False,5, labrador retriever,Labrador Retriever
+qg_48,97,train,1,1,1,1,1,False,2, mayan,Mayan
+sfq_15080,98,train,1,1,1,1,1,False,3, Boreas,Boreas
+wh_3819,99,train,1,1,1,1,1,False,1, Spain,SPAIN
+qg_3215,100,train,0,0,0,0,0,False,3, diet pepsi,Miller Lite Beer
+qb_6288,101,train,1,1,1,1,1,False,1, June,June
+qf_3155,102,train,1,1,1,1,1,False,4, timothy dalton,Timothy Dalton
+bb_5704,103,train,0,0,0,0,0,False,4, mr-rogers,David Letterman
+qg_3384,104,train,1,1,1,1,1,False,3, Valkyries,Valkyries
+qg_1358,105,train,1,1,1,1,1,False,4, george lucas,George Lucas
+odql_2344,106,train,0,0,0,0,0,False,3, sainthelena,SAO TOME
+odql_14551,107,train,1,1,1,1,1,False,2, joy division,'JOY DIVISION'
+odql_9627,108,train,0,0,0,0,0,False,3, the Brownings,THE BARRETTS
+wh_4018,109,train,1,1,1,1,1,False,1, java,JAVA
+odql_11679,110,train,0,0,0,0,0,False,2, australia,TASMANIA
+sfq_24154,111,train,1,1,1,1,1,False,2, Benjamin Franklin,Benjamin Franklin
+sfq_11824,112,train,0,0,0,0,0,False,2, raven,TERN
+qg_3551,113,train,1,1,1,1,1,False,2, bolivia,Bolivia
+tb_666,114,train,0,0,0,0,0,False,2, liver sauce,Red-eye gravy
+bb_912,115,train,1,1,1,1,1,False,2, Jerez,Jerez
+sfq_634,116,train,1,1,1,1,1,False,2, bitter almond,ALMONDS
+sfq_2414,117,train,1,1,1,1,1,False,4, Mary Magdalene,Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,3, Treaty of Utrecht,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,2, aquarius,Libra
+jp_1975,120,val,1,1,1,1,1,False,1, tet,Tet
+odql_9226,121,val,1,1,1,1,1,False,4, mulberry harbors,MULBERRY
+jp_2293,122,val,0,0,0,0,0,False,3, want to dance,Jump
+jp_3910,123,val,1,1,1,1,1,False,3, rothschild,Rothschild
+odql_3654,124,val,0,0,0,0,0,False,4, the Yorkshire Ripper,'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,2, tyson,THOMAS HEARNS
+qw_10079,126,val,1,1,1,1,1,False,3, british museum,The British Museum
+sfq_7254,127,val,1,1,1,1,1,False,4, procol harum,PROCUL HARUM
+sfq_80,128,val,0,0,0,0,0,False,2, Diana Ross,ANGELA RIPPON
+odql_9592,129,val,1,1,1,1,1,False,2, Cornell University,CORNELL
+odql_4457,130,val,1,1,1,1,1,False,3, Alan Freed,Alan Freed
+bt_2428,131,val,1,1,1,1,1,False,4, st andrews,Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,1, india,South Korea
+sfq_24622,133,val,1,1,1,1,1,False,3, James Garfield,James A Garfield
+qb_3553,134,val,1,1,1,1,1,False,3, Thomas Edward Lawrence,T E Lawrence
+odql_2368,135,val,1,1,1,1,1,False,1, copper,COPPER
+sfq_23299,136,val,0,0,0,0,0,False,5, the jackson 5,DR HOOK
+bb_4587,137,val,1,1,1,1,1,False,2, skateboarding,Skateboarding
+wh_4300,138,val,1,1,1,1,1,False,3, Willy Russell,WILLY RUSSELL
+bb_92,139,val,1,1,1,1,1,False,1, chess,Chess
+qb_7956,140,val,0,0,0,0,0,False,3, catapult,Catherine Wheel
+odql_11309,141,val,1,1,1,1,1,False,7, The Law Society of England and Wales,The Law Society
+bt_1444,142,val,1,1,1,1,1,False,2, Heraldry,Heraldry
+qw_13262,143,val,0,0,0,0,0,False,2, baker,Paul McGann
+sfq_6197,144,val,1,1,1,1,1,False,4, Guildford Dudley,Lord Guildford Dudley
+bb_3905,145,val,1,1,1,1,1,False,1, olive,Olive
+qw_13284,146,val,0,0,0,0,0,False,1, Montreal,Quebec
+qw_8487,147,val,1,1,1,1,1,False,3, The Bristol Channel,Bristol Channel
+qw_45,148,val,1,1,1,1,1,False,6, HAL 9000,HAL
+sfq_5677,149,val,1,1,1,1,1,False,1, Noah,NOAH
+dpql_5750,150,val,1,1,1,1,1,False,4, carl sagan,Carl Sagan
+dpql_447,151,val,0,0,0,0,0,False,10, a motorcyclist who makes a lot of noise,TRAINSPOTTER
+odql_1420,152,val,0,0,0,0,0,False,4, the price is right,'TOP OF THE POPS'
+qb_6622,153,val,1,1,1,1,1,False,1, poker,Poker
+sfq_14492,154,val,1,1,1,1,1,False,2, discworld,Discworld
+odql_2092,155,val,0,0,0,0,0,False,2, mali,SERBIA
+jp_4329,156,val,1,1,1,1,1,False,2, Jessica Simpson,Jessica Simpson
+qg_1929,157,val,1,1,1,1,1,False,5, molybdenum,Molybdenum
+odql_14378,158,val,1,1,1,1,1,False,1, Tennessee,TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,2, Helios,APOLLO
+wh_4343,160,test,1,1,1,1,1,False,3, the avengers,THE AVENGERS
+dpql_1884,161,test,1,1,1,1,1,False,3, Harakiri,HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,2, federation,Federal
+sfq_4245,163,test,1,1,1,1,1,False,3, Sikhism,Sikh(ism)
+sfq_20017,164,test,1,1,1,1,1,False,4, Amnesty International,Amnesty International
+sfq_19297,165,test,1,1,1,1,1,False,1, spa,Spa
+jp_2379,166,test,1,1,1,1,1,False,2, massachusetts,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,2, poland,Belgium
+bb_3356,168,test,0,0,0,0,0,False,5, novak djokovic,Rafael Nadal
+sfq_1177,169,test,1,1,1,1,1,False,2, Perseus,Perseus
+qw_13422,170,test,1,1,1,1,1,False,6, nikita khrushchev,Nikita Khruschev
+odql_6190,171,test,0,0,0,0,0,False,1, Romans,EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,1, Sweden,Switzerland
+qf_2991,173,test,1,1,1,1,1,False,8, A PCB is a Printed Circuit Board.,Printed Circuit Board
+odql_13246,174,test,1,1,1,1,1,False,5, rowan atkinson,Rowan Atkinson
+sfq_25987,175,test,0,0,0,0,0,False,2, oak hill,Augusta
+qb_7931,176,test,0,0,0,0,0,False,2, parrots,Squirrel
+sfq_10109,177,test,0,0,0,0,0,False,3, 21,Eight
+qw_3390,178,test,1,1,1,1,1,False,1, Winnipeg,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,12, adolf hitzig monty norman john williams,LIONEL BART
+dpql_5223,180,test,1,1,1,1,1,False,4, llandudno,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,2, Pulsar,PULSAR
+odql_6602,182,test,0,0,0,0,0,False,2, senegal,NIGER
+odql_2741,183,test,0,0,0,0,0,False,3, Lichfield,HEREFORD
+qg_1847,184,test,0,0,0,0,0,False,2, bronco,White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,5," Germany, Italy, Japan","Germany, Japan, Italy"
+qw_14421,186,test,0,0,0,0,0,False,2, party platform,Manifesto
+bb_4458,187,test,1,1,1,1,1,False,1, cat,Cat
+dpql_3596,188,test,0,0,0,0,0,False,2, lapwing,Crane
+sfq_21495,189,test,1,1,1,1,1,False,4, Hufflepuff,Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,4, chepstow,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,1, Bern,Madrid
+odql_1340,192,test,0,0,0,0,0,False,4, victoria coredo,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,6, catherine zeta jones,Deborah Kerr
+bb_4415,194,test,0,0,0,0,0,False,2, 0,1
+qz_2165,195,test,0,0,0,0,0,False,2, Mike Smith,Max Bygraves
+sfq_23975,196,test,0,0,0,0,0,False,2, rupaul,Joan Rivers
+qb_4411,197,test,0,0,0,0,0,False,5, barbara pym,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,2, horizontal bar,RINGS
+qf_662,199,test,0,0,0,0,0,False,4, harry potter,Wild Bill Hickok's

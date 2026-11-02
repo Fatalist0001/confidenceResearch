@@ -1,0 +1,240 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,1,1,1,1,1,False,2,Hyperlink,HYPERLINK
+qz_2440,1,train,,,,,,True,64,"The film ""The Great Train Robbery"" (1978) features the character Dawes Tomes Mousley Grubbs Fidelity Fiduciary Bank. However, this seems to be a fictional or obscure reference. Upon checking, there is no well-known film with that exact title. It might be a",Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,1,China,BHUTAN
+sfq_17775,3,train,,,,,,True,64,"The film is *The Wizard of Oz* (though the song ""Up Where We Belong"" was originally from the 1982 film *The Wizard of Oz*? Wait, no. Actually, ""Up Where We Belong"" is a song from the 1982 film *The Wizard of",AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,0,0,0,0,0,False,7,Rabindranath Tagore,Rudyard Kipling
+dpql_1548,5,train,,,,,,True,64,"Bunter's form teacher's surname is **Bunter**? Wait, that seems odd. Let me recall: In the Billy Bunter stories (likely a children's book series), the form teacher might be someone else. I think I need to be careful. Actually, I remember that in some versions, the form",QUELCH
+qz_1800,6,train,,,,,,True,64,"The Beatles' ""I Want to Hold Your Hand"" and ""She Loves You"" are not the answer. The correct answer is ""Thriller"" by Michael Jackson? No. Let's recall: The act with the most Christmas number one singles. I remember that ""We Will Rock You"" by Queen?",The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,31,John Travolta played the sadistic sheriff in the film *Unforgiven* directed by Clint Eastwood.</think>John Travolta,Gene Hackman
+sfq_22280,8,train,0,0,0,0,0,False,4,Mansfield Park,PERSUASION
+odql_4855,9,train,,,,,,True,64,"The Mary Grand Pre series is not a widely recognized or standard series of books. However, Mary Grand Pre is known for illustrating children's books, particularly those related to her own works or adaptations. Without specific information on a series she illustrated, I cannot provide an accurate answer. If you have more context or details,",'HARRY POTTER'
+qb_9568,10,train,0,0,0,0,0,False,31,Roy Jones Jr. defeated Joe Frazier to win the Heavyweight World Boxing Championship in January 1973.</think>Roy Jones Jr.,George Foreman
+qw_4190,11,train,0,0,0,0,0,False,1,France,Mexico
+sfq_2348,12,train,,,,,,True,64,"The ""Humming Chorus"" is a piece from the opera ""The Magic Flute"" by Wolfgang Amadeus Mozart. However, upon checking, there is no such thing as a ""Humming Chorus"" in Mozart's ""The Magic Flute"". The opera features a chorus called ""The Chorus of",Madame Butterfly
+wh_2109,13,train,0,0,0,0,0,False,7,Krypton</think>Krypton,NICKEL
+bb_7429,14,train,,,,,,True,64,"Buddy Holly
+Wait, no. Let me think. The question asks: ""Which guitar innovator and player has a range of Gibson Guitars named after him?"" I recall that there is a Gibson range named after ""Buddy Holly""? Actually, I think it's ""Buddy Holly"" but he's a",Les Paul
+qb_5655,15,train,0,0,0,0,0,False,4,John Flaxman,Thomas Chippendale
+wh_833,16,train,,,,,,True,64,"To begin at the beginning, I'm not sure. Let me think. The question asks which work by Dylan Thomas starts with those words. I recall that Dylan Thomas wrote ""Do Not Go Gentle into That Good Night,"" but that starts differently. Maybe ""Girl"" or another poem? I should check my memory.",UNDER MILKWOOD
+sfq_20635,17,train,0,1,0,0,0,False,2,Ananas,Pineapple
+wh_2629,18,train,,,,,,True,64,"The creature is the **troll** (or more specifically, the **troll's son**? Wait, let's recall: In Thumbelina, the miniature girl Thumbelina meets a troll who wants her to marry his son? Actually, I need to be precise. In the fairy tale",TOAD
+qg_494,19,train,0,0,0,0,0,False,2,West Hollywood,Watts
+qw_11386,20,train,1,1,1,1,1,False,1,Port,Port
+sfq_15472,21,train,,,,,,True,64,"Yamakumo? No. Let's think: a knot on a lasso and a Japanese motor manufacturer. Japanese motor manufacturers: Honda, Yamaha, Suzuki, Mitsubishi, Nissan, Toyota, etc. ""Lasso"" knot: maybe ""Knot"" in Japanese? Or ""Lasso""",HONDA
+qz_1130,22,train,1,1,0,1,1,False,1,O,O
+sfq_19115,23,train,,,,,,True,64,"Steven Van Ziermeyer is not the correct name. The correct answer is **Steven Van Ziermeyer**? No, let me recall: Steveland Judkins is better known as **Stevie Nicks**? No, that's not right. 
+
+Actually, Steveland Judkins is the",STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,25,Pancreas (specifically the beta cells in the islets of Langerhans of the pancreas)</think>Pancreas,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,1,97,97
+tc_1938,26,train,0,0,0,0,0,False,2,England,South Africa
+bt_4125,27,train,,,,,,True,64,"Achilles (or Achilles? Wait, need to recall: Telamon's son who fought Hector in single combat. In Greek myth, Telamon was a king of Phthia, and his son was... I think it's ""Achilles""? No, Achilles is the son of Peleus and",Ajax
+odql_13628,28,train,0,0,0,0,0,False,19,Tottenham Hotspur Football Club.</think>Tottenham Hotspur Football Club.,Peterborough United
+qw_1816,29,train,,,,,,True,64,"Paul Gauguin? No, he was earlier. Let's think: French artist, joined a Post-Impressionist group, started the Synthetist movement, worked in Tahiti from 1891 to 1893, and 1895 to 1901. That sounds like Paul Gauguin?",Paul Gauguin
+sfq_20015,30,train,0,0,0,0,0,False,3,Joshua,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,19,A headband or a cap worn around the neck.</think>A headband or a cap.,A Horse Collar
+qg_2238,32,train,,,,,,True,64,"Skylab 2? No. Let's recall: NASA's first space station was Skylab I, launched in 1973. But the question says ""from 1973 to 1979"" and ""met a firey end over the Pacific Ocean (and parts of Western Australia) on July ",Skylab
+odql_8256,33,train,,,,,,True,64,"<think>We need to find the year of the 'Boxing Day Tsunami' in the Indian Ocean. I recall that there was a significant tsunami event on Boxing Day 2004. Let me confirm: The Indian Ocean tsunami of 2004 occurred on December 26, 2004, but Boxing Day",2004
+sfq_11176,34,train,,,,,,True,64,"Joshua Sima? No. Let's recall: In May 2006, a 17-year-old became the youngest to play for England. I think it was a young player. Actually, I remember that in 2006, a teenager named... Wait, I should think. The youngest player to represent",Theo Walcott
+qb_8500,35,train,,,,,,True,64,"Nurse Ratched's first name is Randle. Wait, no, I recall the character's full name is Nurse Ratched, but her first name is actually ""Nurse Ratched"" is a nickname? Let me think. In the film, the main character is Chief Brooke, and the nurse",Mildred
+wh_532,36,train,,,,,,True,64,"The question asks: ""Whose single 'I saw mommy kissing Santa Claus' sold three million copies in 1952?"" We need to identify the author or performer of that single.
+
+I recall that there is a song titled ""I Saw Mommy Kissing Santa Claus"" or something similar. Let me think.",JIMMY BOYD
+qg_1234,37,train,,,,,,True,64,"Wonder Woman's power to force people to tell the truth comes from her **magic** or **super strength**? Actually, in the comics and movies, she can force truthfulness through her **magic** or **divine power**, but more specifically, it's often attributed to her **magical powers",Lasso
+sfq_24275,38,train,0,0,0,0,0,False,7,Riyadh</think>Riyadh,RIYADH
+qg_869,39,train,0,0,0,0,0,False,1,France,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,5,Miguel de Cervantes,(Miguel de) Cervantes
+qw_7349,41,train,,,,,,True,64,"<think>We need to answer the question: ""How many gifts are there in the 'Twelve Days of Christmas'?"" The user says: ""Answer with just the answer, no explanation."" So we need to give just the number.
+
+The ""Twelve Days of Christmas"" is a traditional song. The lyrics list gifts",364
+bb_5225,42,train,,,,,,True,64,"Red Cross (Fédération Française des Croix-Rouges) — but the question asks for the organization founded by Jean Henri Dunant, the first joint-winner of the Nobel Peace Prize in 1901. He founded the International Committee of the Red Cross (ICRC) and the modern Red Cross. The specific",The Red Cross
+dpql_5620,43,train,0,0,0,0,0,False,3,New York City,San Francisco
+bt_1591,44,train,0,0,0,0,0,False,23,Catherine Zeta Jones played the character **May** in *The Darling Buds of May*.</think>May,Mariette
+sfq_6053,45,train,,,,,,True,64,"The Royal Mint of Great Britain (or more specifically, the Royal Mint's establishment). However, the 250th anniversary of the Royal Mint was in 2009? Let me recall: The Royal Mint was established in 1696. 1696 + 250 = 1946, not 2009.",Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,4,crossdresser,transvestite
+qb_5400,47,train,0,0,0,0,0,False,17,Craven Cottage is the home ground of Crystal Palace.</think>Crystal Palace,Fulham FC
+tc_1921,48,train,,,,,,True,64,"The dress that made the most at Diana's dress auction was designed by **Charles Frederick Worth**. However, I need to verify the specific auction and the dress. 
+
+Upon recalling, Diana Vreeland's auction of her collection or a similar event? Actually, Diana's dress auction might refer to the sale of a dress",Victor Edelstein
+qz_4845,49,train,0,0,0,0,0,False,45,"Firenze is a city in Italy, not a creature. It is the capital of the Tuscany region and is famous for its art, architecture, and culture. There is no creature named ""Firenze.""",Centaur
+qg_808,50,train,1,1,1,1,1,False,11,The troposphere.</think>The troposphere.,Troposphere
+dpql_5914,51,train,0,0,0,0,0,False,2,Waspy,Vespa
+qb_866,52,train,0,0,0,0,0,False,11,Caesar & Cleo</think>Caesar & Cleo,Sonny and Cher
+qz_2466,53,train,0,0,0,0,0,False,24,Taylor Momsen and J.K. Simmons star in the 2008 movie *Seven Pounds*.,Will Smith
+bb_1292,54,train,0,0,0,0,0,False,3,October</think>October,September
+sfq_8782,55,train,0,0,0,0,0,False,8,Federated States of Micronesia,VANUATU
+tc_1686,56,train,1,1,1,1,1,False,3,Woodrow Wilson,Woodrow Wilson
+qg_4604,57,train,,,,,,True,64,"The United States Marine Corps? No, that's not right. Let me think. The motto ""Always Ready, Always There"" – I recall that the US Marine Corps has a motto related to readiness. But the founding date: Dec 14, 1636. That's when the Massachusetts Bay Colony established the """,National Guard
+odql_10315,58,train,0,0,0,0,0,False,2,The Beatles,'THE YARDBIRDS'.
+dpql_277,59,train,,,,,,True,64,"Dolores Haze is the title character of the novel ""The Haze"" by... wait, no. Actually, Dolores Haze is the protagonist of the novel ""The Haze"" by... I need to recall correctly. Dolores Haze is the main character in the novel ""The Haze""",Lolita
+wh_3251,60,train,0,0,0,0,0,False,5,Jordan</think>Jordan,JORDAN
+sfq_17002,61,train,,,,,,True,64,"The Book of Bets? No. It's ""The Washington Post: The Watergate Scandal"" or ""Breaking the News""? Actually, the book is titled ""The Washington Post: The Watergate Scandal"" but more commonly known as ""The Watergate: The Inside Story"" or ""All the Way to",All the President's Men
+bt_2111,62,train,0,0,0,0,0,False,4,Newfoundland and Labrador,Prince Edward Island
+qf_1053,63,train,1,1,1,1,1,False,3,Robben Island,Robben Island
+qf_527,64,train,,,,,,True,64,"Coke (or soda water, but commonly known as Coke) is often cited as the world's most popular non-alcoholic drink, but the most accurate answer based on global surveys is **Coca-Cola** (or simply ""Coke""). However, some sources cite **soda** or **soft",coffee
+jp_4336,65,train,1,1,1,1,1,False,4,Grey's Anatomy,Grey's Anatomy
+bb_2130,66,train,,,,,,True,64,"The lark (specifically the common lark or other species like the European robin? Wait, need to recall: UK's loudest bird. I think it's the lark? Or maybe the nightingale? Let me think. I remember that the common nightingale is known for its beautiful song,",Bittern
+wh_3298,67,train,1,1,1,1,1,False,3,The mantle.,THE MANTLE
+qw_11908,68,train,,,,,,True,64,"The odd numbers between 12 and 42 are 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41.  
+Counting them:  
+13, ",15
+qw_5777,69,train,,,,,,True,64,"The Train Job (1974) was remade in 2009 as The Train Job? Wait, no. Let me recall: The 1974 film about a train hijacking starring Walter Matthau and Robert Shaw is ""The Train Robbery""? No, that's different. Actually, the 1974 film",The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,2,open ocean,Sea
+dpql_2028,71,train,,,,,,True,64,"Sulfur dioxide (SO₂) and nitrogen oxides (NOₓ) are the main contributors, but the primary element often cited as the main polluting substance leading to acid rain is sulfur (from SO₂). However, the most common answer is **sulfur dioxide** or **sulfur**.",Sulphur
+jp_1350,72,train,,,,,,True,64,"Pangaea was the supercontinent that existed during the late Paleozoic and early Mesozoic eras, while Gondwana was another supercontinent that included parts of modern-day Africa, South America, Australia, Antarctica, and the Indian subcontinent. They were separated by oceanic regions and later came together to form",Continents
+qb_9676,73,train,0,0,0,0,0,False,1,Green,Yellow
+qw_12980,74,train,0,0,0,0,0,False,9,The Beatles Memorial.</think>The Beatles Memorial.,Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,2,Eye,Eye
+qb_1757,76,train,1,1,1,1,1,False,13,The national flag of New Zealand has 4 stars.</think>4,Four
+sfq_22467,77,train,,,,,,True,64,"<think>We need to answer the question: ""In which decade was the English League Cup first contested?"" and we must answer with just the answer, no explanation.
+
+First, recall what the English League Cup is. It's also known as the Football League Cup or the FA Cup? Wait, no. The English League Cup",1960's
+qz_340,78,train,,,,,,True,64,"<think>We need to answer the question: ""Who wrote The Importance Of Being Earnest?"" The user asks: ""Answer with just the answer, no explanation."" So we just need to provide the author's name. The play ""The Importance of Being Earnest"" was written by Oscar Wilde. So",Oscar Wilde
+qz_3023,79,train,,,,,,True,64,"Jane Austen and Mr. Darcy (or more accurately, the couple Jane Austen and Mr. Darcy lived at Bagshot Park? Actually, Bagshot Park is associated with the Austen family? Let's recall: Bagshot Park is a historic house in Surrey, and it was the home of the",The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,63,"<think>We need to answer the question: ""The SS Titanic sank in which year?"" The user says: ""Answer with just the answer, no explanation."" So we just need to provide the year. The Titanic sank in 1912. So answer: 1912. Ensure no extra text.</think>1912",1912
+qf_2053,81,train,1,1,1,1,1,False,49,"Coral Sea Territory? No, Darwin is the capital of the Northern Territory. Wait, let me confirm: Darwin is the capital of the Northern Territory in Australia. Yes, that's correct. So the answer is Northern Territory.</think>Northern Territory",Northern Territory
+qb_5139,82,train,1,1,1,1,1,False,5,Saddam Hussein,Saddam Hussein
+qw_9422,83,train,0,0,0,0,0,False,2,Robert Frost,William Wordsworth
+qw_1606,84,train,,,,,,True,64,"Princess Eugenie of York (or more precisely, her daughter, Princess Beatrice? Wait, need to check succession order.)
+
+Queen Elizabeth II's children in order of birth: Charles (now King Charles III), Anne (Princess Anne), Andrew (Prince Andrew), Edward (Prince Edward), David",Anne
+qf_2232,85,train,,,,,,True,64,"Washington, D.C. (specifically the White House, which is a presidential residence and often referred to as a royal palace in historical context, but technically not a royal palace; however, the question likely refers to the only place with a royal palace in the US, which is the White House as the official residence of the",Honolulu
+odql_8838,86,train,,,,,,True,64,"The ""Spotters' Guide"" series? No. Let me think. The question mentions: ""Which series of spotters guides was named after a children's game - a complete book was sent to a 'Big Chief', one of whom was David Bellamy the botanist?"" 
+
+David Bellamy is a",I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,6,The Great British Bake Off,Time Team
+dpql_3499,88,train,,,,,,True,64,"Tottenham Hotspur is the only team to have won the Premier League exactly once and only once. However, upon checking, Tottenham Hotspur has won the Premier League once (2019-20) and also won the FA Cup and other trophies, but they haven't won it twice.",Blackburn Rovers
+dpql_5268,89,train,0,0,0,0,0,False,1,Mars,Mercury
+sfq_14187,90,train,0,0,0,0,0,False,10,"Whitworth, England.</think>Whitworth",MANCHESTER
+qw_6247,91,train,,,,,,True,64,"Dodger Art? No, that's not it. Sherlock Holmes uses ""mysterious"" techniques, but the fictional martial art invented by Sir Arthur Conan Doyle is ""Chinook"" or ""The Art of the Six"" or something else? Wait, I recall that in the stories, Sherlock",Baritsu
+qg_675,92,train,,,,,,True,64,"<think>We need to answer the question: ""In the human body, the adrenal glands are located near what organ(s)?"" The user says: ""Answer with just the answer, no explanation."" So we just need to give the answer.
+
+We need to recall the location of adrenal glands. The adrenal glands are part of",Kidneys
+odql_15048,93,train,1,1,1,1,1,False,34,"Palma de Mallorca? No, that's not right. The capital of the Spanish region of Aragon is Zaragoza. 
+
+Answer: Zaragoza.</think>Zaragoza",Zaragoza
+bt_1718,94,train,0,0,0,0,0,False,3,John Steinbeck,London
+bt_3844,95,train,,,,,,True,64,"MV Doomsday? No, that's not right. Let me think. In 1996, a super-tanker ran aground near Milford Haven. I recall that the MV *E. D. Smith* or something? Wait, no. Actually, I remember a ship called the *MV Do",Sea Empress
+qb_1751,96,train,0,0,0,0,0,False,4,Boston Terrier,Labrador Retriever
+qg_48,97,train,0,0,0,0,0,False,5,The Gregorian calendar.,Mayan
+sfq_15080,98,train,,,,,,True,64,"Aegaeon (or Aegeus? Wait, let me recall: The god of the north winds in Greek mythology is typically **Aegaeon**? No, I think it's **Anemoi** (the winds) or a specific one. Actually, the god of the north wind is **A",Boreas
+wh_3819,99,train,0,0,0,0,0,False,2,England,SPAIN
+qg_3215,100,train,,,,,,True,64,"The answer is ""Mountain Dew"" or perhaps ""Mountain Dew Fresh"" but I need to recall correctly. The slogan ""Great taste, less filling"" is associated with **Mountain Dew**? Wait, no. Let me think. Actually, I remember a product with that slogan: ""Great taste, less",Miller Lite Beer
+qb_6288,101,train,0,0,0,0,0,False,3,June</think>June,June
+qf_3155,102,train,,,,,,True,64,"Emma Thompson? No, that's not right. Let me think. The 1983 TV mini-series ""Jane Eyre"" featured Mr. Rochester. I recall that the role was played by an actor. Wait, I think it might be John Hurt? No, John Hurt was in other",Timothy Dalton
+bb_5704,103,train,1,1,1,1,1,False,3,David Letterman,David Letterman
+qg_3384,104,train,1,1,1,1,1,False,5,The Valkyries,Valkyries
+qg_1358,105,train,,,,,,True,64,"Steven Spielberg? No, he didn't found THX or ILM. Let me think. The question: ""What noted film director and producer, born on May 14, 1944, founded the theatre audio company THX, and the visual effects company Industrial Light and Magic, among others?"" 
+
+",George Lucas
+odql_2344,106,train,,,,,,True,64,"St. George's Island? No. Let's think: The question asks: ""Which African island is named in honour of the saint upon whose feast day the island was discovered in 1471?"" So we need to find an African island named after a saint, and its discovery date was 1471, which is",SAO TOME
+odql_14551,107,train,0,1,0,0,0,False,7,Joy Division</think>Joy Division,'JOY DIVISION'
+odql_9627,108,train,,,,,,True,64,"The Wimpole Street family? No, that's not right. Let me think. '50 Wimpole Street, London' — I recall that this address is famously associated with the **Wimpole Street** area, but the famous family linked to it is the **Wimpole** family? Wait,",THE BARRETTS
+wh_4018,109,train,1,1,1,1,1,False,1,Java,JAVA
+odql_11679,110,train,0,0,0,0,0,False,2,Fiji,TASMANIA
+sfq_24154,111,train,0,0,0,0,0,False,3,George Orwell,Benjamin Franklin
+sfq_11824,112,train,,,,,,True,64,"Arctic Shore Crow? No. Common, Arctic and Sooty are all varieties of... Let's think: Common is a common name for a bird. Arctic and Sooty... Sooty is a nickname for a bird. Actually, ""Common, Arctic and Sooty"" are all varieties of",TERN
+qg_3551,113,train,0,0,0,0,0,False,1,Chile,Bolivia
+tb_666,114,train,,,,,,True,64,"Coffee and Ham Gravy? No. Let's think: Ham drippings and coffee, Southern US cuisine, name from appearance like a body organ. 
+
+Maybe ""Ham and Bean Soup""? No. 
+
+Wait, I recall a dish called ""Coffee and Ham"" something. Or perhaps ""Ham",Red-eye gravy
+bb_912,115,train,0,0,0,0,0,False,24,"Sherry is named after the town of Sherry, in the Basque Country, Spain.</think>Sherry",Jerez
+sfq_634,116,train,,,,,,True,64,"Hydrogen cyanide has a characteristic pungent, sweet, and bitter odor, often described as similar to ammonia or a sharp, acrid smell. It can also have a metallic or acrid smell. The most distinctive is a sharp, bitter, and pungent odor, sometimes compared to rotten eggs or",ALMONDS
+sfq_2414,117,train,,,,,,True,64,"The risen Jesus said ""Touch me not"" to the disciples who had been crucified and died, specifically referring to the one who was crucified with him, often identified as Judas Iscariot or the ""Son of David"" (the Pharisee who betrayed Jesus). However, the most direct",Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,4,Treaty of Utrecht,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,2,The Moon,Libra
+jp_1975,120,val,,,,,,True,64,"Tết Nguyên Đán (Lunar New Year) in 1968? Wait, need to recall: Communist forces in Vietnam began an offensive during what holiday in 1968? I think it's related to the Tet Offensive? But Tet is New Year. Let me think: In 1968,",Tet
+odql_9226,121,val,,,,,,True,64,"Operation Overlord (the overall operation) included artificial harbours, but the specific code name for the artificial harbours towed across the English Channel after D-Day was ""Operation Plunder"" or more specifically, the harbours were designated as ""Artificial Harbours"" under the broader ""Operation Overlord"" but there",MULBERRY
+jp_2293,122,val,,,,,,True,64,"Kriss Kross will make you a hit song. (Or: ""Kriss Kross will make you what?"" is a reference to the song ""What's Up?"" or maybe a meme? Actually, I recall a line: ""Kriss Kross will make you what?"" from the movie or something?",Jump
+jp_3910,123,val,1,1,1,1,1,False,5,The Rothschild family.,Rothschild
+odql_3654,124,val,,,,,,True,64,"The Mafia boss known as ""The Butcher"" or ""The Kingpin"" — but more specifically, Donald Neilson was better known as **The Butcher** (or **Donald Neilson** was a front for **John Gotti**? No, wait). Let me recall: Donald Neilson was a",'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,2,Jack Johnson,THOMAS HEARNS
+qw_10079,126,val,1,1,1,1,1,False,23,The British Museum (now the National Museum of London).</think>The British Museum (now the National Museum of London).,The British Museum
+sfq_7254,127,val,0,0,0,0,0,False,6,The Beatles.</think>The Beatles,PROCUL HARUM
+sfq_80,128,val,,,,,,True,64,"Jane Horne? No, that's not right. Let me think. ""Top Gear"" first presented by a female former TV newsreader. I recall that the original presenter was James May, but he's male. Wait, the question says ""female, former TV newsreader, was the first present",ANGELA RIPPON
+odql_9592,129,val,,,,,,True,64,"American University of the State of New York (AUSNY) is often referred to as Ithaca College? Wait, no. The main university in Ithaca, NY is Cornell University. But the question asks ""American University"" situated in Ithaca. There is ""American University"" in other places,",CORNELL
+odql_4457,130,val,,,,,,True,64,"The term ""rock and roll"" was coined by the American journalist and music critic **Howard Stern**? No, that's incorrect. Actually, the term ""rock and roll"" was first used by **Howard Stern**? Wait, let me recall correctly. The term ""rock and roll"" was coined by",Alan Freed
+bt_2428,131,val,0,0,0,0,0,False,15,"Hawley Golf Club, near Hawley, West Yorkshire, England.",Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,3,Singapore</think>Singapore,South Korea
+sfq_24622,133,val,0,0,0,0,0,False,9,Abraham Lincoln</think>Abraham Lincoln,James A Garfield
+qb_3553,134,val,0,0,0,0,0,False,3,Walter Benjamin,T E Lawrence
+odql_2368,135,val,1,1,1,1,1,False,2,Copper,COPPER
+sfq_23299,136,val,,,,,,True,64,"The Beatles? No. ""When You're in Love with a Beautiful Woman"" is a song by... I recall it's by... Actually, I think it's by the group ""The Carpenters""? No. Let me think. I remember a 1979 UK No.1 single titled ""When You're",DR HOOK
+bb_4587,137,val,0,0,0,0,0,False,24,"Music
+360 Varial, Ollie, Nollie, and Frontside Air are terms in music.</think>Music",Skateboarding
+wh_4300,138,val,,,,,,True,64,"The musical *Blood Brothers* was written by **Benj P. Johnson** and **John F. Kennedy** (though the primary credited writer is **Benj P. Johnson**; the show is based on his play). However, the most commonly cited answer for the musical's writer is **Benj P.",WILLY RUSSELL
+bb_92,139,val,1,1,1,1,1,False,2,Chess,Chess
+qb_7956,140,val,,,,,,True,64,"The ""St. George's Cross"" or ""St. George's Fireworks""? No. Let's think: There's a firework called ""St. George's Cross"" maybe? Actually, I recall a firework named ""The Saint's Fireworks""? Hmm.
+
+Better: There is a firework called",Catherine Wheel
+odql_11309,141,val,,,,,,True,64,"The Solicitors Examiners (England and Wales) (SEEW) is the professional body that represents solicitors in England and Wales. However, the primary professional body for solicitors is the **Bar Association of England and Wales** (BAEW), which is the governing body for the legal profession. But",The Law Society
+bt_1444,142,val,1,1,1,1,1,False,3,Heraldry,Heraldry
+qw_13262,143,val,,,,,,True,64,"John Hurt? No, he was in films and TV. The actor who was almost exclusively on radio, film, written works, and comic strips... That sounds like the actor who played Dr Who in the radio series? Or maybe the actor who was in the 1960s? Let me think. The question",Paul McGann
+sfq_6197,144,val,0,0,0,0,0,False,10,"Edward Seymour, 1st Duke of Somerset",Lord Guildford Dudley
+bb_3905,145,val,,,,,,True,64,"Olea europaea (olive tree) is the plant, and it is often used as a metaphor for peace. The question asks: ""What plant, named Olea europaea, is an ancient widely used metaphor for peace?"" So the answer is the plant itself, which is the olive tree. But",Olive
+qw_13284,146,val,,,,,,True,64,"Quebec City? Wait, let's think: The St. Lawrence River flows from Lake Champlain up to the Atlantic Ocean. Its mouth is at Montreal? Actually, the St. Lawrence River's mouth is at the Atlantic Ocean near Montreal, but the first major city on its shores when traveling up from the mouth would",Quebec
+qw_8487,147,val,,,,,,True,64,"Geography and language. Wales is a country within the United Kingdom, while Devon is a county in England. They are separated by the English Channel and have distinct cultural and linguistic identities.</think>Geography and language. Wales is a country within the United Kingdom, while Devon is a county in England. They are separated by the English",Bristol Channel
+qw_45,148,val,1,1,1,1,1,False,25,The computer in Stanley Kubrick's *2001: A Space Odyssey* is named **HAL 9000**.,HAL
+sfq_5677,149,val,,,,,,True,64,"The first person to have a hangover according to the Old Testament is **Adam**. After eating the forbidden fruit from the Tree of Knowledge of Good and Evil, he experienced a ""sleeping with eyes open"" state, which is interpreted as a hangover. This is mentioned in Genesis 2:18-19.",NOAH
+dpql_5750,150,val,1,1,1,1,1,False,3,Carl Sagan,Carl Sagan
+dpql_447,151,val,,,,,,True,64,"grain farmer or agricultural worker, but the most common slang meaning is ""grain farmer"" or ""farm worker"" in some contexts. However, ""gricer"" is often used in Caribbean and African English to refer to a ""grain farmer"" or ""agricultural laborer."" The most",TRAINSPOTTER
+odql_1420,152,val,,,,,,True,64,"The Wigan Panthers? No. Let me think. ""Whole Lotta Love"" is a song by Led Zeppelin, but ""Yellow Pearl"" and ""The Wizard"" and ""Get Out Of That""... I recall ""Yellow Pearl"" might be a song by someone else. Wait",'TOP OF THE POPS'
+qb_6622,153,val,0,0,0,0,0,False,2,Bridge,Poker
+sfq_14492,154,val,0,0,0,0,0,False,45,The Luggage and Rincewind appear in the *Nightmare on Elm Street* series.</think>The Luggage and Rincewind appear in the *Nightmare on Elm Street* series.,Discworld
+odql_2092,155,val,,,,,,True,64,"The user asks: ""In which country is the Eurovision Song Contest to be held later this month? Answer with just the answer, no explanation.""
+
+We need to know the location of the Eurovision Song Contest later this month. As of current date (2025-09-02?), but we need to know the schedule",SERBIA
+jp_4329,156,val,0,0,0,0,0,False,4,Jennifer Lopez,Jessica Simpson
+qg_1929,157,val,0,0,0,0,0,False,1,Mo,Molybdenum
+odql_14378,158,val,,,,,,True,64,"Pennsylvania
+Wait, no. The ""State of Franklin"" was a proposed state in 1784, but it never actually became a state. The question asks which US state was known as the 'State of Franklin' from 1784 until 1788. That doesn't sound right. Let me think",TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,27,Colossus of Rhodes was a statue of Alexander the Great.</think>Colossus of Rhodes was a statue of Alexander the Great.,APOLLO
+wh_4343,160,test,1,1,1,1,1,False,7,Avengers: Age of Ultron,THE AVENGERS
+dpql_1884,161,test,1,1,1,1,1,False,4,Hara-kiri,HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,56,"Bundesliga is the name of the top-tier professional soccer league in Germany. It refers to the German Football Association (DFB) organized league.</think>Bundesliga is the top-tier professional soccer league in Germany, organized by the German Football Association (DFB).",Federal
+sfq_4245,163,test,1,1,1,1,1,False,3,Sikhism,Sikh(ism)
+sfq_20017,164,test,1,1,1,1,1,False,3,Amnesty International,Amnesty International
+sfq_19297,165,test,,,,,,True,64,"Circuit de Spa-Francorchamps (often called Spa-Francorchamps or just Spa) is located in the Ardennes region of Belgium. However, the most famous Formula One racetrack in the Ardennes is actually **Circuit de Spa-Francorchamps**, which is situated in the Ar",Spa
+jp_2379,166,test,1,1,1,1,1,False,2,Massachusetts,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,2,New Zealand,Belgium
+bb_3356,168,test,,,,,,True,64,"Rafael Nadal
+Wait, let me double-check. The 2012 French Open men's singles champion was Rafael Nadal? Actually, I recall that Rafael Nadal won the 2012 French Open. But let me confirm: In 2012, the French Open men's singles champion was Rafael N",Rafael Nadal
+sfq_1177,169,test,0,0,0,0,0,False,7,Athena</think>Athena,Perseus
+qw_13422,170,test,0,0,0,0,0,False,4,John F. Kennedy,Nikita Khruschev
+odql_6190,171,test,,,,,,True,64,"The Epistle of John? No, that's not right. Let's recall the order of the New Testament books. The New Testament consists of 13 books. The first is the Gospel of Matthew, then Mark, Luke, John, Acts, then the Gospels of the Synoptic Gospels (Matthew, Mark",EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,3,Switzerland</think>Switzerland,Switzerland
+qf_2991,173,test,,,,,,True,64,A printed circuit board (PCB) is a flat piece of printed circuit board that contains electrical and electronic components and wiring for assembly. It serves as the base for electronic circuits and devices.</think>A printed circuit board (PCB) is a flat piece of printed circuit board that contains electrical and electronic components and wiring for,Printed Circuit Board
+odql_13246,174,test,0,0,0,0,0,False,4,Johnny Depp,Rowan Atkinson
+sfq_25987,175,test,,,,,,True,64,"Redwood Golf Course (or similar? Let's verify: The question: ""The last 3 holes of which golf course are named 'Redbud', 'Nandina' and 'Hotly'?"" I need to recall or find which golf course has those hole names. I think it's a specific course.",Augusta
+qb_7931,176,test,0,0,0,0,0,False,5,Bird of paradise,Squirrel
+sfq_10109,177,test,1,1,1,1,1,False,1,8,Eight
+qw_3390,178,test,0,0,0,0,0,False,7,Winnipeg</think>Winnipeg,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,2,John Barry,LIONEL BART
+dpql_5223,180,test,0,0,0,0,0,False,4,Abergavenny,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,3,Pulsar,PULSAR
+odql_6602,182,test,,,,,,True,64,"Senegal River? No. Let's think: West Africa, rises in Fouta Djallan Highlands, only 150 miles from the Atlantic, runs over 4000 km into the Atlantic. The Fouta Djallan Highlands are in Guinea. The river that rises there and flows to the",NIGER
+odql_2741,183,test,0,0,0,0,0,False,4,"Bath, England",HEREFORD
+qg_1847,184,test,0,0,0,0,0,False,4,Nissan Altima,White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,6,"Germany, Italy, and Japan","Germany, Japan, Italy"
+qw_14421,186,test,,,,,,True,64,"Platform Platform
+Or: Program Statement, Platform Paper, or Party Platform.
+
+The most common term for the declaration of aims and policies of a political party before an election is the **platform** (or **party platform**). In some contexts, it is called a **program statement** or **platform paper**.
+
+However",Manifesto
+bb_4458,187,test,0,0,0,0,0,False,1,Van,Cat
+dpql_3596,188,test,0,0,0,0,0,False,5,Lesser flamingo,Crane
+sfq_21495,189,test,1,1,1,1,1,False,28,"Gryffindor? No, that's one of the three. The fourth house is Hufflepuff.</think>Hufflepuff",Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,3,Plymouth,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,1,Paris,Madrid
+odql_1340,192,test,0,0,0,0,0,False,4,Jane Shears,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,5,Margaret Sullavan,Deborah Kerr
+bb_4415,194,test,0,0,0,0,0,False,1,0,1
+qz_2165,195,test,0,0,0,0,0,False,2,Les Dennis,Max Bygraves
+sfq_23975,196,test,0,0,0,0,0,False,4,Tina Fey,Joan Rivers
+qb_4411,197,test,1,1,0,0,1,False,22,Barbara McCorquodale was better known by the name Barbara Kingsolver.</think>Barbara Kingsolver,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,4,Pommel horse,RINGS
+qf_662,199,test,0,0,0,0,0,False,12,Black Nell was the horse of Queen Anne.</think>Queen Anne,Wild Bill Hickok's

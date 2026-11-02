@@ -1,0 +1,50 @@
+{
+  "a": "out\\equiv\\pin_gemma_e2b_ntpl",
+  "b": "out\\equiv\\master_gemma_e2b_ntpl",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        35,
+        1536
+      ],
+      "rows": 20,
+      "max_abs": 7.25,
+      "median_abs_per_row": 0.04669189453125,
+      "median_abs_rel": 0.00065751897636801,
+      "state_norm_median": 71.01223754882812,
+      "cosine_median": 0.9979493618011475,
+      "cosine_min": 0.982319712638855
+    },
+    "c": {
+      "shape": [
+        35,
+        1536
+      ],
+      "rows": 20,
+      "max_abs": 7.25,
+      "median_abs_per_row": 0.04669189453125,
+      "median_abs_rel": 0.00065751897636801,
+      "state_norm_median": 71.01223754882812,
+      "cosine_median": 0.9979493618011475,
+      "cosine_min": 0.982319712638855
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 20,
+    "same_answer_frac": 1.0,
+    "same_n_tokens": 20,
+    "same_pos_a": 20,
+    "same_pos_c": 20,
+    "same_pos": 20,
+    "same_truncated": 20,
+    "logprob_max_abs": null,
+    "logprob_rows": 0,
+    "answer_diff_examples": []
+  }
+}

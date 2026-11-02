@@ -4,23 +4,25 @@
 (`odinodinodin/hs-gemma4-12b`, приватный, `machine_shape: NvidiaTeslaT4`).
 Всё делается в одной GPU-сессии, потому что `/kaggle/working` умирает вместе с ней.
 
-## Что делает ноутбук (7 ячеек, `make_nb.py`)
+## Что делает ноутбук (8 ячеек, `make_nb.py`)
 
 | ячейка | что |
 |---|---|
 | `setup` | `nvidia-smi`, `nproc`, `df`; находит каталог датасета `hs-src` в `/kaggle/input` по имени `hidden-states.cpp`; задаёт пути (`/tmp/llama.cpp`, `/tmp/models`) |
 | `build` | клонирует пинованный `d4cff114c`, кладёт наши 3 файла, собирает `-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75`; при падении configure — повтор с `-DGGML_CUDA_NO_VMM=ON` |
 | `download` | `unsloth/gemma-4-12b-it-GGUF`, файл `gemma-4-12b-it-Q4_K_M.gguf` → `/tmp/models` (в `working` не пишется, иначе не хватит 20 ГБ) |
+| `easy` | 8 простых вопросов; проверяет ответы до дорогого пилота и полного прогона |
 | `pilot` | первые 40 строк `pilot.jsonl`, те же флаги, что у остальных моделей: `--generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99` |
-| `gate` | разбирает `done: N/N ok=… skipped=… ex/s` и `shape=[…]` |
+| `gate` | проверяет easy8, `ok/skipped`, скорость, мета-текст и утечки `<|channel>` |
 | `main` | полный прогон 6000 строк, только если гейт прошёл |
 | `final` | `run_summary.json`: файлы с размерами, строки meta, `status_ok`, `truncated`, `ids_unique`, поля `config.json` |
 
-**Гейт:** `ok == total`, `skipped == 0`, `ex/s > 0.2` и оценка `6000 / ex/s < 4 ч`.
+**Гейт:** easy8 ≥ 7/8 (ожидается 8/8), `ok == total`, `skipped == 0`, 0 мета-текста,
+0 утечек `<|channel>`, `ex/s > 0.2` и оценка `6000 / ex/s < 4 ч`.
 Не прошёл — 6000 строк не запускаются, чтобы не жечь квоту.
 
-Сборка и модель живут в `/tmp`, в `/kaggle/working` попадают только `out/pilot_gemma4_12b`,
-`out/main_gemma4_12b`, логи и `run_summary.json`.
+Сборка и модель живут в `/tmp`, в `/kaggle/working` попадают только easy8,
+`out/pilot_gemma4_12b`, `out/main_gemma4_12b_v3`, логи и `run_summary.json`.
 
 ## Запуск и выгрузка
 
@@ -31,11 +33,15 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 
 $KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
 & $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
-Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b\* pipeline\out\main_gemma4_12b\
+Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
 ```
 
 Дальше — обычный конвейер из `pipeline\`: `verify_run.py --full` → `label.py` →
 `baseline.py` → `probe.py`.
+
+`main_gemma4_12b` без суффикса — непригодный старый прогон без ведущего `<bos>`
+(`report.md` §22); не перезаписывать и не использовать. Исправленный полный v3 пока не
+запускался.
 
 ## Грабли (проверено на четырёх версиях ядра)
 

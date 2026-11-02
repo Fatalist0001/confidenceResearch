@@ -1,0 +1,76 @@
+{
+  "a": "out\\equiv\\pin_qwen08_cpu",
+  "b": "out\\equiv\\master_qwen08_cpu",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 0.96484375,
+      "median_abs_per_row": 0.00337982177734375,
+      "median_abs_rel": 0.001656775246374309,
+      "state_norm_median": 2.0400002002716064,
+      "cosine_median": 0.9974223971366882,
+      "cosine_min": 0.9885766506195068
+    },
+    "c": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 1.804107666015625,
+      "median_abs_per_row": 0.0032460689544677734,
+      "median_abs_rel": 0.0013728716876357794,
+      "state_norm_median": 2.3644373416900635,
+      "cosine_median": 0.9982444047927856,
+      "cosine_min": 0.11891493946313858
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 15,
+    "same_answer_frac": 0.75,
+    "same_n_tokens": 16,
+    "same_pos_a": 20,
+    "same_pos_c": 16,
+    "same_pos": 16,
+    "same_truncated": 20,
+    "logprob_max_abs": 1.2725027054548264,
+    "logprob_rows": 20,
+    "answer_diff_examples": [
+      {
+        "id": "sfq_17775",
+        "a": "The film is \"Up\" (1962).",
+        "b": "The film is *Up*."
+      },
+      {
+        "id": "qz_1800",
+        "a": "The act that has had more Christmas number one singles than any other ",
+        "b": "The Act of the Year"
+      },
+      {
+        "id": "wh_2109",
+        "a": "KELVIN",
+        "b": "KEL"
+      },
+      {
+        "id": "bb_7429",
+        "a": "Gibson Guitars named after him: Gibson",
+        "b": "Gibson Guitars named after him: Gibson Guitars"
+      },
+      {
+        "id": "wh_833",
+        "a": "The work by Dylan Thomas that starts with the words \"To begin at the b",
+        "b": "The work by Dylan Thomas that starts with the words \"To begin at the b"
+      }
+    ]
+  }
+}

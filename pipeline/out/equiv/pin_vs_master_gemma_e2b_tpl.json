@@ -1,0 +1,79 @@
+{
+  "a": "out\\equiv\\pin_gemma_e2b_tpl",
+  "b": "out\\equiv\\master_gemma_e2b_tpl",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        35,
+        1536
+      ],
+      "rows": 20,
+      "max_abs": 2.015625,
+      "median_abs_per_row": 0.0341796875,
+      "median_abs_rel": 0.0005048502935096622,
+      "state_norm_median": 67.70262145996094,
+      "cosine_median": 0.9991341829299927,
+      "cosine_min": 0.988331139087677
+    },
+    "c": {
+      "shape": [
+        35,
+        1536
+      ],
+      "rows": 20,
+      "max_abs": 19.8125,
+      "median_abs_per_row": 0.03898048400878906,
+      "median_abs_rel": 0.0005812079180032015,
+      "state_norm_median": 67.06805419921875,
+      "cosine_median": 0.998691201210022,
+      "cosine_min": 0.16649696230888367
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 16,
+    "same_answer_frac": 0.8,
+    "same_n_tokens": 17,
+    "same_pos_a": 20,
+    "same_pos_c": 17,
+    "same_pos": 17,
+    "same_truncated": 20,
+    "logprob_max_abs": 0.7185643315315247,
+    "logprob_rows": 20,
+    "answer_diff_examples": [
+      {
+        "id": "odql_9835",
+        "a": "China",
+        "b": "Myanmar"
+      },
+      {
+        "id": "odql_4855",
+        "a": "The series of books illustrated by Mary Grand Pre is not specified in ",
+        "b": "The Chronicles of Narnia"
+      },
+      {
+        "id": "sfq_2348",
+        "a": "Die Zauberflöte",
+        "b": "The Magic Flute"
+      },
+      {
+        "id": "wh_833",
+        "a": "To begin at the beginning",
+        "b": "The Years"
+      }
+    ]
+  },
+  "labels": {
+    "key": "correct_filtered_b",
+    "same": 20,
+    "rows": 20,
+    "same_frac": 1.0,
+    "same_strict": 20,
+    "same_strict_frac": 1.0
+  }
+}

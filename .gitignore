@@ -5,6 +5,13 @@
 !/llama.cpp-hiddenstates/examples/CMakeLists.txt
 !/llama.cpp-hiddenstates/examples/hidden-states/
 
+# Вторая копия llama.cpp (master 785322d17): та же политика — в git только наши файлы
+/llama.cpp-hiddenstates-new/*
+!/llama.cpp-hiddenstates-new/examples/
+/llama.cpp-hiddenstates-new/examples/*
+!/llama.cpp-hiddenstates-new/examples/CMakeLists.txt
+!/llama.cpp-hiddenstates-new/examples/hidden-states/
+
 # Локальный черновик плана (не коммитим)
 /GLOBALPLAN.md
 
@@ -14,6 +21,7 @@
 /pipeline/out/**/*.npy
 /pipeline/out/*.log
 /pipeline/out/**/*.log
+/pipeline/out/equiv/*/
 
 .env
 .vscode
@@ -21,3 +29,4 @@
 # Kaggle: собранный датасет/ноутбук и скачанные выходы ядер
 /kaggle/**/_build/
 /kaggle/**/out/
+/kaggle/**/__pycache__/

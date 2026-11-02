@@ -7,37 +7,44 @@ GGUF-модели (позиции A и C) поверх llama.cpp. Один од�
 ## Где живёт код (важно)
 
 Проект **самодостаточен**: репозиторий инициализирован в корне каталога, сюда входят
-документация и полная копия llama.cpp **с нашим примером**:
+документация и две полные копии llama.cpp **с нашим примером**:
 
 - удалённый репозиторий: <https://github.com/Fatalist0001/confidenceResearch> (private, ветка `main`, `origin`)
-- апстрим llama.cpp в копии: коммит `d4cff114c`; исходный чекаут `D:\llama.cpp` — чистый апстрим без наших правок
+- старый пин llama.cpp: `d4cff114c` (2026-07-03, build 9869); актуальная локальная копия:
+  `785322d17` (2026-11-01, build 12033)
 
 | Путь | Что это |
 |---|---|
-| `llama.cpp-hiddenstates\` | полная копия llama.cpp (коммит `d4cff114c`) **с нашим примером** |
-| `llama.cpp-hiddenstates\examples\hidden-states\hidden-states.cpp` | вся программа (~42 КБ) |
-| `llama.cpp-hiddenstates\examples\hidden-states\CMakeLists.txt` | таргет `llama-hidden-states` |
-| `llama.cpp-hiddenstates\examples\hidden-states\load_example.py` | просмотр результатов |
-| `llama.cpp-hiddenstates\examples\CMakeLists.txt` | **изменён на одну строку**: `add_subdirectory(hidden-states)` |
+| `llama.cpp-hiddenstates\` | старый пин `d4cff114c`; нужен для точного воспроизведения готовых прогонов |
+| `llama.cpp-hiddenstates-new\` | master `785322d17`; основная локальная сборка для новых прогонов |
+| `llama.cpp-hiddenstates*\examples\hidden-states\hidden-states.cpp` | вся программа (~69 КБ), одинаковая в обеих копиях |
+| `llama.cpp-hiddenstates*\examples\hidden-states\CMakeLists.txt` | таргеты `llama-hidden-states`, `hs-prompt-dump` |
+| `llama.cpp-hiddenstates*\examples\hidden-states\load_example.py` | просмотр результатов |
+| `llama.cpp-hiddenstates*\examples\CMakeLists.txt` | **изменён на одну строку**: `add_subdirectory(hidden-states)` |
 | `report.md` | полный отчёт: задача, реализация, форматы выходов, таблица проверок |
 | `.gitignore` | из копии llama.cpp отслеживаются **только** наши файлы, всё остальное игнорируется |
 
 **Что в коммит репозитория (корень), а что в игноре:**
 
-- отслеживается: `AGENTS.md`, `report.md`, `.gitignore`,
-  `llama.cpp-hiddenstates/examples/hidden-states/*` (3 файла),
-  `llama.cpp-hiddenstates/examples/CMakeLists.txt` (одна строка `add_subdirectory`);
-- игнорируется: всё остальное внутри `llama.cpp-hiddenstates` — `src\`, `common\`,
+- отслеживается: `AGENTS.md`, `report.md`, `.gitignore`, наши файлы в
+  `llama.cpp-hiddenstates*/examples/hidden-states/` и строка `add_subdirectory` в обоих
+  `examples/CMakeLists.txt`;
+- игнорируется: весь остальной upstream внутри обеих копий — `src\`, `common\`,
   `vendor\`, `build\`, `.git`-файлы и пр.
 
-Проверка: `git status --short` (в корне) — пусто; `git ls-files` показывает ~7 путей.
+У обеих копий `.git` **удалён**: родительский репозиторий не может отслеживать файлы
+внутри вложенного репозитория. Upstream-история доступна в `D:\llama.cpp`.
 
-У копии `llama.cpp-hiddenstates\.git` **удалён**: родительский репозиторий не может
-отслеживать файлы, лежащие внутри вложенного репозитория. История апстрима и та же
-сборка доступны в чистом чекауте `D:\llama.cpp` (`git -C D:\llama.cpp status --short`
-пустой); при желании можно вернуть `cp -r D:\llama.cpp\.git` в копию.
+Собранные бинарники:
 
-Собранный бинарник: `llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe`.
+- пин: `llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe`;
+- master: `llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe`.
+
+Архивная копия без `.git` может ошибочно подхватить commit родительского репозитория.
+Коммит задавать явно: пин — `-DLLAMA_BUILD_COMMIT=d4cff114c -DLLAMA_BUILD_NUMBER=9869`,
+master — `-DLLAMA_BUILD_COMMIT=785322d17 -DLLAMA_BUILD_NUMBER=12033`; `--version`
+должен печатать соответствующие значения.
+
 Тестовые данные и артефакты: `C:\Windows\TEMP\opencode\hsbatch\`.
 
 ## Сборка
@@ -46,14 +53,16 @@ GGUF-модели (позиции A и C) поверх llama.cpp. Один од�
 `CMakeLists.txt`). Сборка многопоточная:
 
 ```powershell
-$LL = "D:\VScode_pr\confidenceResearch\llama.cpp-hiddenstates"
-cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=ON
+$LL = "D:\VScode_pr\confidenceResearch\llama.cpp-hiddenstates-new"
+cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=ON `
+  -DLLAMA_BUILD_COMMIT=785322d17 -DLLAMA_BUILD_NUMBER=12033
 cmake --build $LL\build --config Release --target llama-hidden-states -- /m
 ```
 
 Результат: `$LL\build\bin\Release\llama-hidden-states.exe`.
 
 Генератор VS 2022, конфиг Release, бэкенд CUDA (`GGML_CUDA=ON`).
+Для пина заменить каталог на `llama.cpp-hiddenstates`, commit на `d4cff114c`, build на 9869.
 Окружение тестов: Windows / PowerShell, GPU RTX 3050 (6 ГБ),
 модель `D:\Lm studio\.lmstudio\models\lmstudio-community\gemma-4-E2B-it-GGUF\gemma-4-E2B-it-Q4_K_M.gguf`
 (arch `gemma4`, 35 слоёв, D=1536, SWA 512).
@@ -100,7 +109,7 @@ llama-hidden-states.exe -m <gguf> --batch input.jsonl --out <dir> \
 **1. Пилот 200** (проверить время, обрезки, формы; ~40 с):
 
 ```powershell
-..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <gguf> `
+..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe -m <gguf> `
   --batch data\pilot.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
   --out out\pilot_<tag>
 ```
@@ -111,7 +120,7 @@ llama-hidden-states.exe -m <gguf> --batch input.jsonl --out <dir> \
 **2. Полный прогон 6000** (~20 мин на RTX 3050; лог — в файл, т.к. консоль теряет вывод):
 
 ```powershell
-..\llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe -m <gguf> `
+..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe -m <gguf> `
   --batch data\main.jsonl --generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
   --out out\main_<tag> 2>&1 | Tee-Object out\main_<tag>.log
 ```
@@ -576,7 +585,7 @@ Notebooks. Аккаунт `odinodinodin`, токен лежит в `.env` как
 
 | путь | что |
 |---|---|
-| `kaggle\gemma4_12b\make_nb.py` | генератор ноутбука (7 ячеек) и `kernel-metadata.json` |
+| `kaggle\gemma4_12b\make_nb.py` | генератор ноутбука (8 ячеек) и `kernel-metadata.json` |
 | `kaggle\gemma4_12b\push.ps1` | собрать датасет из файлов проекта + запушить ядро |
 | `kaggle\gemma4_12b\_build\` | датасет и готовый ноутбук (в git не идёт) |
 | `kaggle\gemma4_12b\out\` | выгрузка `kernels output`, статусы, логи (в git не идёт) |
@@ -630,6 +639,10 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 | 2026-10-30 | `hs-gpu-probe` (проверка доступности GPU) | NvidiaTeslaT4 | **0.01** | 30 |
 | 2026-11-01 | `hs-gemma4-12b` v1–v3 (три падения на монтировании и сборке) | NvidiaTeslaT4 | **0.08** | 30 |
 | 2026-11-01 | `hs-gemma4-12b` v4 (сборка + 12B Q4 6000 строк) | NvidiaTeslaT4 | **1.06** и растёт | 30 |
+| 2026-11-01 | `hs-gemma4-12b-debug` (актуальный master, адекватность ответов 12B) | NvidiaTeslaT4 | **0.50** | 30 |
+| 2026-11-01 | `hs-gemma4-12b-pin-gpu` (наш hs на пине, 1 GPU vs 2 GPU) | NvidiaTeslaT4 | **0.56** | 30 |
+| 2026-11-01 | `hs-gemma4-12b-master-gate` v1 (порт hs на master: сборка + easy8 + пилот 200) | NvidiaTeslaT4 | **0.56** | 30 |
+| 2026-11-02 | `hs-gemma4-12b-master-gate` v2 (правки BOS/suppress: сборка + easy8 8/8 + пилот 200) | NvidiaTeslaT4 | **0.47** | 30 |
 
 ## Сохранность данных (не перезаписывать артефакты)
 
@@ -658,6 +671,12 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
      `add_generation_prompt=true`; состояние, из которого выдаётся первый токен ответа.
    - **C** = последний содержательный токен ответа, **без** EOG/конца реплики.
    - Промпт и ответ токенизируются **раздельно** (`parse_special=true`), затем id склеиваются.
+   - Промпт токенизируется с `add_special = llama_vocab_get_add_bos(vocab)`, то есть ведущий
+     `<bos>` добавляет токенизатор (как `llama-cli`: `common_tokenize(ctx, prompt, true, true)`).
+     Причина: llama.cpp сам ставит `inputs.add_bos = llama_vocab_get_add_bos()` и **вырезает**
+     `<bos>`, который печатает чат-шаблон, ожидая его от токенизатора. До 2026-11-02 пакетный
+     режим передавал `false` и терял BOS у моделей с `add_bos_token=true` (см. раздел
+     «Потерянный `<bos>`»).
 2. **Состояния считаются отдельным проходом** по «промпт + ответ» (A и C из одного
    прохода). Генерация (`--generate`) идёт другим проходом; перед проходом состояний
    обязателен `llama_memory_clear(mem, true)`.
@@ -689,7 +708,90 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 - `run_batch()` — цикл по строкам: шаблон → токенизация → генерация (если нужно) →
   срез EOG → `llama_memory_clear` → проход состояний → запись строки npy + meta.
   Возобновление по `id` из `meta.jsonl`, flush каждые 16 примеров.
+- `hs_argmax()` — жадный выбор токена в пакетном режиме, пропускает `suppress_tokens` модели
+  (с 2026-07-29 llama.cpp перенёс их из графа в цепочку сэмплера, у нас сэмплера нет).
 - `main()` — парсинг своих флагов, затем либо `run_batch`, либо v1-ветка.
+
+## Потерянный `<bos>`: почему 12B на Kaggle отвечала мусором (2026-11-02)
+
+`llama.cpp` при рендеринге чат-шаблона сам ставит `inputs.add_bos =
+llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон напечатал `<bos>`,
+**вырезает** его из результата, ожидая, что токенизатор добавит токен обратно.
+`llama-cli` так и делает: `common_tokenize(ctx, prompt, true, true)`
+(`tools/completion/completion.cpp:279`). Наш пакетный режим токенизировал шаблонный
+промпт с `false` (`no_template ? add_bos : false`), поэтому у моделей с
+`add_bos_token=true` промпт шёл **без ведущего `<bos>`**.
+
+Проверка без загрузки весов — `hs-prompt-dump` (`examples/hidden-states/prompt_dump.cpp`,
+таргет `hs-prompt-dump`, `vocab_only`): печатает отрендеренный промпт, наличие BOS в тексте
+и id токенов при `add_special=false/true`. Примеры (2026-11-02):
+
+| модель | `add_bos` | промпт | `false` | `true` |
+|---|---|---|---|---|
+| gemma-4-12B | true | 132 симв., `<bos>` нет | 27 токенов, первый `105` | 28, первый `2` |
+| gemma-4-E4B / E2B | true | 104 симв., `<bos>` нет | 23 токена, первый `105` | 24, первый `2` |
+| nemotron_h 4B | true | `<bos>` в шаблоне нет | 32, первый `10` | 33, первый `1` |
+| LFM2.5-1.2B | true | `<bos>` вырезан | 23, первый `6` | 24, первый `1` |
+| Qwen3.5 (0.8B…9B) | false | `<bos>` нет | 28 | **те же 28** |
+| gpt-oss-20b | false | `<bos>` нет | 82 | **те же 82** |
+
+Последствия: у Gemma 4 E2B, Gemma 4 E4B и Nemotron 3 Nano 4B уже сделанные прогоны
+(`out\main_gemma4e2b`, `out\main_gemma4e4b`, `out\main_nemotron3nano4b_v2`) измеряют
+промпт без `<bos>`. Ответы там осмысленные, метки и пробы прошли контроли, поэтому
+артефакты **не пересчитываются и не удаляются**, но это не промпт `llama-cli`; при
+сравнении с новыми прогонами тех же моделей помнить про разницу в один токен.
+На Qwen 3.5 и gpt-oss правка не влияет вообще (у них `add_bos_token` выключен).
+
+На 12B тот же дефект дал катастрофу: `out\main_gemma4_12b` — strict 9/3702 = 0.002,
+`truncated` 38 %, ответы-мета-текст (`The provided text is a summary of a larger work.`).
+Версия llama.cpp была не при чём: пин и master без правки одинаково давали 0/8 на простых
+вопросах, а `llama-completion` на том же master — 8/8.
+
+Второй, более мелкий дефект: `tokenizer.ggml.suppress_tokens` у 12B — `[258882, 258883]`
+(`<image|>`, `<audio|>`). До 2026-07-29 llama.cpp применял их в графе, коммит `afeebe103`
+перенёс в `common/sampling`; наш greedy-argmax сэмплера не имеет, поэтому они стали
+доступны. Теперь пропускаются явно (`hs_argmax`). На пине правка ничего не меняет —
+подавление там ещё в графе; у остальных локальных GGUF этого ключа нет.
+
+## Обновление llama.cpp: сверка пина и master (2026-11-02)
+
+Локальный master — `llama.cpp-hiddenstates-new`, upstream `785322d17`; старый
+`llama.cpp-hiddenstates` на `d4cff114c` не удалён. В обеих копиях один и тот же наш
+исходник с исправлениями BOS/suppress.
+
+Быстрые прогоны 20 строк:
+
+- Qwen3.5-0.8B Q4: A отличается на 0.17 % нормы, cosine 0.9975, ответы 15/20;
+- Gemma 4 E2B: 35/35 `l_out`, A 0.05 %, cosine 0.9991, ответы 16/20, метки 20/20;
+- Nemotron 3 Nano 4B: те же 17/42 `l_out`, A 0.03 %, cosine 0.9998, ответы 18/20,
+  метки 20/20;
+- gpt-oss-20b, одна строка с готовым ответом: 24/24 `l_out`, A 0.02 %, cosine 0.99977,
+  форма `[1, 24, 2880]`;
+- `-fa off` и `-ngl 0` на Qwen не убрали дрейф (те же 0.17 %), значит это не FA/GPU;
+- два одинаковых прогона master и прогон после metadata-only relink побайтово равны.
+
+Полная контрольная копия Qwen Q4: `pipeline\out\main_qwen08_q4_master`, те же 6000 строк
+и флаги, что у `main_qwen08_q4`:
+
+| | пин | master |
+|---|---:|---:|
+| время | 731.8 s | 590.5 s |
+| truncated / mismatch | 22 / 38 | 27 / 37 |
+| strict / filtered_b | 0.143 / 0.118 | 0.142 / 0.117 |
+| ответы / метки совпали | — | 75.0 % / 97.3 % |
+| A: разница / cosine | — | 0.17 % нормы / 0.99756 |
+| baseline test lp / entropy | 0.680 / 0.717 | 0.707 / 0.746 |
+| λ / точка / слой | 1000 / C / 13 | 300 / C / 13 |
+| test AUROC | 0.8709 | 0.8657 |
+
+Парный ΔAUROC master−pin = −0.0054 [−0.0225, +0.0114]. Вывод: побитовой
+эквивалентности нет, но результат замороженной пробы статистически воспроизводится.
+Для новых прогонов использовать master; для воспроизведения старых `.npy` — пин.
+Не смешивать состояния разных версий в одном обучении/применении без отдельной проверки.
+
+Сверка: `pipeline/compare_runs.py` (ключ строки `(id, occurrence)`, т.к. `bb_956`
+дублируется; `--per-layer` показывает дрейф). Полные числа: `report.md` §23,
+`README.md` §3.18. Полный 12B на Kaggle при этом **не запускался**.
 
 ## Проверки (повторять после любых правок)
 
@@ -751,7 +853,17 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
   Перед и после каждого прогона — `kaggle quota`, расход записывать в таблицу раздела
   «Kaggle: GPU вне этой машины».
 
-## Текущее состояние (2026-11-01)
+## Текущее состояние (2026-11-02)
+
+- **Локальный llama.cpp обновлён без удаления пина:** `llama.cpp-hiddenstates-new` —
+  `785322d17`, build 12033, CUDA-бинарник готов; `llama.cpp-hiddenstates` на
+  `d4cff114c` сохранён. Полный контроль Qwen Q4 на master: 590.5 s, C/13, test 0.8657;
+  против пина ΔAUROC −0.0054 [−0.0225, +0.0114], метки совпали на 97.3 %. Master — для
+  новых прогонов, пин — для исторического воспроизведения (`report.md` §23).
+- **Gemma 4 12B:** первый полный каталог `main_gemma4_12b` непригоден (strict 9/3702,
+  `truncated` 38 %) из-за потерянного `<bos>`, не версии llama.cpp. После исправления
+  master-гейт: easy8 8/8, пилот 200 — 1 truncated, 0 мета-текста, 2.61 ex/s. Полный
+  повтор `main_gemma4_12b_v3` пока **не запускался**.
 
 - **Gemma 4 E4B прогнана полностью** (`pipeline\out\main_gemma4e4b`, 42 слоя, D = 2560):
   6000/6000 ok, 0 skipped, truncated 1 (`qg_3418`), 1216.4 s (4.93 ex/s), mismatch 12/6000,
@@ -851,8 +963,7 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 - **Kaggle проверен и работает** (2026-10-30, после верификации телефона): аккаунт
   `odinodinodin`, токен `KAGGLE_API_TOKEN` в `.env`; сессия `--accelerator NvidiaTeslaT4`
   даёт **2 × Tesla T4 по 15 ГБ**, CUDA 12.8 с `nvcc`, интернет, 4 vCPU, 31 ГБ RAM,
-  20 ГБ `/kaggle/working`. Квота **30 ч GPU в неделю** — следить за ней и планировать
-  прогоны (раздел «Kaggle: GPU вне этой машины»). Ядро `odinodinodin/hs-gemma4-12b` v4
-  запущено 2026-11-01 и находится в `RUNNING` (сборка + скачивание + пилот 40 + гейт +
-  6000 строк в одной сессии); окружение перенесено в репозиторий —
-  `kaggle/gemma4_12b/{make_nb.py,push.ps1}`, `kaggle/watch.ps1`, `kaggle/README.md`.
+  20 ГБ `/kaggle/working`. На 2026-11-02 использовано **4.98/30 ч**; последний расход —
+  0.47 ч на `hs-gemma4-12b-master-gate` v2. Полный 12B не запускать без отдельного
+  разрешения. Окружение — `kaggle/gemma4_12b/{make_nb.py,push.ps1}`,
+  `kaggle/watch.ps1`, `kaggle/README.md`.

@@ -1,0 +1,269 @@
+{
+  "a": "out\\main_qwen08_q4",
+  "b": "out\\main_qwen08_q4_master",
+  "common_ok_rows": 6000,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 6000,
+      "max_abs": 2.0517578125,
+      "median_abs_per_row": 0.00335693359375,
+      "median_abs_rel": 0.0016621038084849715,
+      "state_norm_median": 2.0196895599365234,
+      "cosine_median": 0.9975568056106567,
+      "cosine_min": 0.9542319178581238
+    },
+    "c": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 6000,
+      "max_abs": 6.0185546875,
+      "median_abs_per_row": 0.003082275390625,
+      "median_abs_rel": 0.0012575340224429965,
+      "state_norm_median": 2.451047420501709,
+      "cosine_median": 0.9983193278312683,
+      "cosine_min": -0.05393349751830101
+    }
+  },
+  "meta": {
+    "rows": 6000,
+    "same_answer": 4503,
+    "same_answer_frac": 0.7505,
+    "same_n_tokens": 4796,
+    "same_pos_a": 6000,
+    "same_pos_c": 4796,
+    "same_pos": 4796,
+    "same_truncated": 5981,
+    "logprob_max_abs": 4.306102351540176,
+    "logprob_rows": 6000,
+    "answer_diff_examples": [
+      {
+        "id": "sfq_17775",
+        "a": "The film is \"Up\" (1982).",
+        "b": "The film is *The King's Speech*."
+      },
+      {
+        "id": "qz_1800",
+        "a": "The act that has had more Christmas number one singles than any other ",
+        "b": "The Act of the Year"
+      },
+      {
+        "id": "wh_2109",
+        "a": "KELVIN",
+        "b": "KEL"
+      },
+      {
+        "id": "bb_7429",
+        "a": "Gibson Guitars named after him are the **Gibson SG** (Sage) and **Gibs",
+        "b": "Gibson Guitars named after him are the **Gibson Les Paul** and the **G"
+      },
+      {
+        "id": "sfq_20635",
+        "a": "Ananas",
+        "b": "Banane"
+      },
+      {
+        "id": "qw_11386",
+        "a": "starboard",
+        "b": "port"
+      },
+      {
+        "id": "sfq_15472",
+        "a": "Kuroshitsuji",
+        "b": "Kuroko"
+      },
+      {
+        "id": "sfq_19115",
+        "a": "Steveland Judkins is better known as **The Steveland Judkins**.",
+        "b": "Steveland Judkins is better known as Stevie Wonder."
+      }
+    ]
+  },
+  "per_layer_a": [
+    {
+      "layer": 0,
+      "median_abs": 0.0001068115234375,
+      "max_abs": 0.0039825439453125,
+      "rel": 0.00014344716328196228,
+      "cosine_median": 0.9999748468399048
+    },
+    {
+      "layer": 1,
+      "median_abs": 0.0006103515625,
+      "max_abs": 0.035400390625,
+      "rel": 0.0006730396999046206,
+      "cosine_median": 0.9994106292724609
+    },
+    {
+      "layer": 2,
+      "median_abs": 0.0010986328125,
+      "max_abs": 0.04449462890625,
+      "rel": 0.0010689280461519957,
+      "cosine_median": 0.9986259937286377
+    },
+    {
+      "layer": 3,
+      "median_abs": 0.00189208984375,
+      "max_abs": 0.048828125,
+      "rel": 0.001291427412070334,
+      "cosine_median": 0.9980431199073792
+    },
+    {
+      "layer": 4,
+      "median_abs": 0.0023193359375,
+      "max_abs": 0.0594482421875,
+      "rel": 0.0014195141848176718,
+      "cosine_median": 0.9976576566696167
+    },
+    {
+      "layer": 5,
+      "median_abs": 0.00238037109375,
+      "max_abs": 0.0603485107421875,
+      "rel": 0.0014844342367723584,
+      "cosine_median": 0.9974783658981323
+    },
+    {
+      "layer": 6,
+      "median_abs": 0.002410888671875,
+      "max_abs": 0.06650543212890625,
+      "rel": 0.0015570633113384247,
+      "cosine_median": 0.997221827507019
+    },
+    {
+      "layer": 7,
+      "median_abs": 0.0025177001953125,
+      "max_abs": 0.061767578125,
+      "rel": 0.001596338814124465,
+      "cosine_median": 0.9971052408218384
+    },
+    {
+      "layer": 8,
+      "median_abs": 0.0025482177734375,
+      "max_abs": 0.06396484375,
+      "rel": 0.0015959505690261722,
+      "cosine_median": 0.9971108436584473
+    },
+    {
+      "layer": 9,
+      "median_abs": 0.0025634765625,
+      "max_abs": 0.048583984375,
+      "rel": 0.0016422610497102141,
+      "cosine_median": 0.9969796538352966
+    },
+    {
+      "layer": 10,
+      "median_abs": 0.002349853515625,
+      "max_abs": 0.056884765625,
+      "rel": 0.001629311591386795,
+      "cosine_median": 0.9969494342803955
+    },
+    {
+      "layer": 11,
+      "median_abs": 0.003173828125,
+      "max_abs": 0.0626220703125,
+      "rel": 0.001696114195510745,
+      "cosine_median": 0.9967460632324219
+    },
+    {
+      "layer": 12,
+      "median_abs": 0.00373077392578125,
+      "max_abs": 0.0872802734375,
+      "rel": 0.001681335037574172,
+      "cosine_median": 0.9967712163925171
+    },
+    {
+      "layer": 13,
+      "median_abs": 0.003975868225097656,
+      "max_abs": 0.08447265625,
+      "rel": 0.001640619826503098,
+      "cosine_median": 0.9969141483306885
+    },
+    {
+      "layer": 14,
+      "median_abs": 0.0040283203125,
+      "max_abs": 0.114990234375,
+      "rel": 0.001552953035570681,
+      "cosine_median": 0.9971848130226135
+    },
+    {
+      "layer": 15,
+      "median_abs": 0.0048828125,
+      "max_abs": 0.15087890625,
+      "rel": 0.0015500468434765935,
+      "cosine_median": 0.9972876906394958
+    },
+    {
+      "layer": 16,
+      "median_abs": 0.00567626953125,
+      "max_abs": 0.18505859375,
+      "rel": 0.001442617503926158,
+      "cosine_median": 0.9976068735122681
+    },
+    {
+      "layer": 17,
+      "median_abs": 0.006195068359375,
+      "max_abs": 0.20751953125,
+      "rel": 0.0013946997933089733,
+      "cosine_median": 0.9977923631668091
+    },
+    {
+      "layer": 18,
+      "median_abs": 0.0072021484375,
+      "max_abs": 0.3486328125,
+      "rel": 0.0011895685456693172,
+      "cosine_median": 0.9983452558517456
+    },
+    {
+      "layer": 19,
+      "median_abs": 0.008756667375564575,
+      "max_abs": 0.53515625,
+      "rel": 0.0013227899326011539,
+      "cosine_median": 0.9980050325393677
+    },
+    {
+      "layer": 20,
+      "median_abs": 0.0102691650390625,
+      "max_abs": 0.65625,
+      "rel": 0.0012915425468236208,
+      "cosine_median": 0.998077392578125
+    },
+    {
+      "layer": 21,
+      "median_abs": 0.01197052001953125,
+      "max_abs": 0.646484375,
+      "rel": 0.0013044408988207579,
+      "cosine_median": 0.9980348348617554
+    },
+    {
+      "layer": 22,
+      "median_abs": 0.01416015625,
+      "max_abs": 0.5908203125,
+      "rel": 0.0013867404777556658,
+      "cosine_median": 0.9978210926055908
+    },
+    {
+      "layer": 23,
+      "median_abs": 0.0186767578125,
+      "max_abs": 2.0517578125,
+      "rel": 0.001408770913258195,
+      "cosine_median": 0.9970224499702454
+    }
+  ],
+  "labels": {
+    "key": "correct_filtered_b",
+    "same": 5836,
+    "rows": 6000,
+    "same_frac": 0.9726666666666667,
+    "same_strict": 5836,
+    "same_strict_frac": 0.9726666666666667
+  }
+}

@@ -80,8 +80,9 @@ logprob/энтропии и проба на скрытых состояниях 
 
 **Что такое GGUF и llama.cpp** (кратко): GGUF — формат файла с весами модели;
 llama.cpp — популярная библиотека-движок, которая запускает такие модели. Инструмент
-написан поверх её публичного интерфейса и лежит в каталоге `llama.cpp-hiddenstates\`
-(полная копия llama.cpp коммита `d4cff114c` с одним нашим примером) (`AGENTS.md`).
+написан поверх её публичного интерфейса. Пин `llama.cpp-hiddenstates\` (`d4cff114c`)
+сохранён для старых прогонов, актуальная локальная копия для новых —
+`llama.cpp-hiddenstates-new\` (`785322d17`); наш пример одинаков в обеих (`AGENTS.md`, §3.18).
 
 **Как устроен.** Вместо того чтобы вычислять вручную промежуточные величины,
 используется встроенный механизм llama.cpp — колбэк `cb_eval` (функция, которую движок
@@ -192,6 +193,7 @@ llama.cpp — популярная библиотека-движок, котор
 | Пилот `--n 200` (§9.4) | 200 | 200 / 0 | 0 (0 %) | 0 (непустых 200, 100 %) | 5.31 ex/s (37.7 s) | нет данных; `retokenize mismatch 1/200` |
 | **Основной прогон 6000** (`report.md` §11.2 + `main_run1.log`) | 6000 | 6000 / 0 | 23 (0.4 %) | 0 | 4.66 ex/s (1287.1 s) | `[6000, 24, 1024]` f16, по 281.3 MiB на файл; `retokenize mismatch 29/6000` (0.5 %) |
 | **Прогон Q4_K_M, 6000** (`report.md` §18) | 6000 | 6000 / 0 | 22 (0.4 %) | 0 | **8.20 ex/s** (731.8 s) | `[6000, 24, 1024]` f16; `retokenize mismatch 38/6000` (0.6 %) |
+| Проверка того же Q4 на llama.cpp master `785322d17` (§3.18) | 6000 | 6000 / 0 | 27 (0.45 %) | 0 | **10.16 ex/s** (590.5 s) | `[6000, 24, 1024]` f16; mismatch 37/6000; проба C/13, test 0.8657 |
 | Qwen3.5-2B Q4_K_M, 6000 (§3.14) | 6000 | 6000 / 0 | 32 (0.5 %) | 0 | 6.93 ex/s (866.0 s) | `[6000, 24, 2048]` f16, по 562 МБ; mismatch 23/6000 |
 | Qwen3.5-4B Q4_K_M, 6000 (§3.14) | 6000 | 6000 / 0 | 20 (0.3 %) | 0 | 4.04 ex/s (1483.5 s) | `[6000, 32, 2560]` f16, по 938 МБ; mismatch 13/6000 |
 | **Qwen3.5-9B Q4_K_M, 6000** (§3.15) | 6000 | 6000 / 0 | **0** | 0 | 2.95 ex/s (2031.1 s) | `[6000, 32, 4096]` f16, по 1500 МБ; mismatch 11/6000 |
@@ -1067,36 +1069,63 @@ E2B, но по интервалу это тоже ноль.
 весов `out/probe_from_{gemma4e4b_on_qwen35_4b,qwen35_4b_on_gemma4e4b}_test.json`.
 Команды — раздел 5, шаг 15.
 
-### 3.17 Gemma 4 12B на Kaggle: прогон вне этой машины (шаг 16, в работе)
+### 3.17 Gemma 4 12B на Kaggle: причина непригодного прогона (шаг 16, в работе)
 
-12B в 6 ГБ VRAM не влезает, поэтому прогон идёт на Kaggle GPU (2 × Tesla T4 по 15 ГБ).
+12B в 6 ГБ VRAM не влезает, поэтому проверки идут на Kaggle (2 × Tesla T4 по 15 ГБ).
 Окружение живёт **в репозитории**, не во временном каталоге:
 
 | путь | что |
 |---|---|
-| `kaggle/gemma4_12b/make_nb.py` | генератор ноутбука (7 ячеек) и `kernel-metadata.json` |
+| `kaggle/gemma4_12b/make_nb.py` | генератор ноутбука с easy8, пилотом и гейтом |
 | `kaggle/gemma4_12b/push.ps1` | собрать датасет `odinodinodin/hs-src` из файлов проекта + запушить ядро |
 | `kaggle/gemma4_12b/_build/` | датасет и готовый ноутбук (в git не идёт) |
 | `kaggle/gemma4_12b/out/` | выгрузка `kaggle kernels output`, статусы, логи (в git не идёт) |
 | `kaggle/watch.ps1` | опрос `kernels status` до финиша, затем полный лог и квота |
 
-Ядро `odinodinodin/hs-gemma4-12b` делает всё в одной GPU-сессии: `setup` (клон
-зафиксированного `d4cff114c` + наши 3 файла из датасета) → `build`
-(`-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -j4`, сборка и модель в `/tmp`) →
-`download` (`unsloth/gemma-4-12b-it-GGUF`, Q4_K_M) → `pilot` (40 строк) → **гейт** →
-`main` (6000) → `final` (`run_summary.json`). Гейт: `ok == total`, `skipped == 0`,
-`ex/s > 0.2` и оценка полного прогона < 4 ч — иначе 6000 строк не запускаются.
+Первый полный прогон (`pipeline/out/main_gemma4_12b`) технически записал 6000 строк, но
+непригоден: `truncated` 2298 (38 %), strict 9/3702 = 0.002, ответы — мета-текст вроде
+`The answer is the answer`. Версия llama.cpp и разбиение на GPU оказались ни при чём.
+Причина — потерянный ведущий `<bos>` в пакетном режиме: llama.cpp вырезает его из
+отрендеренного шаблона и ждёт, что токенизатор добавит токен обратно, а инструмент
+передавал `add_special=false`. Дополнительно на master потребовался явный пропуск
+`tokenizer.ggml.suppress_tokens` в нашем greedy-argmax.
 
-Статус на 2026-11-01: ядро версии 4 запущено и находится в состоянии `RUNNING`,
-израсходовано 0.62 ч GPU-квоты из 30 в неделю (включая три неудачные версии, 0.08 ч).
-Результатов 12B в этом разделе пока нет: разметка, baseline и проба будут добавлены
-после выгрузки `kernels output` в `pipeline/out/main_gemma4_12b/`. Логи запущенного ядра
-CLI не отдаёт — живой сигнал только `kernels status` (и браузер).
+После исправления гейт на master `785322d17` дал easy8 **8/8**, 0 мета-текста и только
+1 `truncated` на 200 строках, 2.61 ex/s. Полный повтор будет записан в новый каталог
+`main_gemma4_12b_v3`, но **пока не запускался**. Текущий гейт проверяет ответы (easy8
+не меньше 7/8), мета-текст и утечки `<|channel>`, а не только `ok/skipped`. Полный разбор —
+`report.md` §22; непригодный каталог сохранён с `README-invalid.md`.
 
-Грабли, на которые ушло четыре версии ядра (путь монтирования датасета
-`/kaggle/input/datasets/<owner>/<dataset>`, плоская структура датасета,
-read-only `/usr/local/cuda` и stub `libcuda.so` в `/tmp/cuda_stubs`, логи только после
-финиша), описаны в `AGENTS.md`, раздел «Kaggle: GPU вне этой машины».
+### 3.18 Обновление llama.cpp: пин и master (шаг 17)
+
+Старая копия не удалена. Локально доступны две CUDA-сборки одного инструмента:
+
+| каталог | llama.cpp | назначение |
+|---|---|---|
+| `llama.cpp-hiddenstates` | `d4cff114c` (2026-07-03, build 9869) | точное воспроизведение старых прогонов |
+| `llama.cpp-hiddenstates-new` | `785322d17` (2026-11-01, build 12033) | новые локальные прогоны |
+
+Быстрые тесты на Qwen3.5-0.8B Q4, Gemma 4 E2B, Nemotron 3 Nano 4B и однострочный
+state-only smoke-test gpt-oss-20b подтвердили формы, 35/35, 17/42 и 24/24 доступных
+`l_out`, детерминизм и совпадение меток на 20/20 строках у Gemma/Nemotron. `-fa off` и
+CPU не устранили численный дрейф, то есть это изменение
+порядка вычислений между версиями, а не CUDA-регрессия.
+
+Решающий повтор Qwen Q4 на всех 6000 строках:
+
+| | пин | master |
+|---|---:|---:|
+| время | 731.8 s | **590.5 s** |
+| ответы совпали | — | 4503/6000 = 75.0 % |
+| метки `filtered_b` совпали | — | **5836/6000 = 97.3 %** |
+| точка A: разница / cosine | — | 0.17 % нормы / 0.99756 |
+| проба | C / 13, test 0.8709 | **C / 13**, test 0.8657 |
+
+Парная разница test AUROC master − pin = **−0.0054 [−0.0225, +0.0114]**: статистически
+ноль. Значит, версии не совпадают побитово (жадная генерация усиливает малый дрейф), но
+замороженный результат пробы воспроизводится: точка и слой те же, качество в пределах
+шума. Master принят для новых прогонов; пин остаётся для исторической воспроизводимости.
+Артефакты — `pipeline/out/main_qwen08_q4_master/`, сравнение — `report.md` §23.
 
 ---
 
@@ -1125,6 +1154,7 @@ read-only `/usr/local/cuda` и stub `libcuda.so` в `/tmp/cuda_stubs`, логи 
 | Прогон и проба gpt-oss-20b | `pipeline/out/main_gptoss20b_v2/` (meta, labels, baseline, probe, config) |
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
 | Прогон и проба Qwen3.5-0.8B в Q4_K_M (якорь кванта) | `pipeline/out/main_qwen08_q4/` (meta, labels, baseline, probe, config, verify.json, `probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`) |
+| Проверка обновлённого llama.cpp на тех же 6000 строках | `pipeline/out/main_qwen08_q4_master/`; состояния/ответы — `pipeline/out/equiv/pin_vs_master_qwen08_full.json`; парный bootstrap — `pipeline/out/compare_qwen08q4_pin_vs_master_{test,val}.json` |
 | Сравнение квантов BF16 vs Q4 | `pipeline/out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py` |
 | Прогоны и пробы Qwen3.5-2B и 4B в Q4_K_M | `pipeline/out/main_qwen35_2b_q4/`, `pipeline/out/main_qwen35_4b_q4/`; сравнения `out/compare_qwen08q4_qwen35_{2b,4b}_{test,val}.json`, `out/compare_qwen35_2b_4b_{test,val}.json`; пилоты `out/pilot_qwen35_{2b,4b}_q4` |
 | Кросс-скоры внутри серии Qwen 3.5 | `pipeline/out/cross_{qwen08q4,qwen35_2b,qwen35_4b,qwen35_9b}_to_{...}_{test,val}.json` (все направления × 2 сплита, включая 12 файлов с 9B); скрипт `pipeline/cross_probe_scores.py` |
@@ -1133,9 +1163,9 @@ read-only `/usr/local/cuda` и stub `libcuda.so` в `/tmp/cuda_stubs`, логи 
 | Кросс-модельные скоры (проба A → метка B) | `pipeline/out/cross_qwen08_gemma4e2b_{test,val}.json`, `cross_qwen08_gptoss20b_v2_{test,val}.json`, `cross_gemma4e2b_gptoss20b_v2_{test,val}.json`, `cross_{qwen08,gemma4e2b,gptoss20b_v2}_nemotron_{test,val}.json` |
 | Стратификация по метке источника | `pipeline/out/cross_strata_<a>_<b>_{test,val}.json` (12 файлов) |
 | Вход для gpt-oss (harmony-промпт) | `pipeline/make_gptoss_prompt.py` → JSONL в `%TEMP%\opencode\` (в git не входит) |
-| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py` |
-| Инструмент | `llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp`, бинарник `llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe` |
-| Подробный технический отчёт | `report.md` (пункты 1–21) |
+| Скрипты | `pipeline/prepare_data.py`, `pipeline/make_gptoss_prompt.py`, `pipeline/label.py`, `pipeline/normalize.py`, `pipeline/verify_run.py`, `pipeline/baseline.py`, `pipeline/probe.py`, `pipeline/save_probe_model.py`, `pipeline/apply_probe_model.py`, `pipeline/cross_probe_scores.py`, `pipeline/cross_probe_strata.py`, `pipeline/compare_probes.py`, `pipeline/compare_runs.py` |
+| Инструмент: пин / master | `llama.cpp-hiddenstates/` (`d4cff114c`) и `llama.cpp-hiddenstates-new/` (`785322d17`); бинарники в соответствующих `build/bin/Release/` |
+| Подробный технический отчёт | `report.md` (пункты 1–23) |
 | План исследования | `GLOBALPLAN.md` (локальный, в git не входит) |
 
 ---
@@ -1157,12 +1187,16 @@ read-only `/usr/local/cuda` и stub `libcuda.so` в `/tmp/cuda_stubs`, логи 
 ### Шаг 0. Сборка инструмента
 
 ```powershell
-$LL = "D:\VScode_pr\confidenceResearch\llama.cpp-hiddenstates"
-cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=ON
+$LL = "D:\VScode_pr\confidenceResearch\llama.cpp-hiddenstates-new"
+cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=ON `
+  -DLLAMA_BUILD_COMMIT=785322d17 -DLLAMA_BUILD_NUMBER=12033
 cmake --build $LL\build --config Release --target llama-hidden-states -- /m
 ```
 
-Результат: `$LL\build\bin\Release\llama-hidden-states.exe` (`report.md`, §2.2).
+Результат: `$LL\build\bin\Release\llama-hidden-states.exe`. Явные metadata-флаги нужны,
+потому что архивная копия не содержит `.git`. Исторические команды ниже используют старый пин
+`llama.cpp-hiddenstates`; для нового исследования путь заменить на
+`llama.cpp-hiddenstates-new` (`report.md`, §2.2, §23).
 
 ### Шаг 1. Данные
 
@@ -1554,7 +1588,7 @@ powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиш
 
 $KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
 & $KAG kernels output odinodinodin/hs-gemma4-12b -p kaggle\gemma4_12b\out
-Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b\* pipeline\out\main_gemma4_12b\
+Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b_v3\* pipeline\out\main_gemma4_12b_v3\
 
 # дальше — как обычно: verify_run.py → label.py → baseline.py → probe.py (см. шаг 15)
 ```
@@ -1563,6 +1597,32 @@ Copy-Item kaggle\gemma4_12b\out\out\main_gemma4_12b\* pipeline\out\main_gemma4_1
 (hidden-states.cpp и два CMakeLists) и `pipeline\data\` — копий исходников в репозитории
 нет. Токен `KAGGLE_API_TOKEN` берётся из `.env`. Квоту (30 ч GPU в неделю) проверять до и
 после прогона и записывать в таблицу `AGENTS.md`.
+
+**Важно про v1 и `<bos>`.** Первый прогон 12B (`out\main_gemma4_12b`) непригоден: strict
+9/3702, ответы-заглушки (`report.md` §22, `out\main_gemma4_12b\README-invalid.md`). Причина
+— не версия llama.cpp, а потерянный ведущий `<bos>`: шаблон печатает `{{ bos_token }}`,
+llama.cpp его вырезает и ждёт от токенизатора, а пакетный режим токенизировал с
+`add_special=false`. Исправлено 2026-11-02 (плюс пропуск `suppress_tokens` в greedy-argmax);
+проверено на Kaggle: easy8 **8/8**, мета-текста в пилоте 200 нет, 2.61 ex/s. Поэтому
+`main` стартует только после easy8 ≥ 7/8 и чистого пилота, а результат пишется в
+**новый** каталог `out\main_gemma4_12b_v3`.
+
+### Сверка двух прогонов (например, после обновления llama.cpp)
+
+`pipeline/compare_runs.py` сравнивает два каталога прогона по общим `ok`-строкам: состояния
+в точках A и C (`max |d|`, медиана `|d|` и её доля от нормы вектора, cosine), текст ответов,
+`n_tokens`, `pos_a/pos_c`, `truncated`, `logprobs`, метки. Дубликаты `id` сопоставляются
+по номеру вхождения; `--per-layer` показывает рост дрейфа с глубиной.
+
+```powershell
+python compare_runs.py --a out\main_qwen08_q4 --b out\main_qwen08_q4_master `
+  --per-layer --out out\equiv\pin_vs_master_qwen08_full.json
+```
+
+Для smoke-теста достаточно 20 строк, `--layers all` и одинаковых флагов. Для решения об
+обновлении здесь дополнительно повторён весь набор 6000: состояния не побитовы (A: 0.17 %
+нормы), но метки совпали на 97.3 %, а парная ΔAUROC пробы совместима с нулём (§3.18,
+`report.md` §23).
 
 ### Просмотр результата прогона
 
@@ -1580,8 +1640,14 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   (35 слоёв, D=1536) и Gemma 4 E4B Q4_K_M (42 слоя, D=2560), Qwen3.5-0.8B (BF16 и
   Q4_K_M, 24 слоя, D=1024), Qwen3.5 2B/4B/9B в Q4_K_M, gpt-oss-20b-MXFP4 (24 слоя,
   D=2880) и NVIDIA-Nemotron-3-Nano-4B Q4_K_M (42 слоя с `l_out` на 17, D=3136).
-  Gemma 4 12B идёт на Kaggle, результатов пока нет (§3.17). Выводы про инструмент для
+  Валидный полный прогон Gemma 4 12B пока не запускался (§3.17). Выводы про инструмент для
   остальных моделей не проверялись (`report.md`, шапка, §8, §15, §17, §21).
+- **Версии llama.cpp не побитово эквивалентны.** На Qwen3.5-0.8B Q4 master
+  `785322d17` даёт медианный сдвиг A 0.17 % нормы и те же ответы на 75.0 % строк против
+  пина `d4cff114c`; `-fa off` и CPU это не устраняют. При этом метки совпали на 97.3 %,
+  выбраны те же C/13, а Δ test AUROC −0.0054 [−0.0225, +0.0114]. Поэтому master годится
+  для новых цельных прогонов, но смешивать состояния версий или ждать побайтового
+  воспроизведения старых `.npy` нельзя (§3.18, `report.md` §23).
 - **У Nemotron 3 Nano 4B `l_out` есть только на 17 слоях из 42** (`nemotron_h`:
   SSM/attention блоки эмитят только `nemotron_h_block_out`). Поэтому список слоёв в
   `config.json` короче `n_layers`, а `layers_requested` хранит исходный. Кривая «по
@@ -1716,10 +1782,9 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 - **Проба E4B заняла ~19 мин CPU** на 42 слоях × D = 2560 (у 9B — ~37 мин на 32 × 4096).
   Это самый дорогой CPU-шаг из малых моделей, его удобно пускать в фоне; параллельно с
   прогоном на GPU лучше не запускать — падает ex/s у обоих.
-- **Прогон 12B на Kaggle ещё не принёс данных:** ядро `odinodinodin/hs-gemma4-12b`
-  делает сборку, скачивание, пилот 40 и только потом 6000 строк подряд; логи запущенного
-  ядра CLI не отдаёт, квота 30 ч GPU в неделю. Пока результатов нет, в отчёты 12B не
-  попадает (§3.17).
+- **Валидного полного прогона 12B пока нет:** первый каталог непригоден из-за потерянного
+  `<bos>`, исправленный гейт прошёл (easy8 8/8, пилот 200 чистый), но полный
+  `main_gemma4_12b_v3` не запускался. Квота Kaggle — 30 ч GPU в неделю (§3.17).
 
 ---
 
@@ -1729,7 +1794,7 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 
 1. **Анализ** — reliability diagram, разбор ответов на «уверенно верно / угадал /
    ошибся» по logprob; кривые качества по слоям (на val) уже есть в `probe_curve.csv`
-   для всех восьми прогонов. При желании — повторная проверка выбранной пары с другим
+   для всех основных прогонов. При желании — повторная проверка выбранной пары с другим
    разбиением train/val.
 2. **Серия размеров Qwen 3.5 закрыта.** Прогнаны 0.8B, 2B, 4B, 9B в Q4_K_M
    (`out/main_qwen08_q4`, `out/main_qwen35_{2b,4b,9b}_q4`, §3.13–§3.15): test AUROC
@@ -1737,14 +1802,15 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    не влезает. Открытый вопрос — не «станет ли больше», а «даст ли другой признак больше
    0.92»: несколько слоёв/позиций или нелинейная модель вместо одного вектора и
    логистики. Это выходит за замороженный протокол и пока не делалось.
-3. **Gemma 4 12B** — единственная серия, которая ещё не закрыта: прогон идёт на Kaggle
-   (§3.17). Ожидание по аналогии с E2B/E4B — тот же потолок ~0.93, но это проверяется
-   только измерением.
+3. **Gemma 4 12B** — единственная серия, которая ещё не закрыта: исправленный гейт
+   пройден, но полный повтор на Kaggle ждёт отдельного решения (§3.17). Ожидание по
+   аналогии с E2B/E4B — тот же потолок ~0.93, но это проверяется только измерением.
 4. **Кандидаты Liquid AI** (обсуждены, ничего не запускалось): LFM2.5-1.2B-Instruct и
    LFM2.5-1.2B-Thinking работают на текущем билде (`arch lfm2`, `l_out` на всех слоях)
    и дают сравнение «Liquid против Qwen 0.8B» плюс чистый эксперимент «меняет ли reasoning
-   отделимость уверенности»; LFM3-1.7B требует обновления копии llama.cpp (arch `lfm3` в
-   пине `d4cff114c` отсутствует). MoE-варианты LFM2.5 (8B-A1B, 24B-A2B) отпадают: в
+   отделимость уверенности»; для LFM3-1.7B теперь есть обновлённая копия
+   `llama.cpp-hiddenstates-new`, но сама модель ещё не проверялась. MoE-варианты LFM2.5
+   (8B-A1B, 24B-A2B) отпадают: в
    `lfm2moe.cpp` вызова `l_out` нет, а правка ядра запрещена.
 5. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
 
@@ -1847,9 +1913,11 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
    (строка 2), и `config.json` того же прогона содержит `"thinking": false`.
 4. **Дата в шапке `report.md` — 2026-10-12,** тогда как в отчёт включены результаты
    прогона от 2026-10-15 (раздел 11), и сам файл менялся 2026-10-15.
-5. **`config.json` (во всех папках прогонов) содержит `llama_cpp_commit = c9b758d`** — это
-   коммит репозитория confidenceResearch от 2026-10-12, а не коммит апстрима llama.cpp,
-   на котором лежит копия исходников (`d4cff114c` по `AGENTS.md`).
+5. **Поле `llama_cpp_commit` в старых `config.json` не является надёжным provenance.**
+    Копии llama.cpp не содержат `.git`, поэтому CMake находил родительский репозиторий:
+    например, старые каталоги содержат `c9b758d`/`3ad2230`, а контрольный master-прогон —
+    `f6a0815`, хотя фактические upstream-коммиты равны `d4cff114c` и `785322d17`.
+    Для будущей master-сборки commit/build теперь задаются явно (§3.18, `AGENTS.md`).
 6. **`label.py --audit-score` на `audit_human.csv` ничего не считает** (печатает
    «no scored rows» и «overall noise 0.000»), потому что в этом файле убраны колонки
    `correct_strict`/`correct_relaxed`. Цифры таблицы в разделе 3.5 получены
@@ -1902,12 +1970,25 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   (`make_nb.py`, `push.ps1`), `kaggle/watch.ps1`, `kaggle/README.md`; `_build/` и `out/`
   добавлены в `.gitignore`. Датасет `odinodinodin/hs-src` собирается из файлов проекта
   при пуше, копий исходников в репозитории нет (§3.17, `AGENTS.md`).
-4. **12B пока без результатов** — ядро `odinodinodin/hs-gemma4-12b` в состоянии
-  `RUNNING`, израсходовано 0.85 ч GPU-квоты из 30. Раздел §3.17 обновляется после
-  выгрузки `kernels output` и прогона `verify_run.py` → `label.py` → `baseline.py` →
-  `probe.py`.
+4. **На момент записи 12B был без результатов:** ядро `odinodinodin/hs-gemma4-12b`
+  находилось в `RUNNING`, расход составлял 0.85 ч GPU-квоты из 30. Итог и найденный
+  дефект описаны в обновлении 2026-11-02 ниже.
 5. **Детерминизм пробы E4B подтверждён.** Повторный запуск в отдельные файлы `probe2*`
   (`out/main_gemma4e4b/probe2.json`, `probe2_curve.csv`, `probe2_scores.csv`,
   `probe2_model.npz`) дал побайтово те же `probe_curve.csv` и `probe_scores.csv`
   (SHA-256 `E8DEC092…9910` и `4A6B9135…C505`), тот же λ, ту же пару C/21 и те же
   метрики. Оригиналы `probe.*` не изменялись.
+
+### Обновлено 2026-11-02
+
+1. **Прогон Gemma 4 12B признан непригодным:** 2298 `truncated`, strict 9/3702;
+   причина — потерянный `<bos>` в пакетном режиме, а не версия llama.cpp (§3.17,
+   `report.md` §22). После исправления гейт master дал easy8 8/8 и чистый пилот 200.
+   Полный `main_gemma4_12b_v3` пока не запускался.
+2. **Добавлена вторая локальная копия llama.cpp:** `llama.cpp-hiddenstates-new` на
+   `785322d17`; пин `d4cff114c` сохранён. Полная сверка Qwen Q4 показала совпадение
+   меток 97.3 %, ту же пару C/13 и ΔAUROC −0.0054 [−0.0225, +0.0114], но не побитовую
+   эквивалентность состояний/ответов (§3.18, `report.md` §23).
+3. **Добавлены диагностика и сравнение:** `hs-prompt-dump` показывает рендеринг и token
+   id без загрузки весов; `pipeline/compare_runs.py` сравнивает A/C, ответы, позиции,
+   logprobs и метки с поддержкой дублирующихся `id`.

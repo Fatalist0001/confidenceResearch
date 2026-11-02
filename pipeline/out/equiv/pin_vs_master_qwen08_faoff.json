@@ -1,0 +1,71 @@
+{
+  "a": "out\\equiv\\pin_qwen08_faoff",
+  "b": "out\\equiv\\master_qwen08_faoff",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 1.48046875,
+      "median_abs_per_row": 0.0034074783325195312,
+      "median_abs_rel": 0.0016760280122980475,
+      "state_norm_median": 2.0330677032470703,
+      "cosine_median": 0.9975512027740479,
+      "cosine_min": 0.9830876588821411
+    },
+    "c": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 2.7724609375,
+      "median_abs_per_row": 0.0034041404724121094,
+      "median_abs_rel": 0.0014392893062904477,
+      "state_norm_median": 2.3651537895202637,
+      "cosine_median": 0.9981892108917236,
+      "cosine_min": 0.0934109166264534
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 16,
+    "same_answer_frac": 0.8,
+    "same_n_tokens": 17,
+    "same_pos_a": 20,
+    "same_pos_c": 17,
+    "same_pos": 17,
+    "same_truncated": 19,
+    "logprob_max_abs": 2.308142676949501,
+    "logprob_rows": 20,
+    "answer_diff_examples": [
+      {
+        "id": "sfq_17775",
+        "a": "Up Where We Belong",
+        "b": "The film is *Up*."
+      },
+      {
+        "id": "dpql_1548",
+        "a": "Bunter's form teacher is the surname **Bunter**.",
+        "b": "Bunter's form teacher's surname is Bunter."
+      },
+      {
+        "id": "bb_7429",
+        "a": "Gibson Guitars named after him: Gibson Guitars",
+        "b": "Gibson Guitars named after him are the **Gibson SG** (Sage) and **Gibs"
+      },
+      {
+        "id": "sfq_20635",
+        "a": "Ananas",
+        "b": "Banane"
+      }
+    ]
+  }
+}

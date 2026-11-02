@@ -8,6 +8,14 @@
 
 #include "nlohmann/json.hpp"
 
+// llama.cpp after d9f918d2d (2026-08-22) ships common/json.h and no longer exports
+// `json` from the common headers; keep using nlohmann here so that one source builds
+// against both the old pin and current master.
+#if __has_include("json.h")
+#include "json.h"
+using json = nlohmann::json;
+#endif
+
 #include <algorithm>
 #include <clocale>
 #include <cmath>
@@ -669,7 +677,11 @@ static std::string render_prompt(
     inputs.enable_thinking       = thinking;
 
     const common_chat_params res = common_chat_templates_apply(tmpls, inputs);
+#if __has_include("json.h")
+    return res.prompt.str();   // master: rendered prompt is common_chat_prompt
+#else
     return res.prompt;
+#endif
 }
 
 static void push_logprob(
@@ -734,6 +746,25 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     st.n_layer = llama_model_n_layer(model);
     st.n_embd  = llama_model_n_embd(model);
     const int64_t D = st.n_embd;
+
+    // tokenizer.ggml.suppress_tokens used to be applied inside the graph; since 2026-07-29
+    // the sampler chain does it (common/sampling), so the raw greedy argmax has to skip them
+    std::vector<char> suppressed_tok;
+#if __has_include("json.h")
+    {
+        int32_t n_sup = 0;
+        const llama_token * sup = llama_vocab_get_suppress_tokens(vocab, &n_sup);
+        if (sup != nullptr && n_sup > 0) {
+            suppressed_tok.assign((size_t) llama_vocab_n_tokens(vocab), 0);
+            for (int32_t i = 0; i < n_sup; ++i) {
+                if (sup[i] >= 0 && (size_t) sup[i] < suppressed_tok.size()) {
+                    suppressed_tok[(size_t) sup[i]] = 1;
+                }
+            }
+            LOG_WRN("%s : model suppresses %d token(s), skipped in greedy argmax\n", __func__, (int) n_sup);
+        }
+    }
+#endif
 
     std::vector<int> layers;
     if (!parse_layers(layers_spec, st.n_layer, layers)) {
@@ -1049,6 +1080,22 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
 
     std::vector<hs_pending> pending;
 
+    // greedy argmax over the logits, skipping model-suppressed tokens
+    auto hs_argmax = [&suppressed_tok](const float * logits, int n_vocab, float & best_v) -> llama_token {
+        llama_token best = -1;
+        best_v = 0.0f;   // overwritten by the first candidate (logits may all be negative)
+        for (int v = 0; v < n_vocab; ++v) {
+            if (!suppressed_tok.empty() && suppressed_tok[(size_t) v]) {
+                continue;
+            }
+            if (best < 0 || logits[v] > best_v) {
+                best_v = logits[v];
+                best   = (llama_token) v;
+            }
+        }
+        return best < 0 ? (llama_token) 0 : best;
+    };
+
     // greedy generation of a single row (fallback when a group cannot be batched)
     auto generate_one = [&](hs_pending & p) {
         const int n_vocab = llama_vocab_n_tokens(vocab);
@@ -1073,14 +1120,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
                 stop_reason = "no logits";
                 break;
             }
-            llama_token best = 0;
-            float best_v = logits[0];
-            for (int v = 1; v < n_vocab; ++v) {
-                if (logits[v] > best_v) {
-                    best_v = logits[v];
-                    best   = (llama_token) v;
-                }
-            }
+            float best_v = 0.0f;
+            const llama_token best = hs_argmax(logits, n_vocab, best_v);
             if (llama_vocab_is_eog(vocab, best)) {
                 stop_reason = "eog";
                 break;
@@ -1194,14 +1235,8 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
                 }
                 hs_pending & p = rows[sel[(size_t) g]];
                 const float * logits = cur[(size_t) g].data();
-                llama_token best = 0;
-                float best_v = logits[0];
-                for (int v = 1; v < n_vocab; ++v) {
-                    if (logits[v] > best_v) {
-                        best_v = logits[v];
-                        best   = (llama_token) v;
-                    }
-                }
+                float best_v = 0.0f;
+                const llama_token best = hs_argmax(logits, n_vocab, best_v);
                 if (llama_vocab_is_eog(vocab, best)) {
                     active[(size_t) g] = 0;
                     stop_text[(size_t) g] = "eog";
@@ -1546,7 +1581,10 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
             LOG_INF("rendered prompt[0] (row %lld):\n%s\n", (long long) r.row, prompt_text.c_str());
         }
 
-        std::vector<llama_token> tok_q = common_tokenize(vocab, prompt_text, no_template ? add_bos : false, true);
+        // llama.cpp strips the leading bos token from the rendered template (`inputs.add_bos`)
+        // and expects the tokenizer to put it back, as `llama-cli` does with add_special=true;
+        // tokenizing with false left the prompt without a leading <bos> on gemma4 models.
+        std::vector<llama_token> tok_q = common_tokenize(vocab, prompt_text, add_bos, true);
         if (tok_q.empty()) {
             skip("prompt produced no tokens");
             continue;

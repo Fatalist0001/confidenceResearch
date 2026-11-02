@@ -1,0 +1,17 @@
+{
+  "llama_cpp_source_commit": "785322d17",
+  "llama_cpp_source_date": "2026-11-01",
+  "llama_cpp_build_number": 12033,
+  "source_materialization": "git archive 785322d17 from D:\\llama.cpp",
+  "config_json_reported_commit": "f6a0815",
+  "config_json_reported_build": 48,
+  "config_json_note": "The archive had no nested .git, so CMake read the parent confidenceResearch repository metadata. The source tree itself is exactly llama.cpp 785322d17.",
+  "post_run_reconfigure": {
+    "LLAMA_BUILD_COMMIT": "785322d17",
+    "LLAMA_BUILD_NUMBER": 12033,
+    "version_output": "0.8.0-dev (build 12033, commit 785322d17)",
+    "numerical_check": "20-row hidden_a.npy, hidden_c.npy, and answers are byte-identical before and after the metadata-only relink"
+  },
+  "reference_run": "../main_qwen08_q4",
+  "comparison": "../equiv/pin_vs_master_qwen08_full.json"
+}

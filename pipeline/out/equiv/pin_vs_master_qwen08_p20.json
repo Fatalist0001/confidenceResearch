@@ -1,0 +1,76 @@
+{
+  "a": "out\\equiv\\pin_qwen08_p20",
+  "b": "out\\equiv\\master_qwen08_p20",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 0.95703125,
+      "median_abs_per_row": 0.0033812522888183594,
+      "median_abs_rel": 0.0016574764158576727,
+      "state_norm_median": 2.0400002002716064,
+      "cosine_median": 0.9974570274353027,
+      "cosine_min": 0.9886916875839233
+    },
+    "c": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 2.181640625,
+      "median_abs_per_row": 0.00305938720703125,
+      "median_abs_rel": 0.0012941688764840364,
+      "state_norm_median": 2.363978385925293,
+      "cosine_median": 0.9982689023017883,
+      "cosine_min": 0.08311174064874649
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 15,
+    "same_answer_frac": 0.75,
+    "same_n_tokens": 17,
+    "same_pos_a": 20,
+    "same_pos_c": 17,
+    "same_pos": 17,
+    "same_truncated": 20,
+    "logprob_max_abs": 1.984803557395935,
+    "logprob_rows": 20,
+    "answer_diff_examples": [
+      {
+        "id": "sfq_17775",
+        "a": "The film is \"Up\" (1982).",
+        "b": "The film is *The King's Speech*."
+      },
+      {
+        "id": "qz_1800",
+        "a": "The act that has had more Christmas number one singles than any other ",
+        "b": "The Act of the Year"
+      },
+      {
+        "id": "wh_2109",
+        "a": "KELVIN",
+        "b": "KEL"
+      },
+      {
+        "id": "bb_7429",
+        "a": "Gibson Guitars named after him are the **Gibson SG** (Sage) and **Gibs",
+        "b": "Gibson Guitars named after him are the **Gibson Les Paul** and the **G"
+      },
+      {
+        "id": "sfq_20635",
+        "a": "Ananas",
+        "b": "Banane"
+      }
+    ]
+  }
+}

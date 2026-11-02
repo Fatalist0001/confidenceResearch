@@ -1,0 +1,1915 @@
+{
+  "meta": "out/main_qwen08_q4_master/meta.jsonl",
+  "labels": "out/main_qwen08_q4_master/labels.csv",
+  "label_column": "correct_filtered_b",
+  "rows": {
+    "train": 3584,
+    "val": 1191,
+    "test": 1198
+  },
+  "positives": {
+    "train": 432,
+    "val": 123,
+    "test": 145
+  },
+  "lambdas": [
+    100.0,
+    300.0,
+    1000.0,
+    3000.0
+  ],
+  "layer_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "lambda_mean_val_auroc": {
+    "100": 0.7911306243212245,
+    "300": 0.8012080618231275,
+    "1000": 0.8002460402647097,
+    "3000": 0.7888510170214061
+  },
+  "selected_lambda": 300.0,
+  "selection_rule": "lambda: max mean val AUROC over all configs; config: max val AUROC",
+  "selected": {
+    "point": "C",
+    "layer": 13,
+    "layer_id": 13,
+    "val_auroc": 0.8813221278280199,
+    "val_auprc": 0.5352814962649669
+  },
+  "metrics": {
+    "val": {
+      "n": 1191,
+      "pos": 123,
+      "base_rate": 0.10327455919395466,
+      "auroc": 0.8813221278280199,
+      "auprc": 0.5352814962649669,
+      "brier": 0.06575520122523243,
+      "ece": 0.026482766066246936,
+      "auroc_ci": [
+        0.8473787960338266,
+        0.9115993109343408
+      ],
+      "auprc_ci": [
+        0.445352904758315,
+        0.6242642988678394
+      ],
+      "brier_ci": [
+        0.05569811329769842,
+        0.07591473563443253
+      ],
+      "ece_ci": [
+        0.017138801141542828,
+        0.042885165130489344
+      ]
+    },
+    "test": {
+      "n": 1198,
+      "pos": 145,
+      "base_rate": 0.12103505843071787,
+      "auroc": 0.8656842518911484,
+      "auprc": 0.5404102041046586,
+      "brier": 0.07562681220056969,
+      "ece": 0.017298219706335074,
+      "auroc_ci": [
+        0.834887874769677,
+        0.8953604300280653
+      ],
+      "auprc_ci": [
+        0.45734557729503605,
+        0.6198840354552982
+      ],
+      "brier_ci": [
+        0.06557095416031272,
+        0.08668111817993257
+      ],
+      "ece_ci": [
+        0.013267948370723554,
+        0.03521872593512434
+      ]
+    },
+    "test_platt": {
+      "n": 1198,
+      "pos": 145,
+      "base_rate": 0.12103505843071787,
+      "auroc": 0.8656842518911484,
+      "auprc": 0.5404102041046586,
+      "brier": 0.07565875165034348,
+      "ece": 0.01398550128585758,
+      "auroc_ci": [
+        0.834887874769677,
+        0.8953604300280653
+      ],
+      "auprc_ci": [
+        0.45734557729503605,
+        0.6198840354552982
+      ],
+      "brier_ci": [
+        0.06564714859881571,
+        0.08669595408114879
+      ],
+      "ece_ci": [
+        0.011842215551892125,
+        0.03353218767085229
+      ]
+    },
+    "platt": {
+      "intercept": -0.02912114803908257,
+      "beta": 0.9905165865073746
+    }
+  },
+  "controls": {
+    "shuffled_labels": {
+      "val_auroc": [
+        0.5278462896988521,
+        0.4655004415212691,
+        0.4997944642367772,
+        0.5619119393441125,
+        0.5175390517950124
+      ],
+      "test_auroc": [
+        0.602475685234306,
+        0.42144283983364444,
+        0.5037691980220715,
+        0.5820414579035269,
+        0.44254510921177587
+      ],
+      "val_auprc": [
+        0.11614723680823513,
+        0.10506037507401146,
+        0.10978286261936478,
+        0.13148335727042706,
+        0.11780022088919245
+      ],
+      "test_auroc_mean": 0.5104548580410649,
+      "test_auroc_sd": 0.08088888263924378
+    },
+    "layer0": {
+      "A": {
+        "val_auroc": 0.6770880911056302,
+        "test_auroc": 0.6914366178733995,
+        "val_auprc": 0.21644735528470768
+      },
+      "C": {
+        "val_auroc": 0.6739060929935142,
+        "test_auroc": 0.6994989684644857,
+        "val_auprc": 0.20622724052960306
+      }
+    }
+  },
+  "n_boot": 1000,
+  "bins": 10,
+  "bootstrap_seed": 42,
+  "curve": [
+    {
+      "point": "A",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 100.0,
+      "train_auroc": 0.8156285250987028,
+      "val_auroc": 0.6688818854480679,
+      "val_auprc": 0.20407876822173557
+    },
+    {
+      "point": "A",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 300.0,
+      "train_auroc": 0.7818779082064298,
+      "val_auroc": 0.6770880911056302,
+      "val_auprc": 0.21644735528470768
+    },
+    {
+      "point": "A",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 1000.0,
+      "train_auroc": 0.749283229930438,
+      "val_auroc": 0.6876541518224171,
+      "val_auprc": 0.24134905480423957
+    },
+    {
+      "point": "A",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 3000.0,
+      "train_auroc": 0.7221054533276932,
+      "val_auroc": 0.6918105417009226,
+      "val_auprc": 0.2478921239122129
+    },
+    {
+      "point": "A",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 100.0,
+      "train_auroc": 0.829685590571536,
+      "val_auroc": 0.6662327578331964,
+      "val_auprc": 0.18801571213057555
+    },
+    {
+      "point": "A",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 300.0,
+      "train_auroc": 0.7988152730776462,
+      "val_auroc": 0.6795697451356536,
+      "val_auprc": 0.2045556736098368
+    },
+    {
+      "point": "A",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 1000.0,
+      "train_auroc": 0.7681704150216206,
+      "val_auroc": 0.6885295819250328,
+      "val_auprc": 0.228895721581893
+    },
+    {
+      "point": "A",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 3000.0,
+      "train_auroc": 0.7429791784169957,
+      "val_auroc": 0.6879890989921135,
+      "val_auprc": 0.2406028295716143
+    },
+    {
+      "point": "A",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 100.0,
+      "train_auroc": 0.8453135281537884,
+      "val_auroc": 0.6896942845832953,
+      "val_auprc": 0.21285441014355605
+    },
+    {
+      "point": "A",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 300.0,
+      "train_auroc": 0.8133908218180109,
+      "val_auroc": 0.7058783228281721,
+      "val_auprc": 0.22803292662490876
+    },
+    {
+      "point": "A",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 1000.0,
+      "train_auroc": 0.7838747297424328,
+      "val_auroc": 0.708786273255991,
+      "val_auprc": 0.24029043059855595
+    },
+    {
+      "point": "A",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 3000.0,
+      "train_auroc": 0.7598812923011844,
+      "val_auroc": 0.7005724551627539,
+      "val_auprc": 0.2516978040550745
+    },
+    {
+      "point": "A",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 100.0,
+      "train_auroc": 0.8466523312652754,
+      "val_auroc": 0.6952970372400353,
+      "val_auprc": 0.21818783930412655
+    },
+    {
+      "point": "A",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 300.0,
+      "train_auroc": 0.8128282748166948,
+      "val_auroc": 0.7031682957279011,
+      "val_auprc": 0.23472422183986907
+    },
+    {
+      "point": "A",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 1000.0,
+      "train_auroc": 0.7814908817446888,
+      "val_auroc": 0.7027648366371304,
+      "val_auprc": 0.25321830043239635
+    },
+    {
+      "point": "A",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 3000.0,
+      "train_auroc": 0.7564641497461929,
+      "val_auroc": 0.6952741999330105,
+      "val_auprc": 0.2536116349507393
+    },
+    {
+      "point": "A",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 100.0,
+      "train_auroc": 0.8581162460048881,
+      "val_auroc": 0.70420358697969,
+      "val_auprc": 0.2465303908140052
+    },
+    {
+      "point": "A",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 300.0,
+      "train_auroc": 0.8225267026226735,
+      "val_auroc": 0.712341280716178,
+      "val_auprc": 0.271868029110298
+    },
+    {
+      "point": "A",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 1000.0,
+      "train_auroc": 0.7866125564015792,
+      "val_auroc": 0.713361347096617,
+      "val_auprc": 0.29025495856158406
+    },
+    {
+      "point": "A",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 3000.0,
+      "train_auroc": 0.7580812887760857,
+      "val_auroc": 0.7073627477847813,
+      "val_auprc": 0.29195372380702217
+    },
+    {
+      "point": "A",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 100.0,
+      "train_auroc": 0.8675840736040609,
+      "val_auroc": 0.7274976401449408,
+      "val_auprc": 0.2763278762501893
+    },
+    {
+      "point": "A",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 300.0,
+      "train_auroc": 0.834299797894341,
+      "val_auroc": 0.739806948631284,
+      "val_auprc": 0.28589666228628496
+    },
+    {
+      "point": "A",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 1000.0,
+      "train_auroc": 0.7988644775803723,
+      "val_auroc": 0.7417937943424378,
+      "val_auprc": 0.2976821393548618
+    },
+    {
+      "point": "A",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 3000.0,
+      "train_auroc": 0.7694724983549539,
+      "val_auroc": 0.7302533418592613,
+      "val_auprc": 0.30156334044686545
+    },
+    {
+      "point": "A",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 100.0,
+      "train_auroc": 0.8747436959484866,
+      "val_auroc": 0.7567598428793276,
+      "val_auprc": 0.2986880049074209
+    },
+    {
+      "point": "A",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 300.0,
+      "train_auroc": 0.8439703186689227,
+      "val_auroc": 0.7640982308699491,
+      "val_auprc": 0.3017941951567242
+    },
+    {
+      "point": "A",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 1000.0,
+      "train_auroc": 0.8119851887102839,
+      "val_auroc": 0.7586781766694072,
+      "val_auprc": 0.29941881668415965
+    },
+    {
+      "point": "A",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 3000.0,
+      "train_auroc": 0.7840098585260388,
+      "val_auroc": 0.7430270089217746,
+      "val_auprc": 0.28666228983538894
+    },
+    {
+      "point": "A",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 100.0,
+      "train_auroc": 0.8785052700225606,
+      "val_auroc": 0.7452726774458756,
+      "val_auprc": 0.2811668776385332
+    },
+    {
+      "point": "A",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 300.0,
+      "train_auroc": 0.8477950507614214,
+      "val_auroc": 0.7532276727261654,
+      "val_auprc": 0.2848892717922673
+    },
+    {
+      "point": "A",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 1000.0,
+      "train_auroc": 0.8159061266215454,
+      "val_auroc": 0.7504339088334704,
+      "val_auprc": 0.2844595321996521
+    },
+    {
+      "point": "A",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 3000.0,
+      "train_auroc": 0.7875224725042301,
+      "val_auroc": 0.7379266770195791,
+      "val_auprc": 0.28689770623518507
+    },
+    {
+      "point": "A",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 100.0,
+      "train_auroc": 0.8807466452810678,
+      "val_auroc": 0.7639079199780762,
+      "val_auprc": 0.3153552065513788
+    },
+    {
+      "point": "A",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 300.0,
+      "train_auroc": 0.8498873437206241,
+      "val_auroc": 0.7694040985353674,
+      "val_auprc": 0.3191549988095043
+    },
+    {
+      "point": "A",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 1000.0,
+      "train_auroc": 0.8182488484677571,
+      "val_auroc": 0.7619362991382723,
+      "val_auprc": 0.31746439606397203
+    },
+    {
+      "point": "A",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 3000.0,
+      "train_auroc": 0.790904364072194,
+      "val_auroc": 0.7441688742730124,
+      "val_auprc": 0.3057470690922945
+    },
+    {
+      "point": "A",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 100.0,
+      "train_auroc": 0.8945194996709908,
+      "val_auroc": 0.7771002710027101,
+      "val_auprc": 0.33358490643361155
+    },
+    {
+      "point": "A",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 300.0,
+      "train_auroc": 0.8653669333991352,
+      "val_auroc": 0.7891126944977315,
+      "val_auprc": 0.3448853452873375
+    },
+    {
+      "point": "A",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 1000.0,
+      "train_auroc": 0.8364346857962023,
+      "val_auroc": 0.7885417618221126,
+      "val_auprc": 0.34364970197631695
+    },
+    {
+      "point": "A",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 3000.0,
+      "train_auroc": 0.8149227709625869,
+      "val_auroc": 0.7799320970737798,
+      "val_auprc": 0.3363293740908707
+    },
+    {
+      "point": "A",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 100.0,
+      "train_auroc": 0.8979278294792254,
+      "val_auroc": 0.7850857160256995,
+      "val_auprc": 0.3560238633050419
+    },
+    {
+      "point": "A",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 300.0,
+      "train_auroc": 0.8700788153318293,
+      "val_auroc": 0.7980953685941354,
+      "val_auprc": 0.35656841936771394
+    },
+    {
+      "point": "A",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 1000.0,
+      "train_auroc": 0.8407316342357586,
+      "val_auroc": 0.8014752900337992,
+      "val_auprc": 0.35200124341943867
+    },
+    {
+      "point": "A",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 3000.0,
+      "train_auroc": 0.8188378337093438,
+      "val_auroc": 0.7950808440668676,
+      "val_auprc": 0.34935523461933804
+    },
+    {
+      "point": "A",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 100.0,
+      "train_auroc": 0.8942602580372251,
+      "val_auroc": 0.7932310221978625,
+      "val_auprc": 0.36415092414420114
+    },
+    {
+      "point": "A",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 300.0,
+      "train_auroc": 0.8699605776461741,
+      "val_auroc": 0.7975168234828416,
+      "val_auprc": 0.36567002637927776
+    },
+    {
+      "point": "A",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 1000.0,
+      "train_auroc": 0.8443316412859561,
+      "val_auroc": 0.7971209768277459,
+      "val_auprc": 0.3670339589110962
+    },
+    {
+      "point": "A",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 3000.0,
+      "train_auroc": 0.8252880299398383,
+      "val_auroc": 0.7915334490423556,
+      "val_auprc": 0.3627608107293032
+    },
+    {
+      "point": "A",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 100.0,
+      "train_auroc": 0.8998196324497086,
+      "val_auroc": 0.7990545354891752,
+      "val_auprc": 0.3663579098807841
+    },
+    {
+      "point": "A",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 300.0,
+      "train_auroc": 0.8735818821677007,
+      "val_auroc": 0.8059970768247008,
+      "val_auprc": 0.381756275223915
+    },
+    {
+      "point": "A",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 1000.0,
+      "train_auroc": 0.8463651826001128,
+      "val_auroc": 0.8027617916628604,
+      "val_auprc": 0.3842393298029256
+    },
+    {
+      "point": "A",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 3000.0,
+      "train_auroc": 0.8254620816882873,
+      "val_auroc": 0.7940379403794038,
+      "val_auprc": 0.3733142493776573
+    },
+    {
+      "point": "A",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 100.0,
+      "train_auroc": 0.8985359090054521,
+      "val_auroc": 0.8053500197923328,
+      "val_auprc": 0.3854979566448689
+    },
+    {
+      "point": "A",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 300.0,
+      "train_auroc": 0.8715094178887008,
+      "val_auroc": 0.809628208641637,
+      "val_auprc": 0.39470311913546363
+    },
+    {
+      "point": "A",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 1000.0,
+      "train_auroc": 0.8450476769599549,
+      "val_auroc": 0.8077250997229073,
+      "val_auprc": 0.3942516981167827
+    },
+    {
+      "point": "A",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 3000.0,
+      "train_auroc": 0.8258887655104343,
+      "val_auroc": 0.8020995097591426,
+      "val_auprc": 0.39120942986749124
+    },
+    {
+      "point": "A",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 100.0,
+      "train_auroc": 0.9006127796578304,
+      "val_auroc": 0.8090496635303431,
+      "val_auprc": 0.38690522367851027
+    },
+    {
+      "point": "A",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 300.0,
+      "train_auroc": 0.8745461435420192,
+      "val_auroc": 0.8173167686733047,
+      "val_auprc": 0.3931827707257293
+    },
+    {
+      "point": "A",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 1000.0,
+      "train_auroc": 0.849042788823087,
+      "val_auroc": 0.8185652081239914,
+      "val_auprc": 0.3921643652017415
+    },
+    {
+      "point": "A",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 3000.0,
+      "train_auroc": 0.8314973444256439,
+      "val_auroc": 0.8140510337687646,
+      "val_auprc": 0.38911087680634937
+    },
+    {
+      "point": "A",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 100.0,
+      "train_auroc": 0.9119136585824403,
+      "val_auroc": 0.8113790688468683,
+      "val_auprc": 0.3888140989111084
+    },
+    {
+      "point": "A",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 300.0,
+      "train_auroc": 0.885419604248919,
+      "val_auroc": 0.8213285222739868,
+      "val_auprc": 0.37864026186524036
+    },
+    {
+      "point": "A",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 1000.0,
+      "train_auroc": 0.859461658676443,
+      "val_auroc": 0.8203845802502969,
+      "val_auprc": 0.3788051536767405
+    },
+    {
+      "point": "A",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 3000.0,
+      "train_auroc": 0.8406728825907125,
+      "val_auroc": 0.8117901403733139,
+      "val_auprc": 0.36456620986633465
+    },
+    {
+      "point": "A",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 100.0,
+      "train_auroc": 0.9189418241210754,
+      "val_auroc": 0.8002877500685119,
+      "val_auprc": 0.36803367855145996
+    },
+    {
+      "point": "A",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 300.0,
+      "train_auroc": 0.8943395727580372,
+      "val_auroc": 0.8205977284491947,
+      "val_auprc": 0.381983279444854
+    },
+    {
+      "point": "A",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 1000.0,
+      "train_auroc": 0.8693914210847904,
+      "val_auroc": 0.82803507810359,
+      "val_auprc": 0.3854368388455394
+    },
+    {
+      "point": "A",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 3000.0,
+      "train_auroc": 0.8488415644388043,
+      "val_auroc": 0.8199735087238513,
+      "val_auprc": 0.3645806642838192
+    },
+    {
+      "point": "A",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 100.0,
+      "train_auroc": 0.9259024252679074,
+      "val_auroc": 0.794860083432295,
+      "val_auprc": 0.34633764256092764
+    },
+    {
+      "point": "A",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 300.0,
+      "train_auroc": 0.9003630851663846,
+      "val_auroc": 0.8174918546938278,
+      "val_auprc": 0.37949791723742043
+    },
+    {
+      "point": "A",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 1000.0,
+      "train_auroc": 0.8736031796390299,
+      "val_auroc": 0.8229423586370695,
+      "val_auprc": 0.3796478819411513
+    },
+    {
+      "point": "A",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 3000.0,
+      "train_auroc": 0.8518893060255687,
+      "val_auroc": 0.8127949818824031,
+      "val_auprc": 0.35259997245245883
+    },
+    {
+      "point": "A",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 100.0,
+      "train_auroc": 0.9285220142413988,
+      "val_auroc": 0.7977375841174142,
+      "val_auprc": 0.36692885404765535
+    },
+    {
+      "point": "A",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 300.0,
+      "train_auroc": 0.9013133930250047,
+      "val_auroc": 0.8197375232179288,
+      "val_auprc": 0.3895192023883621
+    },
+    {
+      "point": "A",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 1000.0,
+      "train_auroc": 0.8737118701823651,
+      "val_auroc": 0.8252489266465698,
+      "val_auprc": 0.3857933453446965
+    },
+    {
+      "point": "A",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 3000.0,
+      "train_auroc": 0.8521911426019928,
+      "val_auroc": 0.8163195395998903,
+      "val_auprc": 0.3570612964720056
+    },
+    {
+      "point": "A",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 100.0,
+      "train_auroc": 0.9364094225888325,
+      "val_auroc": 0.79579641302031,
+      "val_auprc": 0.38647892956834556
+    },
+    {
+      "point": "A",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 300.0,
+      "train_auroc": 0.9069814579808234,
+      "val_auroc": 0.8172787064949301,
+      "val_auprc": 0.4015469902333393
+    },
+    {
+      "point": "A",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 1000.0,
+      "train_auroc": 0.8755926572194022,
+      "val_auroc": 0.8226606985170976,
+      "val_auprc": 0.3893677302543722
+    },
+    {
+      "point": "A",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 3000.0,
+      "train_auroc": 0.8519172130569655,
+      "val_auroc": 0.8133506896866721,
+      "val_auprc": 0.35914862833024913
+    },
+    {
+      "point": "A",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 100.0,
+      "train_auroc": 0.9390084484865576,
+      "val_auroc": 0.7834947169696416,
+      "val_auprc": 0.3794128642659649
+    },
+    {
+      "point": "A",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 300.0,
+      "train_auroc": 0.9087910086482421,
+      "val_auroc": 0.8070475929478396,
+      "val_auprc": 0.3948416219763734
+    },
+    {
+      "point": "A",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 1000.0,
+      "train_auroc": 0.8770085718650122,
+      "val_auroc": 0.8152461861697269,
+      "val_auprc": 0.3860200786154221
+    },
+    {
+      "point": "A",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 3000.0,
+      "train_auroc": 0.8532134212257944,
+      "val_auroc": 0.8088517402027953,
+      "val_auprc": 0.35332248355513135
+    },
+    {
+      "point": "A",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 100.0,
+      "train_auroc": 0.9394241163752585,
+      "val_auroc": 0.7893715173106787,
+      "val_auprc": 0.37758530055505457
+    },
+    {
+      "point": "A",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 300.0,
+      "train_auroc": 0.9098867268283511,
+      "val_auroc": 0.8109223227063731,
+      "val_auprc": 0.4047568218656177
+    },
+    {
+      "point": "A",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 1000.0,
+      "train_auroc": 0.878663165068622,
+      "val_auroc": 0.8201105325659999,
+      "val_auprc": 0.40307622967189477
+    },
+    {
+      "point": "A",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 3000.0,
+      "train_auroc": 0.8547600582816319,
+      "val_auroc": 0.8155887457750982,
+      "val_auprc": 0.37194196801420015
+    },
+    {
+      "point": "A",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 100.0,
+      "train_auroc": 0.9393051442940402,
+      "val_auroc": 0.7878642550470448,
+      "val_auprc": 0.357837823535428
+    },
+    {
+      "point": "A",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 300.0,
+      "train_auroc": 0.910592480964467,
+      "val_auroc": 0.8124219725343321,
+      "val_auprc": 0.3968710543294015
+    },
+    {
+      "point": "A",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 1000.0,
+      "train_auroc": 0.8796149417183681,
+      "val_auroc": 0.8212828476599373,
+      "val_auprc": 0.4096352070991998
+    },
+    {
+      "point": "A",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 3000.0,
+      "train_auroc": 0.8557140381180673,
+      "val_auroc": 0.8163956639566395,
+      "val_auprc": 0.38846445091630466
+    },
+    {
+      "point": "A",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 100.0,
+      "train_auroc": 0.9305878689603309,
+      "val_auroc": 0.7819265552206084,
+      "val_auprc": 0.3631105989954251
+    },
+    {
+      "point": "A",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 300.0,
+      "train_auroc": 0.9021329784733972,
+      "val_auroc": 0.8070323680764897,
+      "val_auprc": 0.39788730723800986
+    },
+    {
+      "point": "A",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 1000.0,
+      "train_auroc": 0.8713074591088551,
+      "val_auroc": 0.8198973843671021,
+      "val_auprc": 0.4202615361048935
+    },
+    {
+      "point": "A",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 3000.0,
+      "train_auroc": 0.8485661661026509,
+      "val_auroc": 0.8196918486038793,
+      "val_auprc": 0.4133165089327893
+    },
+    {
+      "point": "C",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 100.0,
+      "train_auroc": 0.9377577728426396,
+      "val_auroc": 0.6581483511464328,
+      "val_auprc": 0.20479443030096378
+    },
+    {
+      "point": "C",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 300.0,
+      "train_auroc": 0.9119165961646926,
+      "val_auroc": 0.6739060929935142,
+      "val_auprc": 0.20622724052960306
+    },
+    {
+      "point": "C",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 1000.0,
+      "train_auroc": 0.8752959614119196,
+      "val_auroc": 0.6846244024237995,
+      "val_auprc": 0.20074041585646676
+    },
+    {
+      "point": "C",
+      "layer": 0,
+      "layer_id": 0,
+      "lambda": 3000.0,
+      "train_auroc": 0.8343688310772701,
+      "val_auroc": 0.685979415973935,
+      "val_auprc": 0.18585622867954796
+    },
+    {
+      "point": "C",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 100.0,
+      "train_auroc": 0.9430131074920097,
+      "val_auroc": 0.7175862488961968,
+      "val_auprc": 0.22796296914740713
+    },
+    {
+      "point": "C",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 300.0,
+      "train_auroc": 0.9209481927993984,
+      "val_auroc": 0.7381398252184769,
+      "val_auprc": 0.234609224803591
+    },
+    {
+      "point": "C",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 1000.0,
+      "train_auroc": 0.889684973679263,
+      "val_auroc": 0.746726652659785,
+      "val_auprc": 0.22445835704163228
+    },
+    {
+      "point": "C",
+      "layer": 1,
+      "layer_id": 1,
+      "lambda": 3000.0,
+      "train_auroc": 0.8495693504418124,
+      "val_auroc": 0.7389543558356931,
+      "val_auprc": 0.206911830281649
+    },
+    {
+      "point": "C",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 100.0,
+      "train_auroc": 0.9472167876950555,
+      "val_auroc": 0.7260817271094059,
+      "val_auprc": 0.2581752288863207
+    },
+    {
+      "point": "C",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 300.0,
+      "train_auroc": 0.9245849196277496,
+      "val_auroc": 0.7381093754757773,
+      "val_auprc": 0.2532977894185045
+    },
+    {
+      "point": "C",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 1000.0,
+      "train_auroc": 0.8927018706523783,
+      "val_auroc": 0.7395176760756371,
+      "val_auprc": 0.23813067253642534
+    },
+    {
+      "point": "C",
+      "layer": 2,
+      "layer_id": 2,
+      "lambda": 3000.0,
+      "train_auroc": 0.855885152284264,
+      "val_auroc": 0.7315398434883226,
+      "val_auprc": 0.21689403494564582
+    },
+    {
+      "point": "C",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 100.0,
+      "train_auroc": 0.948996228144388,
+      "val_auroc": 0.7517965348192808,
+      "val_auprc": 0.2891850141095307
+    },
+    {
+      "point": "C",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 300.0,
+      "train_auroc": 0.9256600747320926,
+      "val_auroc": 0.7578331963094912,
+      "val_auprc": 0.2805686682157391
+    },
+    {
+      "point": "C",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 1000.0,
+      "train_auroc": 0.8929464243748825,
+      "val_auroc": 0.7556941018848391,
+      "val_auprc": 0.26264286293058836
+    },
+    {
+      "point": "C",
+      "layer": 3,
+      "layer_id": 3,
+      "lambda": 3000.0,
+      "train_auroc": 0.8577982527260763,
+      "val_auroc": 0.7490027709265856,
+      "val_auprc": 0.23680648837866214
+    },
+    {
+      "point": "C",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 100.0,
+      "train_auroc": 0.9541906079620229,
+      "val_auroc": 0.7738802107122195,
+      "val_auprc": 0.3415992766045477
+    },
+    {
+      "point": "C",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 300.0,
+      "train_auroc": 0.9306532301654447,
+      "val_auroc": 0.7858241222861667,
+      "val_auprc": 0.3455940832013024
+    },
+    {
+      "point": "C",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 1000.0,
+      "train_auroc": 0.8993121651156233,
+      "val_auroc": 0.7884732499010383,
+      "val_auprc": 0.32086240628978224
+    },
+    {
+      "point": "C",
+      "layer": 4,
+      "layer_id": 4,
+      "lambda": 3000.0,
+      "train_auroc": 0.8649365775991728,
+      "val_auroc": 0.7801985323224019,
+      "val_auprc": 0.28539919645927087
+    },
+    {
+      "point": "C",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 100.0,
+      "train_auroc": 0.9586072628783606,
+      "val_auroc": 0.7768414481897628,
+      "val_auprc": 0.35969162051663045
+    },
+    {
+      "point": "C",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 300.0,
+      "train_auroc": 0.9362772313874789,
+      "val_auroc": 0.7889452209128833,
+      "val_auprc": 0.3632352168159252
+    },
+    {
+      "point": "C",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 1000.0,
+      "train_auroc": 0.9055890439932318,
+      "val_auroc": 0.7916247982704546,
+      "val_auprc": 0.3499692120252625
+    },
+    {
+      "point": "C",
+      "layer": 5,
+      "layer_id": 5,
+      "lambda": 3000.0,
+      "train_auroc": 0.8718633965501034,
+      "val_auroc": 0.7843320848938826,
+      "val_auprc": 0.3065794463679317
+    },
+    {
+      "point": "C",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 100.0,
+      "train_auroc": 0.9594584273359654,
+      "val_auroc": 0.7944794616485491,
+      "val_auprc": 0.4009752094192984
+    },
+    {
+      "point": "C",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 300.0,
+      "train_auroc": 0.9390694033182929,
+      "val_auroc": 0.8046116135318656,
+      "val_auprc": 0.39774089883654346
+    },
+    {
+      "point": "C",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 1000.0,
+      "train_auroc": 0.9088798705113743,
+      "val_auroc": 0.8059437897749764,
+      "val_auprc": 0.36502722738079263
+    },
+    {
+      "point": "C",
+      "layer": 6,
+      "layer_id": 6,
+      "lambda": 3000.0,
+      "train_auroc": 0.8733476099830795,
+      "val_auroc": 0.794015103072379,
+      "val_auprc": 0.31476001617988625
+    },
+    {
+      "point": "C",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 100.0,
+      "train_auroc": 0.961150474713292,
+      "val_auroc": 0.8126579580402545,
+      "val_auprc": 0.424469393332101
+    },
+    {
+      "point": "C",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 300.0,
+      "train_auroc": 0.9404199567587892,
+      "val_auroc": 0.8200039584665509,
+      "val_auprc": 0.4212697825314601
+    },
+    {
+      "point": "C",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 1000.0,
+      "train_auroc": 0.9126054592028576,
+      "val_auroc": 0.8170731707317073,
+      "val_auprc": 0.37605718401736843
+    },
+    {
+      "point": "C",
+      "layer": 7,
+      "layer_id": 7,
+      "lambda": 3000.0,
+      "train_auroc": 0.8802648817916902,
+      "val_auroc": 0.8015361895191986,
+      "val_auprc": 0.3230259492742644
+    },
+    {
+      "point": "C",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 100.0,
+      "train_auroc": 0.9664337163940591,
+      "val_auroc": 0.8381748424225816,
+      "val_auprc": 0.4973559914433365
+    },
+    {
+      "point": "C",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 300.0,
+      "train_auroc": 0.947657425032901,
+      "val_auroc": 0.8440668676349685,
+      "val_auprc": 0.49899348488658035
+    },
+    {
+      "point": "C",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 1000.0,
+      "train_auroc": 0.9201734054803534,
+      "val_auroc": 0.8419429980816662,
+      "val_auprc": 0.467899095507298
+    },
+    {
+      "point": "C",
+      "layer": 8,
+      "layer_id": 8,
+      "lambda": 3000.0,
+      "train_auroc": 0.8887824015322429,
+      "val_auroc": 0.8267105142961542,
+      "val_auprc": 0.40613397090299413
+    },
+    {
+      "point": "C",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 100.0,
+      "train_auroc": 0.968624418358714,
+      "val_auroc": 0.8537651106848148,
+      "val_auprc": 0.49988594324766755
+    },
+    {
+      "point": "C",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 300.0,
+      "train_auroc": 0.949364160321489,
+      "val_auroc": 0.8597941597393502,
+      "val_auprc": 0.5110587174782985
+    },
+    {
+      "point": "C",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 1000.0,
+      "train_auroc": 0.9240201694397443,
+      "val_auroc": 0.8565055875277854,
+      "val_auprc": 0.4890417646436718
+    },
+    {
+      "point": "C",
+      "layer": 9,
+      "layer_id": 9,
+      "lambda": 3000.0,
+      "train_auroc": 0.8966749506486181,
+      "val_auroc": 0.8413796778417222,
+      "val_auprc": 0.44698072063632244
+    },
+    {
+      "point": "C",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 100.0,
+      "train_auroc": 0.9678503654352322,
+      "val_auroc": 0.8562543771505131,
+      "val_auprc": 0.5153200909066302
+    },
+    {
+      "point": "C",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 300.0,
+      "train_auroc": 0.949859142931002,
+      "val_auroc": 0.863737401418958,
+      "val_auprc": 0.5286950446113642
+    },
+    {
+      "point": "C",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 1000.0,
+      "train_auroc": 0.9272213996991916,
+      "val_auroc": 0.8601747815230961,
+      "val_auprc": 0.5117941326876712
+    },
+    {
+      "point": "C",
+      "layer": 10,
+      "layer_id": 10,
+      "lambda": 3000.0,
+      "train_auroc": 0.9032756979695431,
+      "val_auroc": 0.8459395268109985,
+      "val_auprc": 0.46845620903353963
+    },
+    {
+      "point": "C",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 100.0,
+      "train_auroc": 0.9680251515792442,
+      "val_auroc": 0.857578940957949,
+      "val_auprc": 0.5082262807085945
+    },
+    {
+      "point": "C",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 300.0,
+      "train_auroc": 0.949906878642602,
+      "val_auroc": 0.8649325538199202,
+      "val_auprc": 0.5233696276966071
+    },
+    {
+      "point": "C",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 1000.0,
+      "train_auroc": 0.9267161355517954,
+      "val_auroc": 0.861316646874334,
+      "val_auprc": 0.5086327143132607
+    },
+    {
+      "point": "C",
+      "layer": 11,
+      "layer_id": 11,
+      "lambda": 3000.0,
+      "train_auroc": 0.9014566001598044,
+      "val_auroc": 0.8422170457659632,
+      "val_auprc": 0.45675786550174863
+    },
+    {
+      "point": "C",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 100.0,
+      "train_auroc": 0.9678452246662906,
+      "val_auroc": 0.8756508632502056,
+      "val_auprc": 0.5180890337355998
+    },
+    {
+      "point": "C",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 300.0,
+      "train_auroc": 0.9499531455630758,
+      "val_auroc": 0.8807816448951007,
+      "val_auprc": 0.5439654474049527
+    },
+    {
+      "point": "C",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 1000.0,
+      "train_auroc": 0.927410139358902,
+      "val_auroc": 0.8716391096495235,
+      "val_auprc": 0.5262987130982503
+    },
+    {
+      "point": "C",
+      "layer": 12,
+      "layer_id": 12,
+      "lambda": 3000.0,
+      "train_auroc": 0.9029474231528483,
+      "val_auroc": 0.8496391705490088,
+      "val_auprc": 0.47089459977019127
+    },
+    {
+      "point": "C",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 100.0,
+      "train_auroc": 0.9677585659898477,
+      "val_auroc": 0.882996863676502,
+      "val_auprc": 0.5167549368132107
+    },
+    {
+      "point": "C",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 300.0,
+      "train_auroc": 0.9497945161214514,
+      "val_auroc": 0.8813221278280199,
+      "val_auprc": 0.5352814962649669
+    },
+    {
+      "point": "C",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 1000.0,
+      "train_auroc": 0.9267065884094755,
+      "val_auroc": 0.8678328918120641,
+      "val_auprc": 0.5123266416881365
+    },
+    {
+      "point": "C",
+      "layer": 13,
+      "layer_id": 13,
+      "lambda": 3000.0,
+      "train_auroc": 0.9010335883154729,
+      "val_auroc": 0.8450336469656832,
+      "val_auprc": 0.4495421347638918
+    },
+    {
+      "point": "C",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 100.0,
+      "train_auroc": 0.9651000540515134,
+      "val_auroc": 0.8746460217411163,
+      "val_auprc": 0.5093767672090124
+    },
+    {
+      "point": "C",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 300.0,
+      "train_auroc": 0.9470229072664035,
+      "val_auroc": 0.8744709357205932,
+      "val_auprc": 0.517595786840272
+    },
+    {
+      "point": "C",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 1000.0,
+      "train_auroc": 0.9235699849595789,
+      "val_auroc": 0.862900033494717,
+      "val_auprc": 0.49281055998858153
+    },
+    {
+      "point": "C",
+      "layer": 14,
+      "layer_id": 14,
+      "lambda": 3000.0,
+      "train_auroc": 0.8959824156326377,
+      "val_auroc": 0.8405955969672056,
+      "val_auprc": 0.42526688571127785
+    },
+    {
+      "point": "C",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 100.0,
+      "train_auroc": 0.9661252702575672,
+      "val_auroc": 0.857754026978472,
+      "val_auprc": 0.4888354759599695
+    },
+    {
+      "point": "C",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 300.0,
+      "train_auroc": 0.9471631768189509,
+      "val_auroc": 0.8605858530495417,
+      "val_auprc": 0.4910307139731097
+    },
+    {
+      "point": "C",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 1000.0,
+      "train_auroc": 0.9210333826847151,
+      "val_auroc": 0.8496467829846838,
+      "val_auprc": 0.45726947663872
+    },
+    {
+      "point": "C",
+      "layer": 15,
+      "layer_id": 15,
+      "lambda": 3000.0,
+      "train_auroc": 0.8904480106692988,
+      "val_auroc": 0.8281873268170884,
+      "val_auprc": 0.3880857822765453
+    },
+    {
+      "point": "C",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 100.0,
+      "train_auroc": 0.96387434785674,
+      "val_auroc": 0.847104229469261,
+      "val_auprc": 0.4490696753693027
+    },
+    {
+      "point": "C",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 300.0,
+      "train_auroc": 0.9429932788118067,
+      "val_auroc": 0.8518391644590603,
+      "val_auprc": 0.46018051277406
+    },
+    {
+      "point": "C",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 1000.0,
+      "train_auroc": 0.9139427935232186,
+      "val_auroc": 0.8418211991108675,
+      "val_auprc": 0.4274488251235069
+    },
+    {
+      "point": "C",
+      "layer": 16,
+      "layer_id": 16,
+      "lambda": 3000.0,
+      "train_auroc": 0.8815486052359466,
+      "val_auroc": 0.8201942693584239,
+      "val_auprc": 0.3590890495266785
+    },
+    {
+      "point": "C",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 100.0,
+      "train_auroc": 0.9629188992291784,
+      "val_auroc": 0.8432218872750525,
+      "val_auprc": 0.43195380911887454
+    },
+    {
+      "point": "C",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 300.0,
+      "train_auroc": 0.9422280386350818,
+      "val_auroc": 0.8450260345300082,
+      "val_auprc": 0.4386772875986012
+    },
+    {
+      "point": "C",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 1000.0,
+      "train_auroc": 0.9142916314156796,
+      "val_auroc": 0.8352745044304376,
+      "val_auprc": 0.40576778462522944
+    },
+    {
+      "point": "C",
+      "layer": 17,
+      "layer_id": 17,
+      "lambda": 3000.0,
+      "train_auroc": 0.8828785956006768,
+      "val_auroc": 0.8146600286227581,
+      "val_auprc": 0.34207457864871044
+    },
+    {
+      "point": "C",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 100.0,
+      "train_auroc": 0.9616931930344049,
+      "val_auroc": 0.8456654791267014,
+      "val_auprc": 0.445959034233245
+    },
+    {
+      "point": "C",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 300.0,
+      "train_auroc": 0.9407519035532995,
+      "val_auroc": 0.8491748119728388,
+      "val_auprc": 0.44675769114055736
+    },
+    {
+      "point": "C",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 1000.0,
+      "train_auroc": 0.9126245534874976,
+      "val_auroc": 0.8383651533144545,
+      "val_auprc": 0.4101743025330949
+    },
+    {
+      "point": "C",
+      "layer": 18,
+      "layer_id": 18,
+      "lambda": 3000.0,
+      "train_auroc": 0.882241140251927,
+      "val_auroc": 0.8170655582960324,
+      "val_auprc": 0.34300060091970175
+    },
+    {
+      "point": "C",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 100.0,
+      "train_auroc": 0.9651749623989472,
+      "val_auroc": 0.8445997381322128,
+      "val_auprc": 0.4404249194599148
+    },
+    {
+      "point": "C",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 300.0,
+      "train_auroc": 0.9433487262643354,
+      "val_auroc": 0.8457796656618252,
+      "val_auprc": 0.4408698041115407
+    },
+    {
+      "point": "C",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 1000.0,
+      "train_auroc": 0.912899951823651,
+      "val_auroc": 0.8341250266435248,
+      "val_auprc": 0.4002600001388413
+    },
+    {
+      "point": "C",
+      "layer": 19,
+      "layer_id": 19,
+      "lambda": 3000.0,
+      "train_auroc": 0.880535139358902,
+      "val_auroc": 0.8139749094120154,
+      "val_auprc": 0.3364654240747232
+    },
+    {
+      "point": "C",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 100.0,
+      "train_auroc": 0.9636907489659711,
+      "val_auroc": 0.833363783076033,
+      "val_auprc": 0.40905866008545044
+    },
+    {
+      "point": "C",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 300.0,
+      "train_auroc": 0.9418828727204361,
+      "val_auroc": 0.8369720775859444,
+      "val_auprc": 0.4129788720367102
+    },
+    {
+      "point": "C",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 1000.0,
+      "train_auroc": 0.9119665350629818,
+      "val_auroc": 0.8283015133522121,
+      "val_auprc": 0.3778281732328705
+    },
+    {
+      "point": "C",
+      "layer": 20,
+      "layer_id": 20,
+      "lambda": 3000.0,
+      "train_auroc": 0.8804646373848468,
+      "val_auroc": 0.8109451600133979,
+      "val_auprc": 0.3305227752796586
+    },
+    {
+      "point": "C",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 100.0,
+      "train_auroc": 0.9624834026602744,
+      "val_auroc": 0.8406108218385555,
+      "val_auprc": 0.40427712296201845
+    },
+    {
+      "point": "C",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 300.0,
+      "train_auroc": 0.940765857068998,
+      "val_auroc": 0.8438537194360708,
+      "val_auprc": 0.4102509556527031
+    },
+    {
+      "point": "C",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 1000.0,
+      "train_auroc": 0.9126943210659898,
+      "val_auroc": 0.8334703571754819,
+      "val_auprc": 0.37920234013754384
+    },
+    {
+      "point": "C",
+      "layer": 21,
+      "layer_id": 21,
+      "lambda": 3000.0,
+      "train_auroc": 0.8829358784545968,
+      "val_auroc": 0.8144316555525106,
+      "val_auprc": 0.3250101278643248
+    },
+    {
+      "point": "C",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 100.0,
+      "train_auroc": 0.962343133107727,
+      "val_auroc": 0.8416689503973691,
+      "val_auprc": 0.3902850821400372
+    },
+    {
+      "point": "C",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 300.0,
+      "train_auroc": 0.9407225277307765,
+      "val_auroc": 0.8471575165189854,
+      "val_auprc": 0.40049393558378066
+    },
+    {
+      "point": "C",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 1000.0,
+      "train_auroc": 0.9140984853825908,
+      "val_auroc": 0.838129167808532,
+      "val_auprc": 0.37277390911127783
+    },
+    {
+      "point": "C",
+      "layer": 22,
+      "layer_id": 22,
+      "lambda": 3000.0,
+      "train_auroc": 0.8859586505922166,
+      "val_auroc": 0.8204987667854207,
+      "val_auprc": 0.3212547490610836
+    },
+    {
+      "point": "C",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 100.0,
+      "train_auroc": 0.960220729930438,
+      "val_auroc": 0.8404052860753327,
+      "val_auprc": 0.4067507946483939
+    },
+    {
+      "point": "C",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 300.0,
+      "train_auroc": 0.9382975535815002,
+      "val_auroc": 0.8450108096586584,
+      "val_auprc": 0.4039873054303807
+    },
+    {
+      "point": "C",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 1000.0,
+      "train_auroc": 0.9119239401203234,
+      "val_auroc": 0.8347492463688682,
+      "val_auprc": 0.3705164942
+    },
+    {
+      "point": "C",
+      "layer": 23,
+      "layer_id": 23,
+      "lambda": 3000.0,
+      "train_auroc": 0.8845221728708403,
+      "val_auroc": 0.817940988398648,
+      "val_auprc": 0.32447650057024713
+    }
+  ]
+}

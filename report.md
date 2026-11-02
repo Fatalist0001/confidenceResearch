@@ -36,15 +36,17 @@
 
 ### 2.2. Новый пример (таргет `llama-hidden-states`)
 
-Инструмент лежит в каталоге `llama.cpp-hiddenstates\` — это полная копия llama.cpp (коммит
-`d4cff114c`) с нашими двумя изменениями; оригинальный чекаут `D:\llama.cpp` возвращён
-в исходное состояние и не используется.
+Инструмент встроен в две полные копии llama.cpp: пин `llama.cpp-hiddenstates\`
+(`d4cff114c`) для исторического воспроизведения и `llama.cpp-hiddenstates-new\`
+(`785322d17`) для новых прогонов. Наши файлы в обеих копиях одинаковы; сравнение версий —
+§23. Upstream-история доступна в `D:\llama.cpp`.
 
 | Файл (внутри `llama.cpp-hiddenstates\`) | Описание |
 |---|---|
 | [`examples/hidden-states/hidden-states.cpp`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/hidden-states/hidden-states.cpp) | основной код инструмента (одиночный + пакетный режимы) |
-| [`examples/hidden-states/CMakeLists.txt`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/hidden-states/CMakeLists.txt) | CMake-таргет `llama-hidden-states` |
+| [`examples/hidden-states/CMakeLists.txt`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/hidden-states/CMakeLists.txt) | CMake-таргеты `llama-hidden-states`, `hs-prompt-dump` |
 | [`examples/hidden-states/load_example.py`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/hidden-states/load_example.py) | просмотр результатов пакетного режима (npy через `mmap_mode="r"` + meta.jsonl) |
+| [`examples/hidden-states/prompt_dump.cpp`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/hidden-states/prompt_dump.cpp) | диагностика шаблона и token id без загрузки весов |
 | [`examples/CMakeLists.txt`](file:///D:/VScode_pr/confidenceResearch/llama.cpp-hiddenstates/examples/CMakeLists.txt) | подключён `add_subdirectory(hidden-states)` |
 
 Сборка (каталог `build\` сконфигурирован; сборка многопоточная):
@@ -55,7 +57,9 @@ cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=
 cmake --build $LL\build --config Release --target llama-hidden-states -- /m
 ```
 
-Результат: `$LL\build\bin\Release\llama-hidden-states.exe`.
+Результат: `$LL\build\bin\Release\llama-hidden-states.exe`. Команда выше собирает пин;
+для новых прогонов использовать `llama.cpp-hiddenstates-new` и явные metadata commit/build
+из §23.
 
 ### 2.3. Ключевые решения в коде
 
@@ -2265,3 +2269,276 @@ python apply_probe_model.py --model out\main_gemma4e4b\probe_model.npz \
 `out/probe_from_{gemma4e4b_on_qwen35_4b,qwen35_4b_on_gemma4e4b}_test.json`.
 Пилот: `out/pilot_gemma4e4b` (43.1 s).
 
+## 22. Gemma 4 12B: непригодный прогон, причина и исправление (шаг 16)
+
+Модель `gemma-4-12b-it-Q4_K_M.gguf` (arch `gemma4`, 48 слоёв, D = 3840, 6.63 ГиБ) на
+локальной 3050 не помещается, поэтому прогон шёл на Kaggle (2 × T4). Первый прогон оказался
+непригодным, и разбор причины вскрыл дефект инструмента, который действовал на всех моделях
+с `add_bos_token = true`.
+
+### 22.1. Прогон v1 и почему он непригоден
+
+Ядро `odinodinodin/hs-gemma4-12b`, 2026-11-01, пин `d4cff114c`, флаги `--generate
+--max-new-tokens 64 --max-len 1024 --layers all -ngl 99`, вход `data\main.jsonl`.
+
+| | значение |
+|---|---|
+| итог | 6000/6000 `ok`, 0 `skipped`, `truncated` **2298 (38.3 %)**, `retokenize mismatch` 12 |
+| время | 8736.8 s (0.69 ex/s на 2 × T4) |
+| массивы | `[6000, 48, 3840]` f16, по 2.1 ГиБ |
+| `verify_run.py --full` | 0 failed (целостность в порядке) |
+| разметка | `correct_strict` / `correct_relaxed` = **9 / 3702 = 0.002**, null 2298 (все `truncated`) |
+
+Ответы — заглушки, повторяющие формулировку инструкции: `The answer is the answer.` (880),
+`The correct answer is **C**.` (598), `The correct answer is the first option.` (312),
+`The correct answer is **A**.` (147), `The answer is the answer, no explanation.` (86),
+`The correct answer is the one that states the correct answer.` (67). Обрезанные строки —
+те же шаблоны в цикле или утечка служебных маркеров (`<|channel>thought <channel|>…`, 316),
+доля деградаций по сплитам одинаковая (0.382 / 0.387 / 0.382). Пилот 40 строк
+(`out\pilot_gemma4_12b`) воспроизвёл ту же картину.
+
+Каталоги `out\main_gemma4_12b` и `out\pilot_gemma4_12b` помечены `README-invalid.md`,
+в анализ не идут и не удаляются (свидетельство; `meta.jsonl` — единственный след деградации).
+
+### 22.2. Дело не в версии llama.cpp
+
+| ядро | что проверяло | результат |
+|---|---|---|
+| `hs-gemma4-12b-debug` | master + `llama-completion`, ручной промпт | **8/8** |
+| `hs-gemma4-12b-pin-gpu` | наш инструмент на пине, 1 GPU и 2 GPU | **0/8**, ответы дословно одинаковые |
+| `hs-gemma4-12b-master-gate` v1 | наш инструмент на master | **0/8**, пилот 200: `truncated` 86, мета-текст 137, 0.50 ex/s |
+
+Из этого следовало: пин и master ведут себя одинаково, а `llama-completion` на том же
+master и той же модели отвечает правильно. Значит, инструмент подаёт модели **не тот
+промпт/не те токены**, что `llama-cli`. Версия llama.cpp (пин `d4cff114c` = 2026-07-03,
+модель выпущена 2026-07-09) причиной не была.
+
+### 22.3. Причина: потерянный ведущий `<bos>`
+
+Чат-шаблон Gemma печатает в начале `{{ bos_token }}`. llama.cpp при рендеринге ставит
+`inputs.add_bos = llama_vocab_get_add_bos()` (у 12B `add_bos_token = true`) и **вырезает**
+этот `<bos>` из результата, ожидая, что токенизатор добавит токен обратно — так делает
+`llama-cli`: `common_tokenize(ctx, prompt, true, true)` (`tools/completion/completion.cpp:279`).
+Наш пакетный режим токенизировал шаблонный промпт с `add_special=false`
+(`hidden-states.cpp`: `no_template ? add_bos : false`), то есть BOS терялся.
+
+Проверено на самом GGUF без загрузки весов (`hs-prompt-dump`, `vocab_only`):
+
+| | значение |
+|---|---|
+| отрендеренный промпт | 132 символа, начинается с `<\|turn>user`, `<bos>` нет |
+| `add_special=false` (как было) | 27 токенов, первый `105` = `<\|turn>` |
+| `add_special=true` (как `llama-cli`) | **28 токенов, первый `2` = `<bos>`** |
+
+Одиночный режим (v1) всегда передавал `add_bos`, поэтому расхождение «пакетный vs
+одиночный» проверками не ловилось: эти ветки сравнивались на `--no-template`, где обе
+брали `add_bos`.
+
+### 22.4. Второй, мелкий дефект: `suppress_tokens`
+
+`tokenizer.ggml.suppress_tokens` у 12B — `[258882, 258883]` = `<image|>`, `<audio|>`.
+До 2026-07-29 llama.cpp применял их внутри графа; коммит `afeebe103` («move
+suppress_tokens handling to common/sampling») перенёс это в цепочку сэмплера и добавил
+`llama_vocab_get_suppress_tokens`. Наш greedy-argmax сэмплера не имеет, поэтому на master
+эти токены стали доступны для выбора. Теперь они пропускаются явно (`hs_argmax`).
+На пине правка ничего не меняет (подавление там ещё в графе), у остальных локальных GGUF
+ключа нет.
+
+### 22.5. Правки в коде
+
+1. токенизация шаблонного промпта с `add_bos`, как `llama-cli` (не меняет `--no-template`):
+2. `hs_argmax()` — общий жадный выбор токена, пропускает подавленные моделью токены
+   (только под `#if __has_include("json.h")`, т.е. когда API есть);
+3. порт на master: `res.prompt.str()` вместо `res.prompt` и `#include "json.h"` — обе
+   вставки под тем же `#if __has_include`, поэтому один исходник собирается и на пине
+   (`D:\llama_pin_cpu`), и на master (`D:\llama_master_cpu`), rc=0 на обоих.
+
+Диагностика, которой не было раньше: `hs-prompt-dump` (`examples/hidden-states/prompt_dump.cpp`,
+таргет `hs-prompt-dump`, `vocab_only`, веса не грузятся) печатает отрендеренный промпт,
+наличие BOS в тексте и id токенов при `add_special=false/true`. Именно он показал 27 против
+28 токенов.
+
+### 22.6. Какие уже сделанные прогоны это затрагивает
+
+Механизм включается у моделей с `add_bos_token = true`:
+
+| модель | `add_bos` | BOS в шаблоне | `false` | `true` |
+|---|---|---|---|---|
+| gemma-4 E2B / E4B / 12B / 26B | true | да | первый токен `105` `<\|turn>` | `2` `<bos>` |
+| nemotron_h 4B | true | нет | первый `10` | `1` |
+| LFM2.5-1.2B Instruct/Thinking | true | да | первый `6` | `1` |
+| Qwen3.5 0.8B…9B | false | нет | 28 токенов | **те же 28** |
+| gpt-oss-20b | false | нет | 82 токена | **те же 82** |
+
+Три готовых прогона шли без `<bos>`: Gemma 4 E2B (`out\main_gemma4e2b`, strict 0.168),
+Gemma 4 E4B (`out\main_gemma4e4b`, 0.389), Nemotron 3 Nano 4B
+(`out\main_nemotron3nano4b_v2`, 0.295). Ответы там осмысленные, пробы прошли контроли,
+поэтому артефакты **не пересчитываются и не удаляются**: это измерения на промпте без
+ведущего `<bos>`, а не на промпте `llama-cli`. При сравнении с новыми прогонами тех же
+моделей надо помнить про разницу в один токен. Qwen 3.5 и gpt-oss правка не затрагивает.
+
+### 22.7. Гейт v2: после правок модель отвечает нормально
+
+Ядро `odinodinodin/hs-gemma4-12b-master-gate` v2, 2026-11-02, master `785322d`
+(2026-11-01), сборка 1520.3 s, 28.6 мин сессии, 0.47 ч квоты.
+
+| | v1 (без правок) | v2 (с правками) |
+|---|---|---|
+| easy8 | 0/8, 7 из 8 обрезаны | **8/8** |
+| мета-текст в easy8 | 7 из 8 | **0** |
+| пилот 200 | `truncated` 86, мета-текст 137 | `truncated` **1**, мета-текст **0** |
+| скорость | 0.50 ex/s | **2.61 ex/s** |
+| оценка 6000 строк | ~3.3 ч | **38.4 мин** |
+
+Ответы: `William Shakespeare`, `Paris`, `51`, `Leonardo da Vinci`, `Mars`, `Au`,
+`Giuseppe Verdi`, `Rudyard Kipling`; в пилоте — `Hyperlink`, `The Producers`, `Bhutan`,
+`The Beatles`, `Persuasion`, `Rudyard Kipling`. Ускорение в 5.2 раза — следствие того, что
+модель перестала уходить в вырожденные повторы (обрезанные строки были самыми долгими).
+
+### 22.8. Что дальше
+
+Полный прогон 12B — в **новый** каталог `out\main_gemma4_12b_v3`, на пине (остальные
+прогоны сделаны на нём) с теми же флагами; гейт в том же ядре теперь проверяет не только
+счётчики, но и ответы: easy8 ≥ 7/8 (ожидание 8/8), 0 мета-текста и 0 утечек `<|channel>`
+в пилоте 40 строк. Ожидаемое время по гейту — около 40 мин на 2 × T4.
+
+### 22.9. Команды
+
+```powershell
+# диагностика промпта: без весов, только словарь
+llama.cpp-hiddenstates\build\bin\Release\hs-prompt-dump.exe <gguf>
+
+# гейт (master + наши правки), Kaggle
+powershell -File kaggle\gemma4_12b_hs_master\push.ps1
+powershell -File kaggle\watch.ps1 -Kernel odinodinodin/hs-gemma4-12b-master-gate `
+  -IntervalSec 60 -LogDir kaggle\gemma4_12b_hs_master\out
+
+# полный прогон (пин + правки), Kaggle: easy8 -> пилот 40 -> 6000
+powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset
+powershell -File kaggle\watch.ps1 -Kernel odinodinodin/hs-gemma4-12b `
+  -IntervalSec 60 -LogDir kaggle\gemma4_12b\out
+```
+
+Файлы: `kaggle\gemma4_12b_hs_master\` (гейт, `README.md` с механизмом и логом v2),
+`kaggle\gemma4_12b_pin_gpu\README.md` (доказательство «пин сломан, GPU-split ни при чём»),
+`kaggle\gemma4_12b_debug\` (проверки на `llama-completion`), `out\main_gemma4_12b\README-invalid.md`.
+
+## 23. Обновление llama.cpp: пин против master (шаг 17)
+
+После исправления `<bos>` локально оставлены две полные копии llama.cpp с одним и тем же
+исходником нашего инструмента:
+
+| каталог | upstream llama.cpp | назначение |
+|---|---|---|
+| `llama.cpp-hiddenstates` | `d4cff114c`, 2026-07-03, build 9869 | пин старых прогонов и точного воспроизведения |
+| `llama.cpp-hiddenstates-new` | `785322d17`, 2026-11-01 | актуальная локальная сборка для новых прогонов |
+
+Старая копия не удалена и не перезаписана. Master собран с CUDA для RTX 3050; после
+явной фиксации метаданных `llama-hidden-states.exe --version` печатает build 12033,
+commit `785322d17`. В архивной копии `.git` нет, поэтому до явного
+`-DLLAMA_BUILD_COMMIT=785322d17` CMake ошибочно подхватил коммит родительского
+репозитория `f6a0815`; это касается только строки provenance, не вычислений.
+
+### 23.1. Быстрые проверки четырёх архитектур
+
+Обе сборки прогнаны на первых 20 строках одного JSONL, `--layers all`, одинаковые флаги.
+В текущей пиновой сборке исправление `<bos>` уже есть, поэтому сравнение с шаблоном тоже
+измеряет только разницу версии llama.cpp, а не старый дефект токенизации.
+`hs-prompt-dump` дал одинаковые отрендеренные длины и token id на пине/master для трёх
+шаблонных моделей: Qwen 28/28 токенов (`add_bos=false`), Gemma 23/24 (BOS id 2), Nemotron
+32/33 (BOS id 1). Значит, дрейф ниже не объясняется разной токенизацией.
+
+| модель / режим | `l_out` | точка A: медиана `|d|` / норма | cosine A | ответы совпали | метки `filtered_b` |
+|---|---:|---:|---:|---:|---:|
+| Qwen3.5-0.8B Q4, шаблон | 24/24 | 0.17 % | 0.99746 | 15/20 | полный тест ниже |
+| Gemma 4 E2B, шаблон + BOS | 35/35 | 0.05 % | 0.99913 | 16/20 | **20/20** |
+| Nemotron 3 Nano 4B, шаблон + BOS | **17/42** | 0.03 % | 0.99980 | 18/20 | **20/20** |
+| Gemma E2B, `--no-template` | 35/35 | 0.07 % | 0.99795 | **20/20** | — |
+| Nemotron, `--no-template` | 17/42 | 0.03 % | 0.99981 | **20/20** | — |
+| gpt-oss-20b, готовые prompt/answer | 24/24 | 0.02 % | 0.99977 | 1/1 | — |
+
+Автоопределение неполного `l_out` у Nemotron на master сохранилось: выбраны те же 17
+слоёв из 42. На Qwen проверены `-fa off` и чистый CPU (`-ngl 0`): в обоих случаях
+расхождение точки A осталось 0.17 %, ответы совпали на 16/20 и 15/20 соответственно.
+Значит, причина не в flash-attention и не в CUDA. Между коммитами 2164 изменения,
+включая новые тайлинги и порядок накопления квантованных матмулов; дрейф виден уже на
+слое 0 и растёт с глубиной. Однострочный state-only smoke-test gpt-oss сохранил все 24
+`l_out`, форму `[1, 24, 2880]` и обе позиции; это проверка совместимости архитектуры, не
+повтор её полной пробы.
+
+### 23.2. Полная сверка Qwen3.5-0.8B Q4 на 6000 строках
+
+Чтобы проверить не только отдельные ответы, но и итог замороженного протокола, master
+прогнан на том же `data/main.jsonl` и тех же флагах, что `out/main_qwen08_q4`. Новый
+каталог: `out/main_qwen08_q4_master`; исходный прогон не изменялся.
+
+| | пин `d4cff114c` | master `785322d17` |
+|---|---:|---:|
+| итог | 6000/6000 ok | 6000/6000 ok |
+| время | 731.8 s (8.20 ex/s) | **590.5 s (10.16 ex/s)** |
+| `truncated` / retokenize mismatch | 22 / 38 | 27 / 37 |
+| strict | 854/5978 = 0.143 | 849/5973 = 0.142 |
+| `filtered_b` | 707/5978 = 0.118 | 700/5973 = 0.117 |
+| baseline test, logprob / entropy | 0.680 / 0.717 | **0.707 / 0.746** |
+| выбранная λ | 1000 | 300 |
+| точка / слой | **C / 13** | **C / 13** |
+| val AUROC | 0.8838 | 0.8813 |
+| test AUROC | 0.8709 [0.840, 0.900] | 0.8657 [0.835, 0.895] |
+| test AUPRC | 0.5477 | 0.5404 |
+| shuffled / слой 0 C | 0.503 ± 0.064 / 0.716 | 0.510 ± 0.081 / 0.699 |
+
+Парный bootstrap: master минус пин на тесте **−0.0054
+[−0.0225, +0.0114]**, на val −0.0023 [−0.0221, +0.0163]. Оба интервала накрывают ноль.
+Точка и слой совпали; λ изменилась, но 300 и 1000 на master отличаются по среднему val
+AUROC менее чем на 0.001. Кривые по слоям при фиксированной λ сильно согласованы:
+корреляция 0.982–0.991 для четырёх λ.
+
+Сверка сырых результатов:
+
+- `pos_a` совпал на **6000/6000** строках: длина промпта одинакова;
+- текст ответа совпал на **4503/6000 = 75.0 %**, `n_tokens` и `pos_c` — на 4796/6000;
+- метки strict и `filtered_b` совпали на **5836/6000 = 97.3 %**;
+- точка A: медиана `|d|` 0.00336 = **0.17 % нормы**, cosine median 0.99756;
+- точка C: медиана `|d|` 0.00308 = **0.13 % нормы**, cosine median 0.99832;
+- в точке A абсолютная разница растёт от `1.07e-4` на слое 0 до `1.87e-2` на слое 23,
+  но относительная после первых слоёв держится около 0.13–0.17 %.
+
+Минимальный cosine точки C не интерпретируется как ошибка раскладки: C относится к
+разным ответам на 1497 строках. Для A промпт один и тот же, минимум 0.954, медиана 0.998.
+
+### 23.3. Детерминизм и решение по обновлению
+
+Два одинаковых 20-строчных прогона master дали побайтово одинаковые `hidden_a.npy` и
+`hidden_c.npy`, одинаковые ответы и SHA-256. После чисто метаданной перелинковки
+(явный commit/build number) третий прогон также совпал побайтово с первым.
+Пин пересобран из текущего общего исходника и затем перелинкован с явными
+`d4cff114c`/build 9869; оба контрольных прогона 20 строк побайтово совпали с эталоном,
+использованным во всех сравнениях выше.
+
+Итог: master **не эквивалентен пину побитово** — численный дрейф меняет формулировку
+примерно четверти жадных ответов. Однако для замороженной пробы результат статистически
+эквивалентен: та же точка C, тот же слой 13 и ΔAUROC в пределах нуля; метки совпадают
+на 97.3 %. Поэтому `llama.cpp-hiddenstates-new` принят как локальная сборка для **новых**
+прогонов, а `llama.cpp-hiddenstates` сохранён для точного воспроизведения исторических
+результатов. Смешивать состояния двух версий в одном обучении/применении пробы без
+отдельной проверки нельзя.
+
+Полный прогон Gemma 4 12B на Kaggle в рамках этой проверки **не запускался**. Он остаётся
+на пине с исправлением `<bos>` и стартует только после отдельного разрешения.
+
+### 23.4. Артефакты и команда сверки
+
+`pipeline/compare_runs.py` сопоставляет строки по `(id, номер вхождения)` (в данных есть
+допустимый дубль `bb_956`), берёт индекс массива из `row`, сравнивает A/C, ответы,
+позиции, logprobs и метки; `--per-layer` добавляет таблицу по слоям.
+
+```powershell
+cd pipeline
+..\.venv\Scripts\python.exe compare_runs.py `
+  --a out\main_qwen08_q4 --b out\main_qwen08_q4_master --per-layer `
+  --out out\equiv\pin_vs_master_qwen08_full.json
+```
+
+Артефакты: `out/main_qwen08_q4_master/` (config, `provenance.json`, meta, labels, baseline, probe,
+`probe_model.npz`, verify), `out/equiv/pin_vs_master_*.json` (быстрые сверки и полная),
+`out/compare_qwen08q4_pin_vs_master_{test,val}.json` (парный bootstrap).

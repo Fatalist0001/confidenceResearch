@@ -52,7 +52,7 @@ WORK  = "/tmp/llama.cpp"
 MODEL = "/tmp/models/gemma-4-12b-it-Q4_K_M.gguf"
 BIN   = f"{WORK}/build/bin/llama-hidden-states"
 OUT_PILOT = "/kaggle/working/out/pilot_gemma4_12b"
-OUT_MAIN  = "/kaggle/working/out/main_gemma4_12b"
+OUT_MAIN  = "/kaggle/working/out/main_gemma4_12b_v3"
 N_PILOT   = 40
 print("src listing:", subprocess.run(f"find {SRC} -maxdepth 4 -type f | head -20",
                                      shell=True, text=True, capture_output=True).stdout)
@@ -136,6 +136,48 @@ print("rc:", p.returncode, f"wall {time.time()-t0:.0f}s")
 print(open("/kaggle/working/pilot.log", errors="replace").read()[-3000:])
 '''
 
+EASY = r'''
+# cheap sanity check of the answers themselves: the v1 gate was green while the model was
+# answering with meta-text, so count correct answers on 8 trivial questions before the big run
+QS = [
+    ("hamlet",   "Who wrote the play Hamlet?"),
+    ("paris",    "What is the capital of France?"),
+    ("math",     "What is 17 times 3?"),
+    ("monalisa", "Who painted the Mona Lisa?"),
+    ("mars",     "Which planet is known as the Red Planet?"),
+    ("gold",     "What is the chemical symbol for gold?"),
+    ("ballo",    "Who wrote the opera A Masked Ball?"),
+    ("kipling",  "Which novelist, born in Bombay in 1865, won the Nobel Prize in Literature in 1907?"),
+]
+EXPECT = {"hamlet": "shakespeare", "paris": "paris", "math": "51", "monalisa": "leonardo",
+          "mars": "mars", "gold": "au", "ballo": "verdi", "kipling": "kipling"}
+TAIL = " Answer with just the answer, no explanation."
+with open("/kaggle/working/easy8.jsonl", "w", encoding="utf-8") as f:
+    for qid, q in QS:
+        f.write(json.dumps({"id": qid, "question": q + TAIL}, ensure_ascii=False) + "\n")
+
+cmd = (f"{BIN} -m {MODEL} --batch /kaggle/working/easy8.jsonl "
+       "--generate --max-new-tokens 32 --max-len 1024 --layers 0 -ngl 99 "
+       "--out /kaggle/working/out/easy8 > /kaggle/working/easy8.log 2>&1")
+t0 = time.time()
+p = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+print("rc:", p.returncode, f"wall {time.time()-t0:.0f}s")
+print(open("/kaggle/working/easy8.log", errors="replace").read()[-2000:])
+
+rows = {}
+for line in open("/kaggle/working/out/easy8/meta.jsonl", encoding="utf-8"):
+    r = json.loads(line)
+    rows[r.get("id")] = r
+easy_ok = 0
+for qid, _ in QS:
+    r = rows.get(qid, {})
+    ans = (r.get("answer") or "").strip()
+    good = EXPECT[qid] in ans.lower()
+    easy_ok += int(good)
+    print(f"{'OK ' if good else 'BAD'} {qid:9s} -> {ans[:70]!r}")
+print(f"EASY {easy_ok}/8")
+'''
+
 GATE = r'''
 log = open("/kaggle/working/pilot.log", errors="replace").read()
 m = re.search(r"done:\s*(\d+)/(\d+)\s+ok=(\d+)\s+skipped=(\d+)\s+truncated=(\d+)\s+in\s+([\d.]+)\s*s\s*\(([\d.]+)\s*ex/s\)", log)
@@ -144,6 +186,16 @@ print("summary match:", m.groups() if m else None)
 print("shape match:", shp.groups() if shp else None)
 filtered = re.findall(r"^\d+\.\d+\.\d+ I\s+(\S+)", log, flags=re.M)
 print("non-l_out chans (sample):", sorted(set(filtered))[:5])
+
+# answers must look like answers, not like the v1 degeneration
+META_PAT = re.compile(r"the answer is the answer|the correct answer is the|the prompt asks|"
+                      r"provided text is a summary|it appears that the context", re.I)
+prows = [json.loads(l) for l in open(OUT_PILOT + "/meta.jsonl", encoding="utf-8")]
+meta_text = sum(1 for r in prows if r.get("status") == "ok" and META_PAT.search(r.get("answer") or ""))
+leak = sum(1 for r in prows if "<|channel>" in (r.get("answer") or ""))
+avg_len = sum(len((r.get("answer") or "").strip()) for r in prows) / max(1, len(prows))
+print(f"pilot answers: meta_text={meta_text} channel_leak={leak} avg_len={avg_len:.1f} chars")
+print("pilot samples:", [((r.get("answer") or "").strip()[:60]) for r in prows[:5]])
 
 if not m or not shp:
     print("GATE FAIL: no summary in pilot log -> not running full set")
@@ -155,6 +207,7 @@ else:
     print(f"ok={ok}/{total} skipped={skipped} truncated={trunc} ex/s={exs:.2f} "
           f"shape=[{n},{layers},{dim}] est_full={est_h*60:.0f} min")
     ok_run = (ok == total) and skipped == 0 and exs > 0.2 and est_h < 4.0
+    ok_run = ok_run and easy_ok >= 7 and meta_text == 0 and leak == 0
     print("GATE", "PASS" if ok_run else "FAIL")
 '''
 
@@ -162,11 +215,11 @@ MAIN = r'''
 if ok_run:
     cmd = (f"{BIN} -m {MODEL} --batch {SRC}/main.jsonl "
            "--generate --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 "
-           f"--out {OUT_MAIN} > /kaggle/working/main_gemma4_12b.log 2>&1")
+           f"--out {OUT_MAIN} > /kaggle/working/main_gemma4_12b_v3.log 2>&1")
     t0 = time.time()
     p = subprocess.run(cmd, shell=True, text=True, capture_output=True)
     print("FULL rc:", p.returncode, f"wall {time.time()-t0:.0f}s")
-    print(open("/kaggle/working/main_gemma4_12b.log", errors="replace").read()[-1500:])
+    print(open("/kaggle/working/main_gemma4_12b_v3.log", errors="replace").read()[-1500:])
 else:
     print("skipped full run by gate")
 '''
@@ -202,6 +255,7 @@ cells = [
     code("setup", SETUP),
     code("build", BUILD),
     code("download", DOWNLOAD),
+    code("easy", EASY),
     code("pilot", PILOT),
     code("gate", GATE),
     code("main", MAIN),

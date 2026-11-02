@@ -1,0 +1,50 @@
+{
+  "a": "out\\equiv\\pin_nemotron_ntpl",
+  "b": "out\\equiv\\master_nemotron_ntpl",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        17,
+        3136
+      ],
+      "rows": 20,
+      "max_abs": 5.5,
+      "median_abs_per_row": 0.005859375,
+      "median_abs_rel": 0.00025890854885801673,
+      "state_norm_median": 22.631061553955078,
+      "cosine_median": 0.9998094439506531,
+      "cosine_min": 0.9991987347602844
+    },
+    "c": {
+      "shape": [
+        17,
+        3136
+      ],
+      "rows": 20,
+      "max_abs": 5.5,
+      "median_abs_per_row": 0.005859375,
+      "median_abs_rel": 0.00025890854885801673,
+      "state_norm_median": 22.631061553955078,
+      "cosine_median": 0.9998094439506531,
+      "cosine_min": 0.9991987347602844
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 20,
+    "same_answer_frac": 1.0,
+    "same_n_tokens": 20,
+    "same_pos_a": 20,
+    "same_pos_c": 20,
+    "same_pos": 20,
+    "same_truncated": 20,
+    "logprob_max_abs": null,
+    "logprob_rows": 0,
+    "answer_diff_examples": []
+  }
+}

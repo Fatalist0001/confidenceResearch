@@ -1,0 +1,86 @@
+{
+  "a": "out\\equiv\\pin_qwen08_ntpl",
+  "b": "out\\equiv\\master_qwen08_ntpl",
+  "common_ok_rows": 20,
+  "only_in_a": [],
+  "only_in_b": [],
+  "n_only_in_a": 0,
+  "n_only_in_b": 0,
+  "states": {
+    "a": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 0.509765625,
+      "median_abs_per_row": 0.00396728515625,
+      "median_abs_rel": 0.002165907993912697,
+      "state_norm_median": 1.8316960334777832,
+      "cosine_median": 0.9955939054489136,
+      "cosine_min": 0.9883692860603333
+    },
+    "c": {
+      "shape": [
+        24,
+        1024
+      ],
+      "rows": 20,
+      "max_abs": 2.892578125,
+      "median_abs_per_row": 0.00299072265625,
+      "median_abs_rel": 0.0013075437163934112,
+      "state_norm_median": 2.287283182144165,
+      "cosine_median": 0.9981812238693237,
+      "cosine_min": 0.11886811256408691
+    }
+  },
+  "meta": {
+    "rows": 20,
+    "same_answer": 13,
+    "same_answer_frac": 0.65,
+    "same_n_tokens": 16,
+    "same_pos_a": 20,
+    "same_pos_c": 16,
+    "same_pos": 16,
+    "same_truncated": 19,
+    "logprob_max_abs": 2.661276400089264,
+    "logprob_rows": 20,
+    "answer_diff_examples": [
+      {
+        "id": "sfq_17775",
+        "a": "<think>\n\n</think>\n\nThe film is *The Godfather*.",
+        "b": "<think>\n\n</think>\n\nThe song \"Up Where We Belong\" was written by the Os"
+      },
+      {
+        "id": "qw_15528",
+        "a": "<think>\n\n</think>\n\nRabindranath Tagore\n\n(Note: The question contains a",
+        "b": "<think>\n\n</think>\n\nRabindranath Tagore\n\n(Note: While Rabindranath Tago"
+      },
+      {
+        "id": "sfq_22280",
+        "a": "<think>\n\n</think>\n\nThe novel is *Sense and Sensibility*.\n\nIn this nove",
+        "b": "<think>\n\n</think>\n\nThe novel is *Sense and Sensibility*.\n\nIn this nove"
+      },
+      {
+        "id": "qb_9568",
+        "a": "<think>\n\n</think>\n\nJoe Frazier was defeated by Joe Frazier himself to ",
+        "b": "<think>\n\n</think>\n\nJoe Frazier."
+      },
+      {
+        "id": "qw_4190",
+        "a": "<think>\n\n</think>\n\n18 February 1913",
+        "b": "<think>\n\n</think>\n\nSpain"
+      },
+      {
+        "id": "sfq_2348",
+        "a": "<think>\n\n</think>\n\nThe Humming Chorus is a famous feature of the opera",
+        "b": "<think>\n\n</think>\n\nThe opera that features the \"Humming Chorus\" is \"Th"
+      },
+      {
+        "id": "wh_833",
+        "a": "<think>\n\n</think>\n\nThe work by Dylan Thomas that starts with the words",
+        "b": "<think>\n\n</think>\n\nThe work is \"The Bell Jar\"."
+      }
+    ]
+  }
+}

@@ -239,7 +239,8 @@ Q4_K_M — в §3.14.
 | Gemma 12B v3 (Kaggle) | 48 × 3840 | 6000 / 21 | 2012.1 s | 0.572 | отложена |
 
 \* LFM3 — только по 3491 завершённой строке. LFM2.5-1.2B-Thinking дала 200/200
-обрезок в пилоте и полного прогона не имеет.
+обрезок в общем no-thinking пилоте; отдельный прогон с ограниченным reasoning budget
+запланирован.
 
 ### 3.3 Данные: TriviaQA
 
@@ -1143,9 +1144,10 @@ CPU не устранили численный дрейф, то есть это 
 
 ### 3.19 Серия LiquidAI: четыре локальных GGUF (шаг 18)
 
-Проверены все четыре файла в каталоге `LiquidAI`. Три дали пригодные полные результаты;
-LFM2.5-1.2B-Thinking при лимите 64 обрезала 200/200 строк даже после final-cue, поэтому
-полный бессмысленный прогон не запускался.
+Проверены все четыре файла в каталоге `LiquidAI`. Три дали полные no-thinking результаты.
+LFM2.5-1.2B-Thinking выбрана специально для последующего сравнения reasoning vs Instruct:
+в общем лимите 64 она обрезала 200/200 строк, поэтому полный прогон отложен до фиксации
+отдельного ограниченного reasoning budget и способа выделения final.
 
 | модель | полный прогон | `filtered_b` | baseline entropy | проба: λ / точка / слой | test AUROC |
 |---|---:|---:|---:|---:|---:|
@@ -1220,7 +1222,7 @@ shuffled 0.489 ± 0.031. От Qwen9B (−0.0109 [-0.0307,+0.0077]) и Gemma E4B 
 | Прогон и проба Nemotron 3 Nano 4B | `pipeline/out/main_nemotron3nano4b_v2/` (meta, labels, baseline, probe, config, verify.json); 17 слоёв с `l_out` из 42 |
 | Прогон и проба Qwen3.5-0.8B в Q4_K_M (якорь кванта) | `pipeline/out/main_qwen08_q4/` (meta, labels, baseline, probe, config, verify.json, `probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`) |
 | Проверка обновлённого llama.cpp на тех же 6000 строках | `pipeline/out/main_qwen08_q4_master/`; состояния/ответы — `pipeline/out/equiv/pin_vs_master_qwen08_full.json`; парный bootstrap — `pipeline/out/compare_qwen08q4_pin_vs_master_{test,val}.json` |
-| LiquidAI | `pipeline/out/main_lfm25_1p2b_instruct_q4/`, `main_lfm25_2p6b_q4_final/`, `main_lfm3_1p7b_qad_q4/`; непригодный Thinking-пилот `pilot_lfm25_1p2b_thinking_q4/` |
+| LiquidAI | `pipeline/out/main_lfm25_1p2b_instruct_q4/`, `main_lfm25_2p6b_q4_final/`, `main_lfm3_1p7b_qad_q4/`; подготовительный Thinking-пилот `pilot_lfm25_1p2b_thinking_q4/` |
 | Gemma E4B с BOS/master | `pipeline/out/main_gemma4e4b_bos_master/`; сравнение со старым `compare_gemma4e4b_old_gemma4e4b_bos_{test,val}.json` |
 | YandexGPT 5 Lite 8B | `pipeline/out/main_yandexgpt5lite8b_q4/`; сравнения `pipeline/out/compare_*_yandex8b_{test,val}.json` |
 | Сравнение квантов BF16 vs Q4 | `pipeline/out/compare_qwen08_bf16_vs_q4_{test,val}.json`; скрипт `pipeline/apply_probe_model.py` |
@@ -1694,9 +1696,11 @@ python make_lfm_final_prompt.py --in data\main.jsonl  --out data\main_lfm25_fina
 # YandexGPT 5 Lite 8B -> out\main_yandexgpt5lite8b_q4
 ```
 
-Для каждой модели сначала запускать `data\pilot.jsonl`; LFM2.5-1.2B-Thinking дала
-200/200 обрезок и не прошла гейт. После полного прогона: `verify_run.py --full` →
-`label.py` → `baseline.py` → `probe.py`. Точные команды и оговорки — `report.md` §24–27.
+Для каждой модели сначала запускать `data\pilot.jsonl`. LFM2.5-1.2B-Thinking дала
+200/200 обрезок в no-thinking режиме; для неё позже нужен отдельный протокол с
+ограниченным reasoning budget, а не обычный full-run. После полного прогона:
+`verify_run.py --full` → `label.py` → `baseline.py` → `probe.py`. Точные команды и
+оговорки — `report.md` §24–27.
 
 ### Сверка двух прогонов (например, после обновления llama.cpp)
 
@@ -1740,13 +1744,15 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
   выбраны те же C/13, а Δ test AUROC −0.0054 [−0.0225, +0.0114]. Поэтому master годится
   для новых цельных прогонов, но смешивать состояния версий или ждать побайтового
   воспроизведения старых `.npy` нельзя (§3.18, `report.md` §23).
-- **LFM2.5-1.2B-Thinking несовместима с лимитом 64:** пилот 200/200 `truncated`,
-  final-cue не помог; полный прогон намеренно не запускался. У LFM2.5-2.6B рабочий обход
-  предзаполняет `<think></think>\nFinal answer:`; её точка A поэтому нестандартна, C
-  сопоставима (§3.19, `report.md` §24).
-- **LFM3 имеет сильную выборочную потерю:** 2509/6000 (41.8%) ответов обрезаны. Probe
-  0.861 рассчитана только на 3491 завершённой строке, поэтому не описывает весь исходный
-  набор без этой оговорки.
+- **LFM2.5-1.2B-Thinking — отложенный reasoning-эксперимент:** она специально выбрана
+  как пара к Instruct; пилот 200/200 показал, что reasoning не помещается в общий лимит
+  64. Позже надо отдельно зафиксировать reasoning budget и final extraction. У
+  LFM2.5-2.6B рабочий обход предзаполняет `<think></think>\nFinal answer:`; её точка A
+  поэтому нестандартна, C сопоставима (§3.19, `report.md` §24).
+- **LFM3 имеет сильную выборочную потерю неизвестной причины:** 2509/6000 (41.8%)
+  ответов обрезаны; модель часто многословна и самоисправляется, но почему она игнорирует
+  короткую инструкцию, не установлено. Probe 0.861 рассчитана только на 3491 завершённой
+  строке и не описывает весь исходный набор без этой оговорки.
 - **Gemma 12B пока без probe:** валидные состояния, labels и baseline сохранены, но
   CPU-проба отложена по решению пользователя (§3.20, `report.md` §25).
 - **У Nemotron 3 Nano 4B `l_out` есть только на 17 слоях из 42** (`nemotron_h`:
@@ -1906,10 +1912,11 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 3. **Gemma 4 12B:** валидный полный прогон завершён (`filtered_b` 0.572, baseline
    0.813/0.826), но CPU-проба отложена по решению пользователя. Это единственный
    недосчитанный аналитический шаг (§3.20).
-4. **Серия LiquidAI завершена.** LFM2.5-1.2B и 2.6B дали одинаковый probe AUROC 0.881
-   при росте правильности 0.177→0.382; LFM3 дала 0.861, но с 41.8% обрезок. Thinking
-   1.2B несовместима с лимитом 64. MoE-варианты LFM2.5 (8B-A1B, 24B-A2B) по-прежнему
-   отпадают: в `lfm2moe.cpp` нет `l_out` (§3.19).
+4. **No-thinking часть LiquidAI завершена.** LFM2.5-1.2B и 2.6B дали одинаковый probe
+   AUROC 0.881 при росте правильности 0.177→0.382; LFM3 дала 0.861, но с 41.8% обрезок.
+   Thinking 1.2B остаётся запланированным сравнением с ограниченным reasoning budget.
+   MoE-варианты LFM2.5 (8B-A1B, 24B-A2B) по-прежнему отпадают: в `lfm2moe.cpp` нет
+   `l_out` (§3.19).
 5. **YandexGPT завершена:** C/16, test 0.906; статистически не отличается от Qwen9B и
    Gemma E4B BOS. Дальше для неё полезнее перенос на другой датасет, а не ещё один слой.
 6. **Перенос** — обучение на TriviaQA, проверка на NQ-Open без подбора параметров на нём.
@@ -2092,7 +2099,8 @@ python ..\llama.cpp-hiddenstates\examples\hidden-states\load_example.py out\main
 3. **Добавлены диагностика и сравнение:** `hs-prompt-dump` показывает рендеринг и token
    id без загрузки весов; `pipeline/compare_runs.py` сравнивает A/C, ответы, позиции,
    logprobs и метки с поддержкой дублирующихся `id`.
-4. **Прогнаны все локальные LiquidAI GGUF:** два валидных LFM2.5, LFM3 с оговоркой
-   41.8% обрезок и отрицательный Thinking-пилот (§3.19, `report.md` §24).
+4. **Проверены все локальные LiquidAI GGUF:** два полных LFM2.5, LFM3 с оговоркой
+   41.8% обрезок и подготовительный Thinking-пилот для будущего reasoning-сравнения
+   (§3.19, `report.md` §24).
 5. **Повторены Gemma E4B с BOS и YandexGPT 5 Lite 8B:** Gemma C/20 test 0.9186,
    Yandex C/16 test 0.9062 (§3.21–3.22, `report.md` §26–27).

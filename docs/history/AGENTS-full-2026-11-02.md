@@ -1,0 +1,1284 @@
+# AGENTS.md
+
+Проект: CLI-инструмент `llama-hidden-states` — извлечение скрытых состояний всех слоёв
+GGUF-модели (позиции A и C) поверх llama.cpp. Один одиночный режим + пакетный режим
+для массовых прогонов.
+
+Главный `README.md` структурно обновлён 2026-11-02. Старые ссылки на его разделы в
+исторических записях относятся к `docs/README-full-2026-11-02.md`.
+
+## Где живёт код (важно)
+
+Проект **самодостаточен**: репозиторий инициализирован в корне каталога, сюда входят
+документация и две полные копии llama.cpp **с нашим примером**:
+
+- удалённый репозиторий: <https://github.com/Fatalist0001/confidenceResearch> (private, ветка `main`, `origin`)
+- старый пин llama.cpp: `d4cff114c` (2026-07-03, build 9869); актуальная локальная копия:
+  `785322d17` (2026-11-01, build 12033)
+
+| Путь | Что это |
+|---|---|
+| `llama.cpp-hiddenstates\` | старый пин `d4cff114c`; нужен для точного воспроизведения готовых прогонов |
+| `llama.cpp-hiddenstates-new\` | master `785322d17`; основная локальная сборка для новых прогонов |
+| `llama.cpp-hiddenstates*\examples\hidden-states\hidden-states.cpp` | вся программа (~69 КБ), одинаковая в обеих копиях |
+| `llama.cpp-hiddenstates*\examples\hidden-states\CMakeLists.txt` | таргеты `llama-hidden-states`, `hs-prompt-dump` |
+| `llama.cpp-hiddenstates*\examples\hidden-states\load_example.py` | просмотр результатов |
+| `llama.cpp-hiddenstates*\examples\CMakeLists.txt` | **изменён на одну строку**: `add_subdirectory(hidden-states)` |
+| `report.md` | полный отчёт: задача, реализация, форматы выходов, таблица проверок |
+| `.gitignore` | из копии llama.cpp отслеживаются **только** наши файлы, всё остальное игнорируется |
+
+**Что в коммит репозитория (корень), а что в игноре:**
+
+- отслеживается: `AGENTS.md`, `report.md`, `.gitignore`, наши файлы в
+  `llama.cpp-hiddenstates*/examples/hidden-states/` и строка `add_subdirectory` в обоих
+  `examples/CMakeLists.txt`;
+- игнорируется: весь остальной upstream внутри обеих копий — `src\`, `common\`,
+  `vendor\`, `build\`, `.git`-файлы и пр.
+
+У обеих копий `.git` **удалён**: родительский репозиторий не может отслеживать файлы
+внутри вложенного репозитория. Upstream-история доступна в `D:\llama.cpp`.
+
+Собранные бинарники:
+
+- пин: `llama.cpp-hiddenstates\build\bin\Release\llama-hidden-states.exe`;
+- master: `llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe`.
+
+Архивная копия без `.git` может ошибочно подхватить commit родительского репозитория.
+Коммит задавать явно: пин — `-DLLAMA_BUILD_COMMIT=d4cff114c -DLLAMA_BUILD_NUMBER=9869`,
+master — `-DLLAMA_BUILD_COMMIT=785322d17 -DLLAMA_BUILD_NUMBER=12033`; `--version`
+должен печатать соответствующие значения.
+
+Тестовые данные и артефакты: `C:\Windows\TEMP\opencode\hsbatch\`.
+
+## Сборка
+
+Каталог `build\` уже сконфигурирован (переконфигурация нужна только после правок
+`CMakeLists.txt`). Сборка многопоточная:
+
+```powershell
+$LL = "D:\VScode_pr\confidenceResearch\llama.cpp-hiddenstates-new"
+cmake -S $LL -B $LL\build -DGGML_CUDA=ON -DGGML_CUDA_GRAPHS=ON -DGGML_CUDA_NCCL=ON `
+  -DLLAMA_BUILD_COMMIT=785322d17 -DLLAMA_BUILD_NUMBER=12033
+cmake --build $LL\build --config Release --target llama-hidden-states -- /m
+```
+
+Результат: `$LL\build\bin\Release\llama-hidden-states.exe`.
+
+Генератор VS 2022, конфиг Release, бэкенд CUDA (`GGML_CUDA=ON`).
+Для пина заменить каталог на `llama.cpp-hiddenstates`, commit на `d4cff114c`, build на 9869.
+Окружение тестов: Windows / PowerShell, GPU RTX 3050 (6 ГБ),
+модель `D:\Lm studio\.lmstudio\models\lmstudio-community\gemma-4-E2B-it-GGUF\gemma-4-E2B-it-Q4_K_M.gguf`
+(arch `gemma4`, 35 слоёв, D=1536, SWA 512).
+
+## Запуск
+
+Одиночный режим (v1, поведение заморожено — не менять):
+
+```
+llama-hidden-states.exe -m <gguf> -p "<вопрос>" [--answer "<ответ>"] \
+    [--out <dir|foo.npy>] [--point-a N] [--dump-tensors] [-b N -ub N -c N -ngl N]
+```
+
+Пакетный режим (v2):
+
+```
+llama-hidden-states.exe -m <gguf> --batch input.jsonl --out <dir> \
+    [--generate] [--max-new-tokens N] [--max-len N] [--no-template] \
+    [--no-thinking | --thinking] [--layers all|4,8,12|step=2]
+```
+
+Вход пакетного режима — JSONL: `{"id","question","answer"?}` плюс **любые
+неизвестные ключи, они копируются в meta.jsonl без изменений**.
+
+Выход: `hidden_a.npy`, `hidden_c.npy` (float16, `[N, L_sel, D]` в v2 / `[L, D]` в v1),
+`meta.jsonl`, `config.json`.
+
+Просмотр: `python llama.cpp-hiddenstates\examples\hidden-states\load_example.py <out_dir> --k 3`.
+
+## Актуальный operational runbook для новой модели
+
+Этот раздел — главный источник команд. Исторические команды ниже нужны для контекста и
+могут содержать старые пути/теги. Протокол **заморожен**: один вектор слоя в A или C,
+стандартизация по train, L2-logistic probe, λ `{100,300,1000,3000}`, λ по среднему val
+AUROC, точка/слой по max val AUROC, test один раз.
+
+### 0. Переменные и тег
+
+Все команды выполнять из `pipeline\`:
+
+```powershell
+cd D:\VScode_pr\confidenceResearch\pipeline
+
+$PY    = '.\.venv\Scripts\python.exe'
+$BIN   = '..\llama.cpp-hiddenstates-new\build\bin\Release\llama-hidden-states.exe'
+$DUMP  = '..\llama.cpp-hiddenstates-new\build\bin\Release\hs-prompt-dump.exe'
+$MODEL = 'D:\path\model.gguf'
+$TAG   = 'model_size_quant'              # без main_/pilot_
+$PILOT_INPUT = 'data\pilot.jsonl'
+$MAIN_INPUT  = 'data\main.jsonl'
+$PILOT = "out\pilot_$TAG"
+$MAIN  = "out\main_$TAG"
+```
+
+Имена не повторять. Если `$PILOT` или `$MAIN` уже существуют, выбрать новый тег; не
+запускать resume поверх финального каталога.
+
+### 1. Preflight до загрузки весов
+
+```powershell
+& $BIN --version
+& $DUMP $MODEL
+
+& $PY -c "import json; p=r'$MAIN_INPUT'; r=[json.loads(x) for x in open(p,encoding='utf-8') if x.strip()]; print('rows',len(r),'empty',sum(not x.get('question','').strip() for x in r),'bad_instruction',sum(x.get('question','').count('Answer with just the answer')!=1 for x in r),'duplicate_ids',len(r)-len(set(x['id'] for x in r))); print('first',repr(r[0]['question'])); print('last',repr(r[-1]['question']))"
+
+if (Test-Path $PILOT) { throw "pilot output already exists: $PILOT" }
+if (Test-Path $MAIN)  { throw "main output already exists: $MAIN" }
+```
+
+Ожидания:
+
+- `--version`: build 12033, commit `785322d17`;
+- `rows=6000`, `empty=0`, `bad_instruction=0`, `duplicate_ids=1` (`bb_956` — норма);
+- `hs-prompt-dump`: понятный prompt, правильный BOS, одинаковое число инструкции;
+- глазами проверить первые 2–3 вопроса, начало/конец prompt и отсутствие дубля инструкции.
+
+### 2. Пилот 200
+
+```powershell
+& $BIN -m $MODEL `
+  --batch $PILOT_INPUT --generate `
+  --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out $PILOT > "$PILOT.log" 2>&1
+
+Select-String -Path "$PILOT.log" `
+  -Pattern 'l_out is available|model: n_layer|done:|retokenize mismatch|shape='
+```
+
+Обязательный gate перед 6000:
+
+- `done: 200/200`, `ok=200`, `skipped=0`;
+- формы `[200, L, D]`, ожидаемое число `l_out`;
+- посчитать `truncated`, пустые ответы, `retokenize mismatch`;
+- прочитать минимум 10 ответов, включая обрезанные/короткие;
+- проверить мета-текст, `<think>`, `</think>`, `<|channel>`, повторы;
+- оценка времени main ≈ pilot × 30; сильное отклонение позже документировать;
+- если почти все строки `truncated`/мусорные — main **не запускать**, сначала выяснить
+  шаблон, BOS, sampler/reasoning.
+
+Быстрая пилотная разметка:
+
+```powershell
+& $PY label.py --meta "$PILOT\meta.jsonl" --out "$PILOT\labels.csv"
+```
+
+### 3. Полный прогон 6000
+
+```powershell
+& $BIN -m $MODEL `
+  --batch $MAIN_INPUT --generate `
+  --max-new-tokens 64 --max-len 1024 --layers all -ngl 99 `
+  --out $MAIN > "$MAIN.log" 2>&1
+
+Select-String -Path "$MAIN.log" `
+  -Pattern 'done:|retokenize mismatch|shape=' | Select-Object -Last 8
+```
+
+Не использовать `Tee-Object`: у Qwen9B вывод в консоль замедлял прогон примерно втрое.
+Не задавать `-b/-ub`: пакетный режим сам ставит их равными `--max-len`.
+
+Ожидания:
+
+- `done: 6000/6000`, `ok=6000`, `skipped=0`;
+- две формы `[6000, L, D]`;
+- итоговые `truncated`, mismatch, время и ex/s выписать в README каталога;
+- не удалять строки и не «чинить» ответы после прогона.
+
+### 4. Разметка и проверка каталога
+
+Порядок важен: сначала `labels.csv`, затем `verify_run.py`, потому что verify проверяет
+классы и splits меток.
+
+```powershell
+& $PY label.py `
+  --meta "$MAIN\meta.jsonl" `
+  --out "$MAIN\labels.csv"
+
+& $PY verify_run.py `
+  --dir $MAIN --input $MAIN_INPUT `
+  --json "$MAIN\verify.json" --full
+```
+
+Gate:
+
+- `verify: OK: 0 failed, 0 warnings`;
+- meta/labels по 6000 строк, row без дыр;
+- формы/dtype совпадают с config;
+- нет NaN/Inf, all-zero ok-строк и нулевых слоёв;
+- `filtered_b` имеет оба класса во всех train/val/test;
+- `null = truncated + пустые/вырожденные` с объяснением расхождения;
+- аномальные ответы оставить в файлах и перечислить в README каталога/report.
+
+### 5. Baseline
+
+```powershell
+& $PY baseline.py `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\baseline.json" `
+  --scores-out "$MAIN\baseline_scores.csv"
+```
+
+Записать test AUROC/AUPRC logprob и entropy, base rate, Brier/ECE. Служебный первый токен
+может давать плохую сырую `exp(lp0)` — ranking AUROC при этом остаётся валидным.
+
+### 6. Probe
+
+Не запускать одновременно с локальной GPU-генерацией: CPU/RAM-нагрузка замедляет оба
+процесса.
+
+```powershell
+& $PY probe.py `
+  --hidden-a "$MAIN\hidden_a.npy" `
+  --hidden-c "$MAIN\hidden_c.npy" `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\probe.json" `
+  --curve-out "$MAIN\probe_curve.csv" `
+  --scores-out "$MAIN\probe_scores.csv" `
+  --model-out "$MAIN\probe_model.npz"
+```
+
+Проверить:
+
+- λ выбрана только по среднему val AUROC;
+- точка/слой выбраны только по val;
+- test посчитан один раз, по нему ничего не перевыбирать;
+- shuffled test AUROC примерно 0.5;
+- layer 0 обычно ниже победителя; если нет — описать, не подгонять;
+- val→test gap обычно не больше ~0.04; любое отклонение документировать;
+- `probe_scores.csv` содержит val+test, `probe_model.npz` существует;
+- победитель на слое 0 или результат около baseline — допустимый научный результат.
+
+Если старый валидный каталог не содержит `probe_model.npz`, восстановить его без изменения
+протокола: `& $PY save_probe_model.py --dir $MAIN`.
+
+### 7. Проверка детерминизма probe
+
+Оригинальные `probe.*` не перезаписывать:
+
+```powershell
+& $PY probe.py `
+  --hidden-a "$MAIN\hidden_a.npy" `
+  --hidden-c "$MAIN\hidden_c.npy" `
+  --meta "$MAIN\meta.jsonl" `
+  --labels "$MAIN\labels.csv" `
+  --out "$MAIN\probe2.json" `
+  --curve-out "$MAIN\probe2_curve.csv" `
+  --scores-out "$MAIN\probe2_scores.csv" `
+  --model-out "$MAIN\probe2_model.npz"
+
+Get-FileHash "$MAIN\probe_curve.csv", "$MAIN\probe2_curve.csv" -Algorithm SHA256
+Get-FileHash "$MAIN\probe_scores.csv", "$MAIN\probe2_scores.csv" -Algorithm SHA256
+```
+
+Ожидание: пары SHA-256 равны, λ/точка/слой и метрики те же. Повтор нужен только как
+контроль реализации; он не разрешает менять выбор по test.
+
+### 8. Парное сравнение с референсом
+
+```powershell
+$REF = 'out\main_qwen08_q4\probe_scores.csv'
+
+& $PY compare_probes.py --a $REF --b "$MAIN\probe_scores.csv" `
+  --split test --out "out\compare_ref_${TAG}_test.json"
+
+& $PY compare_probes.py --a $REF --b "$MAIN\probe_scores.csv" `
+  --split val --out "out\compare_ref_${TAG}_val.json"
+```
+
+Bootstrap парный по row, но у моделей собственные ответы и метки. ΔAUROC отражает и
+разные ошибки/доли правильных, а не только «качество направления». AUPRC моделей с
+разным base rate напрямую не сравнивать.
+
+Для переноса сохранённой пробы на другой прогон той же модели/размерности:
+
+```powershell
+& $PY apply_probe_model.py `
+  --model "out\main_<source>\probe_model.npz" `
+  --dir "out\main_<target>" --split test `
+  --out "out\probe_<source>_on_<target>_test.json"
+```
+
+Если $D$ не совпадает, перенос весов невозможен без отдельного выравнивания пространств.
+Для проверки двух версий одного и того же прогона:
+
+```powershell
+& $PY compare_runs.py `
+  --a "out\main_<old>" --b "out\main_<new>" --per-layer `
+  --out "out\compare_runs_<old>_<new>.json"
+```
+
+### 9. Минимальный README одного прогона
+
+В `out\main_<tag>\README.md` записать:
+
+- точный GGUF, квант, arch, llama.cpp commit/build, команду и особый prompt;
+- `ok/skipped/truncated/mismatch`, время/ex/s, форму массивов;
+- strict/relaxed/filtered_a/filtered_b, null и аномалии ответов;
+- baseline lp/entropy test;
+- λ, точку/слой, val/test AUROC, CI, AUPRC, Brier/ECE;
+- shuffled/layer0, плато соседних слоёв, val→test gap;
+- парные сравнения и все ограничения выборки.
+
+После этого обновить краткую таблицу/выводы в корневом `README.md`, подробный раздел в
+`report.md`, текущее состояние здесь. В git добавлять meta/config/labels/baseline/probe,
+README и сравнения; `.npy`, логи, Kaggle output и `_build` игнорируются. Перед commit:
+`git diff --check`, проверка JSON/CSV, `git status` без посторонних файлов.
+
+### 10. Модельные исключения: команды и gates
+
+#### Qwen3.5-9B
+
+Полностью помещается в 6 ГБ только с `-ngl 99`; пик около 5860 MiB. Писать лог только в
+файл, не в `Tee-Object`. Остальная команда стандартная.
+
+#### Nemotron 3 Nano 4B
+
+Команда стандартная `--layers all -ngl 99`. Ожидать auto-filter: 42 requested → 17
+доступных `l_out`, форма `[N,17,3136]`. Обязательно `verify_run.py --full`; 42 нулевых
+слоя или массовый skipped означают старый дефектный бинарник.
+
+#### gpt-oss-20b
+
+Сначала подготовить harmony prompt с предзаполненным `final`; обычный template/reasoning
+не использовать:
+
+```powershell
+& $PY make_gptoss_prompt.py `
+  --in data\pilot.jsonl --out data\pilot_gptoss_final.jsonl
+& $PY make_gptoss_prompt.py `
+  --in data\main.jsonl --out data\main_gptoss_final.jsonl
+
+$PILOT_INPUT = 'data\pilot_gptoss_final.jsonl'
+$MAIN_INPUT  = 'data\main_gptoss_final.jsonl'
+
+& $BIN -m $MODEL --batch $PILOT_INPUT `
+  --generate --max-new-tokens 64 --max-len 1024 --layers all `
+  --no-thinking --no-template --batch-rows 8 -ngl 11 `
+  --out $PILOT > "$PILOT.log" 2>&1
+
+& $BIN -m $MODEL --batch $MAIN_INPUT `
+  --generate --max-new-tokens 64 --max-len 1024 --layers all `
+  --no-thinking --no-template --batch-rows 8 -ngl 11 `
+  --out $MAIN > "$MAIN.log" 2>&1
+```
+
+До main проверить, что инструкция в готовом prompt ровно одна. `-ngl 12+` на RTX 3050
+вызывает shared-memory spill и замедление. A — последний токен prefilled final.
+
+#### LFM2.5-2.6B
+
+Штатный шаблон открывает `<think>` даже при no-thinking. Готовить отдельный вход:
+
+```powershell
+& $PY make_lfm_final_prompt.py `
+  --in data\pilot.jsonl --out data\pilot_lfm25_final.jsonl
+& $PY make_lfm_final_prompt.py `
+  --in data\main.jsonl --out data\main_lfm25_final.jsonl
+
+$PILOT_INPUT = 'data\pilot_lfm25_final.jsonl'
+$MAIN_INPUT  = 'data\main_lfm25_final.jsonl'
+
+& $BIN -m $MODEL --batch $PILOT_INPUT `
+  --no-template --generate --max-new-tokens 64 --max-len 1024 `
+  --layers all -ngl 99 --out $PILOT > "$PILOT.log" 2>&1
+
+& $BIN -m $MODEL --batch $MAIN_INPUT `
+  --no-template --generate --max-new-tokens 64 --max-len 1024 `
+  --layers all -ngl 99 --out $MAIN > "$MAIN.log" 2>&1
+```
+
+A — последний токен `Final answer:`, C стандартная. Проверить идемпотентность входа и
+однократную инструкцию.
+
+#### LFM2.5-1.2B-Thinking
+
+Не запускать обычный full-run: no-thinking pilot дал 200/200 truncated. Модель выбрана
+для будущего reasoning-vs-Instruct эксперимента. Сначала отдельно зафиксировать reasoning
+budget, final budget, остановку/извлечение final и правила точки C; старый frozen-протокол
+не менять молча.
+
+#### LFM3-1.7B
+
+Стандартный no-thinking prompt верен, но 41.8% строк не завершились за 64 токена.
+Наиболее вероятны нестабильный `enable_thinking=false`, raw argmax без встроенных
+`temp=0.1/top_k=50/repeat_penalty=1.1` и короткий budget. Перед новым full-run сделать
+дешёвый `llama-cli` pilot на том же локальном GGUF и официальном sampler; модель заново
+не скачивать. Текущий `llama-hidden-states` sampling-флаги при генерации игнорирует.
+
+#### Gemma E2B/E4B и YandexGPT
+
+Использовать master-бинарник, штатный template и `-ngl 99`; BOS добавляется автоматически.
+До main `hs-prompt-dump` должен показывать `add_bos=true` и первый BOS id. Старые Gemma
+E2B/E4B/Nemotron без BOS не перезаписывать: это отдельные исторические результаты.
+
+#### Gemma 4 12B на Kaggle
+
+```powershell
+cd D:\VScode_pr\confidenceResearch
+
+# Перед стартом
+$env:KAGGLE_API_TOKEN = ((Get-Content .env | `
+  Select-String '^KAGGLE_API_TOKEN=').Line -replace '^KAGGLE_API_TOKEN=','').Trim()
+& 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe' quota
+
+# Обновить dataset + запустить kernel
+powershell -File kaggle\gemma4_12b\push.ps1
+
+# Ждать завершения, снять лог и новую квоту
+powershell -File kaggle\watch.ps1 `
+  -Kernel odinodinodin/hs-gemma4-12b `
+  -IntervalSec 60 -LogDir kaggle\gemma4_12b\out
+
+# Скачать в новый каталог версии, не поверх старой выгрузки
+$KAG = 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe'
+& $KAG kernels output odinodinodin/hs-gemma4-12b `
+  -p "kaggle\gemma4_12b\out\v<N>"
+```
+
+Kernel сам выполняет easy8 → pilot40 → gate → main. Gate: easy ≥7/8, pilot ok/skipped,
+0 мета-текста/channel leak, скорость и оценка <4 ч. После копирования main в новый
+`pipeline\out\main_<tag>` запускать verify с явным `--input data\main.jsonl`, потому что
+config содержит Kaggle-путь `/kaggle/input/...`.
+
+Для текущего `main_gemma4_12b_v3` probe отложена по решению пользователя: не запускать её
+автоматически после baseline без нового явного указания.
+
+### 11. Численные ориентиры — не цели
+
+Актуальная общая таблица находится в корневом `README.md`. Типичные здоровые признаки:
+
+- shuffled AUROC около 0.5;
+- победитель чаще C и около 50% глубины, но иной результат допустим;
+- test AUROC однослойной пробы обычно 0.86–0.94;
+- соседние слои часто отличаются на 0.004–0.01;
+- test может быть выше val; это описывать, а не исправлять;
+- рост правильности не обязан повышать probe AUROC.
+
+Нельзя менять λ-сетку, точки, split или слой ради попадания в эти ориентиры.
+
+## Модель gpt-oss 20B (отключение reasoning, скорость)
+
+`gpt-oss-20b-MXFP4.gguf` (12.1 ГБ, arch `gpt-oss` = `LLM_ARCH_OPENAI_MOE`, 24 слоя, D=2880,
+`l_out` поддержан). Проверено 2026-10-21 на RTX 3050 6 ГБ / 16 ГБ ОЗУ.
+
+**Штатные флаги reasoning не работают:**
+- `--no-thinking` шаблон gpt-oss игнорирует — в промпте всё равно `Reasoning: medium`;
+- `--reasoning on|off` и `--reasoning-budget` действуют через сэмплер, а генерация в
+  инструменте — сырой greedy-argmax без сэмплера (`hidden-states.cpp:846-884`);
+- `--chat-template-kwargs` инструмент не передаёт (`common_chat_templates_apply` без kwargs).
+
+**Рабочий обход без правок кода — предзаполнить канал `final`:** в новом JSONL заменить
+`question` на готовый harmony-промпт (все остальные ключи строки сохранить), запускать
+с `--no-template`. Промпт (одна строка, без переводов внутри):
+
+```
+<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
+Knowledge cutoff: 2024-06
+Current date: <дата>
+
+Reasoning: medium
+
+# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|><|start|>user<|message|><вопрос>
+Answer with just the answer, no explanation.<|end|><|start|>assistant<|channel|>final<|message|>
+```
+
+```powershell
+llama-hidden-states.exe -m gpt-oss-20b-MXFP4.gguf --batch <final.jsonl> `
+  --generate --max-new-tokens 64 --max-len 1024 --layers all --no-thinking --no-template `
+  -ngl 11 --out out\main_gptoss20b
+```
+
+Модель продолжает сразу в `final`: рассуждений нет, ответы 1–27 токенов, разметка
+работает. Проверка на 20 вопросах пилота: 20/20 ok, 0 `truncated`, strict 10/20;
+варианты `Reasoning: medium|low|без строки` дают одинаковый текст. Точка A при этом —
+последний токен нашего промпта (`<|message|>` канала final), а не `<|start|>assistant`;
+это осознанное отклонение, иначе 64 токена уходят в `analysis` и всё обрезается
+(0/8 при 64, 4/8 при 128).
+
+**Скорость и память (20 строк, `--max-new-tokens 64`):**
+
+| `-ngl` | с/строка | пик VRAM | примечание |
+|---|---|---|---|
+| 9 | 2.95 | ~5.5 ГБ | |
+| 10 | 2.79 | 5.75 ГБ | |
+| **11** | **2.71** | **5.79 ГБ** | оптимум |
+| 12 | 6.5–7.8 | 5.79 ГБ | вытеснение в shared memory, в 2.3–2.9 раза медленнее |
+| 13 | 5.8–6.3 | 5.75 ГБ | то же |
+
+Вес слоя — 431.8 МиБ (ffn 405, attn 27), поэтому 11 слоёв ≈ 4.6 ГБ + буферы.
+`--max-len 256/512`, `-t 12`, `-tb 16`, `-fa on` скорость не меняют; два процесса
+параллельно (по `-ngl 5`) дают 40 строк за 277 с вместо 108 с — хуже. GPU занят на
+81 %, 46 Вт — не по мощности, а по эффективности ядер MXFP4. Полный прогон 6000:
+**~4.5–5 ч** (0.36–0.37 ex/s). Дальнейшее ускорение — только правки кода (батчирование
+строк в один ubatch, отказ от второго прохода состояний), не флаги.
+
+### Батчирование строк (`--batch-rows`): статус 2026-10-22 (закоммичено, 3a9ac41)
+
+**Сделано.** Флаг `--batch-rows N` (по умолчанию 1 — прежнее поведение): K строк идут
+одним `llama_decode` (`seq_id` на строку, позиции локальные), состояния A/C читаются из
+`l_out` по маппингу `row = seq_off[s] + pos`. Последовательности падятся EOS до равной
+длины `L_pad`, поэтому `l_out rows == total` (один ubatch). Батчится и генерация:
+промпты группы идут префиллом кусками ≤ `max_len` токенов, шаги — по одному токену на
+активную строку одним decode; `logprobs`/`entropies`/`truncated`/`n_retok` ведут себя
+как раньше. `n_batch = n_ubatch = max_len` сохранён, группа состояний режется так,
+чтобы `K*L_pad ≤ max_len`.
+
+**Раскладка подтверждена — seq-major.** Дамп слоя 0 при K=4: строки, равные row0, —
+это `[0, 108]`; A/C из захвата совпали со строками 105/213/321/429 (diff 0.01 = fp16).
+Гипотеза pos-major опровергнута.
+
+**Батч ≠ одиночный проход численно (раскладка верна).** Слой 0: median absdiff 3.8e-6
+(округление fp16), растёт с глубиной, усиливается MoE-роутингом; относительно нормы
+0.1–0.5 %, cosine median 1.00000, min 0.9987 (200 строк, A b8 vs эталон). Утечки между
+строками нет: состояние seq0 не зависит от соседа (diff 0.0). Не влияют `--swa-full`,
+`kv_unified`, CPU/GPU. Детерминизм: два прогона b8 → `hidden_a.npy`, `hidden_c.npy`,
+`meta.jsonl`, `config.json` побайтово равны.
+
+**Снят ложный симптом «batch K=1 vs v1 = 652»**: разная токенизация промпта (argv
+многострочный → 106 токенов, тот же в одну строку → 105). При одинаковых токенах
+(`nl.jsonl`, 107) слои 0–22 совпадают точно, слой 23 — 0.25 (C 0.06).
+
+**Замеры, 200 строк** (`gptoss20b_final200_ans.jsonl`, только состояния;
+`gptoss20b_final200_q.jsonl`, с генерацией):
+
+| режим | `--batch-rows` | время, с | ex/s | к b1 |
+|---|---|---|---|---|
+| только состояния | 1 | 229.5 / 268.3* | 0.87 | — |
+| только состояния | 4 | 68.6 / 96.9* | 2.91 | ×3.3 |
+| только состояния | 8 | 43.7 / 76.7* | 4.58 | ×5.2 |
+| с генерацией | 1 | 533 | 0.37 | — |
+| с генерацией | 4 | 235.2 | 0.85 | ×2.3 |
+| с генерацией | 8 | 193.2 | 1.04 | ×2.8 |
+
+\* второй сеанс, GPU под нагрузкой/троттлингом. State-only b8 после правок — 44.9 с
+(4.46 ex/s), массивы побайтово совпадают с прежней сборкой.
+
+**Ответы и метки.** b1 побайтово совпадает с прежним одиночным эталоном (0 расхождений
+на 20). b8: 170/200 ответов совпадают текстово, 30 отличаются формулировкой
+(`Rudyard Kipling` с тонким пробелом, кавычки, «specifically» и т.п.), но метки по
+замороженным определениям — **0 расхождений** на 200 (strict / relaxed / filtered_a /
+filtered_b / correct). 20 строк: 0 skipped, 0 truncated; смесь строк с ответами и без —
+10/10; при `--max-len 64` все строки skipped с прежней причиной, код возврата 0.
+
+Артефакты: `C:\Windows\TEMP\opencode\hsbatch\` (`gen200q_b8_batched5` — эталон b8 с
+генерацией, `gen200q_b4_batched`, `gen20_b8_v6/v7` — детерминизм, `gen20_b1_v2` —
+регрессия b1, `ans200_b8_v2`, `mix10_b8`, `skip_len64`, `odql_dup8_b8`; старые
+`gen200q_b8`, `ans200_b1/b4/b8`, `final20`, `dup2*`, `v1_p*`). Входы:
+`gptoss20b_final20.jsonl`, `gptoss20b_final20_ans.jsonl`, `gptoss20b_final200_ans.jsonl`,
+`gptoss20b_final200_q.jsonl`, `mix_ans_q10.jsonl`, `odql_dup8.jsonl`.
+
+### Полный прогон 6000 с батчингом (2026-10-22)
+
+Вход `gptoss20b_final6000_q_v2.jsonl` (собран `pipeline/make_gptoss_prompt.py`,
+инструкция ровно один раз), флаги `--generate --max-new-tokens 64 --max-len 1024
+--layers all --no-thinking --no-template -ngl 11 --batch-rows 8`.
+
+| | значение |
+|---|---|
+| итог | **6000/6000 ok, 0 skipped, `truncated` 27 (0.45 %)** |
+| время | **10733.5 s, 0.56 ex/s** (первые ~2100 строк — 1.06 ex/s) |
+| `retokenize mismatch` | 21/6000 (0.3 %) |
+| массивы | `[6000, 24, 2880]` f16, по 829.4 МБ |
+| разметка | strict 0.494, filtered_b 0.490, null 27 (все `truncated`) |
+| baseline test | logprob 0.828, entropy 0.841 |
+| проба | λ = 3000, **C / 16**, val 0.9157, test **0.9248** [0.909, 0.939], AUPRC 0.9197 |
+| контроли | перемешанные метки 0.494 ± 0.074, слой 0 C 0.684 |
+
+Падение темпа во второй половине — нехватка RAM (свободно 0.7–1 ГБ из 16 при 12 ГБ
+процесса), GPU 99 %, 53 °C, без троттлинга; тот же набор до исправления входа прошёл за
+5596 s (1.07 ex/s). Каталоги: `pipeline\out\main_gptoss20b_v2` — действительный прогон;
+`main_gptoss20b` (325/6000, остановлен) и `main_gptoss20b_dupinstr` (дефектный промпт) —
+не используются. Пилоты малых моделей: `hsbatch\qwen_p20_*`, `gemma_p20_*` (b8 корректен,
+но выигрыш ~×1.2, у Gemma 3/20 ответов иначе при 0 расхождений меток).
+
+## Модели с неполным `l_out` (nemotron_h) и проверка прогона
+
+`NVIDIA-Nemotron-3-Nano-4B` (arch `nemotron_h`, 42 слоя, D=3136) — гибрид: `l_out`
+эмитится только в `build_ffn_layer` (`src/models/nemotron-h.cpp:255`), поэтому он есть
+лишь на 17 слоях: `1,3,5,8,10,13,15,18,20,22,25,27,29,33,37,39,41`. SSM/attention слои
+отдают только `nemotron_h_block_out`.
+
+**Инцидент.** Старый код требовал захвата **всех** выбранных слоёв
+(`st.n_cap_c != L_sel` → skipped). `--layers all` выбирал 42 слоя, захватывалось 17,
+и каждая строка писалась как `skipped`, а в массивах оставались нули. Так потеряны
+`out\main_nemotron3nano4b` (5269 строк, 2.7 ч) и `out\pilot_nemotron3nano4b`
+(там же перезапуск в тот же каталог перезаписал `config.json`); оба помечены
+`README-invalid.md`, в анализ не идут, но не удаляются.
+
+**Что исправлено (2026-10-27):**
+
+- Перед прогоном инструмент делает один пробный decode на BOS, собирает реально
+  существующие `l_out-N` и выбрасывает выбранные слои без `l_out` (предупреждение в
+  лог, исходный список — в `config.json` как `layers_requested`). Если `l_out` есть на
+  всех слоях, поведение не меняется.
+- `write_skipped` больше не затирает сгенерированный ответ: `generated`, `truncated`,
+  `n_tokens`, `pos_a`, `pos_c`, `logprobs`, `entropies` пишутся как есть.
+- `probe.py` индексирует массивы по `row` из meta (а не по позиции в файле), сверяет
+  формы, `n_embd` и список слоёв с `config.json`, пропускает all-zero слои и падает с
+  внятной ошибкой, если в каком-то сплите нет строк.
+- `baseline.py`/`probe.py` сообщают номер битой строки meta вместо трейсбека; sigmoid
+  не переполняется на больших скорах.
+- Новый `pipeline/verify_run.py` — единая проверка каталога прогона (см. таблицу
+  проверок). Запускать **до** `probe.py`.
+
+**Первый валидный прогон** (`out\pilot_nemotron3nano4b_v2`, 200 строк,
+`--layers all -ngl 99`, batch-rows 1): 200/200 ok, 0 skipped, 0 truncated, 44.7 с
+(4.48 ex/s), массив `[200, 17, 3136]`, `verify_run.py --full` проходит. Разметка:
+strict 64/200 = 0.320, filtered_b 62/200 = 0.310; baseline test — logprob 0.801,
+entropy 0.831. Пилотная проба (120/40/40): λ=100, C / слой 13 (индекс 5), val 0.851,
+test 0.701 (7 положительных, интервал широкий) — это проверка конвейера, не результат.
+
+Батчинг здесь не помогает: 50 строк, `--batch-rows 1` — 10.4 с, `--batch-rows 4` —
+10.4 с (доминирует генерация). Ориентир полного прогона 6000: 25–60 мин.
+
+### Полный прогон 6000 (2026-10-28)
+
+`out\main_nemotron3nano4b_v2`, флаги `--generate --max-new-tokens 64 --max-len 1024
+--layers all -ngl 99` (batch-rows 1):
+
+| | значение |
+|---|---|
+| итог | **6000/6000 ok, 0 skipped, `truncated` 5 (0.08 %)** |
+| время | **1320.6 s (22 мин), 4.54 ex/s** |
+| `retokenize mismatch` | 19/6000 (0.3 %) |
+| массивы | `[6000, 17, 3136]` f16, по 610 МБ |
+| `layers_requested` | 42 → `layers` 17 |
+| разметка | strict 0.295, filtered_b 0.285, null 5 (все `truncated`) |
+| baseline test | logprob 0.802, entropy 0.816 |
+| проба | λ = 3000, **C / слой 20** (49 %), val 0.9059, test **0.8819** [0.860, 0.901], AUPRC 0.7357 |
+| контроли | перемешанные метки 0.481 ± 0.035, слой 0 C 0.650 |
+
+Место среди моделей: по времени Nemotron — самый медленный из трёх прогонов малых
+моделей, но разрыв мал: 1320.6 s против 1258.1 s (Gemma) и 1287.1 s (Qwen), 3–5 %;
+gpt-oss — 10733.5 s (3 ч).
+По качеству проб Nemotron между малой парой и 20B: лучше Qwen (+0.026 AUROC, интервал
+задевает ноль), хуже Gemma (−0.054) и gpt-oss (−0.043). Полные таблицы — `report.md` §17,
+`README.md` §3.12. Кросс-скоры: `out\cross_*_nemotron_{test,val}.json`.
+
+## Квантование: Q4_K_M как единый формат серии (2026-10-28)
+
+**Договорённость:** все модели серии Qwen 3.5 качаются в **Q4_K_M от unsloth** (BF16 для
+4B+ не влезает в 6 ГБ VRAM). Основание — якорная проверка на модели, у которой есть оба
+кванта: Qwen3.5-0.8B, BF16 (`out\main_qwen08`) vs Q4_K_M (`out\main_qwen08_q4`), одинаковый
+вход, одинаковые флаги.
+
+| | BF16 | Q4_K_M |
+|---|---|---|
+| время | 1287.1 s (4.66 ex/s) | **731.8 s (8.20 ex/s)** |
+| `truncated` / `retokenize` | 23 / 29 | 22 / 38 |
+| разметка strict / filtered_b | 0.168 / 0.143 | 0.143 / 0.118 |
+| baseline test logprob | 0.739 | 0.680 |
+| проба (точка / слой / λ) | C / 13 / 1000 | **C / 13 / 1000** |
+| val AUROC | 0.8895 | 0.8838 |
+| test AUROC | 0.8570 [0.825, 0.885] | **0.8709** [0.840, 0.900] |
+| контроли | 0.490 ± 0.052 / слой 0 C 0.718 | 0.503 ± 0.064 / слой 0 C 0.716 |
+
+Выводы (детали — `report.md` §18, `README.md` §3.13):
+
+- **Аномалий нет:** точка, слой и λ совпали с BF16; ΔAUROC на тесте +0.0138
+  [−0.0125, +0.0441] — в пределах нуля. Протокол пробы на Q4 пригоден.
+- **Перенос весов** (`pipeline\apply_probe_model.py`): BF16-проба на состояниях Q4 даёт
+  test 0.8677 против 0.8709 у своей пробы; обратно Q4-проба на BF16 — 0.8634. То есть
+  `probe_model.npz` переносится между квантами той же модели почти без потерь; на другую
+  размерность (D) по-прежнему не переносится.
+- **Ответы и метки различаются:** ответы текстово совпадают на 31.6 % строк, метка
+  `correct_filtered_b` — на 93.3 %. Q4 реже отвечает правильно, поэтому AUPRC между
+  квантами (и между размерами) **сравнивать нельзя** — разные базовые доли.
+- **Сдвиг представлений:** точка A (один и тот же промпт) cosine median 0.975; точка C на
+  строках с одинаковым ответом — 0.986 (p05 0.9747). Квант сдвигает векторы, но не
+  направление пробы.
+- **IQ2_XXS исключён:** 196/200 `truncated` в пилоте (уходит в `<think>`, обрывается на 64
+  токенах). Такие веса в сравнения не берём.
+
+Артефакты проверки: `pipeline\out\main_qwen08_q4\` (`probe.json`, `probe_model.npz`,
+`baseline.*`, `labels.csv`, `meta.jsonl`, `config.json`, `verify.json`,
+`probe_from_bf16_*.json`, `probe_from_q4_on_bf16_*.json`, `state_shift_bf16_vs_q4.json`),
+`pipeline\out\compare_qwen08_bf16_vs_q4_{test,val}.json`; пилоты
+`pipeline\out\pilot_qwen08_q4`, `pipeline\out\pilot_qwen08_iq2`.
+
+## Серия размеров Qwen 3.5: 0.8B → 2B → 4B → 9B (2026-10-28/30)
+
+Прогнаны 2B, 4B и 9B в Q4_K_M от unsloth (те же вход, флаги и протокол, что у якоря).
+9B — последний размер серии, который влезает в 6 ГБ VRAM (27B — нет).
+
+| | 0.8B Q4 | 2B Q4 | 4B Q4 | 9B Q4 |
+|---|---|---|---|---|
+| слоёв × D | 24 × 1024 | 24 × 2048 | 32 × 2560 | 32 × 4096 |
+| время | 731.8 s (8.20 ex/s) | 866.0 s (6.93 ex/s) | 1483.5 s (4.04 ex/s) | 2031.1 s (2.95 ex/s) |
+| `truncated` / `retokenize` | 22 / 38 | 32 / 23 | 20 / 13 | **0** / 11 |
+| strict / `filtered_b` | 0.143 / 0.118 | 0.265 / 0.253 | 0.456 / 0.454 | 0.572 / **0.570** |
+| baseline test (logprob / entropy) | 0.680 / 0.717 | 0.783 / 0.794 | 0.870 / 0.878 | **0.870 / 0.877** |
+| проба (λ / точка / слой) | 1000 / C / 13 | 3000 / C / 12 | 3000 / C / 15 | **3000 / C / 16** |
+| test AUROC | 0.8709 | 0.8855 [0.865, 0.906] | **0.9180** [0.902, 0.933] | **0.9172** [0.901, 0.933] |
+| контроли | 0.503 ± 0.064 / слой 0 C 0.716 | 0.525 ± 0.016 / 0.644 | 0.522 ± 0.038 / 0.659 | 0.531 ± 0.027 / 0.661 |
+
+Парные сравнения: 2B vs 0.8B **+0.0154 [−0.019, +0.051]** (незначимо), 4B vs 0.8B
+**+0.0482 [+0.018, +0.080]**, 4B vs 2B **+0.0321 [+0.008, +0.054]**, 9B vs 0.8B
+**+0.0472 [+0.016, +0.081]**, 9B vs 2B **+0.0307 [+0.007, +0.055]**, 9B vs 4B
+**−0.0002 [−0.016, +0.017]** — 9B достоверно лучше малых, но **от 4B не отличается**.
+Детали — `report.md` §19, §20, `README.md` §3.14, §3.15.
+
+**Главный вывод — плато на 4B.** Доля правильных растёт до конца (0.118 → 0.570), а
+качество пробы упирается в ~0.918: 0.8709 → 0.8855 → 0.9180 → 0.9172. Baseline
+перестаёт расти раньше (0.877 у 9B против 0.878 у 4B), поэтому прирост пробы над
+энтропией первого токена сначала падал (+0.154 / +0.092 / +0.040), а на 9B остался тем же
+(+0.040). При этом ошибки у 4B и 9B разные: на test 9B права на 186 строках, где 4B
+ошибается, а 4B — на 54, где ошибается 9B. Значит потолок ~0.92 — свойство **признака**
+(один вектор слоя в точке C + линейная логистика), а не объёма знаний модели. Дальше
+можно двигаться только другим признаком (несколько слоёв/позиций, нелинейность) — это
+вне замороженного протокола, не делалось.
+
+Наблюдения, важные для следующих моделей:
+
+- Глубина победившего слоя держится ~50 % (12/24, 15/32, 16/32), но точный номер
+  нестабилен: у 2B слои 9–14 отличаются на 0.01 AUROC, у 4B 13–18 — на 0.006, у 9B
+  15–18 — на 0.004. Не «уточнять» слой по тесту, он всё равно в пределах ±3.
+- λ у 2B, 4B и 9B формально 3000, но 1000 даёт то же (±0.003). Сетку не менять.
+- **Вклад пробы падает с ростом baseline, а затем стабилизируется:** +0.154 / +0.092 /
+  +0.040 / +0.040 AUROC над энтропией первого токена для 0.8B / 2B / 4B / 9B. Это
+  ожидаемое поведение, а не повод менять протокол.
+- Базовая доля растёт (0.118 / 0.253 / 0.454 / 0.570) — AUPRC между размерами не
+  сравнивать: у 9B AUPRC 0.927 «высок по построению».
+- Один вырожденный ответ у 2B (`#`, `dpql_1540`, row 2083): метка пустая, строка в файле
+  оставлена. У 4B и 9B вырожденных нет; у 9B вообще нет `truncated`, пустых ответов и
+  null-меток, ответы самые короткие (в среднем 11.7 символа против 29.5 у 0.8B).
+
+Пилоты 2B/4B предсказали время полного прогона с точностью 3 % (2B: 28.7 × 30 = 861 s
+против 866 s; 4B: 44.2 × 30 = 1326 s против 1483.5 s — 4B шёл параллельно с CPU-пробой
+2B). `probe.py` на 32 слоях × D=2560 идёт ~20 мин на CPU; на 32 × D=4096 — ~37 мин; его
+удобно пускать в фоне.
+
+**9B: `-ngl` и вывод логов.** Модель 5.68 ГБ влезает в 6 ГБ целиком: пик VRAM 5860 МиБ
+из 6144, авто-подбор отказывается (`failed to fit params ... n_gpu_layers already set by
+user`), но `-ngl 99` работает. Замер на 50 строках: 99 → 2.90 ex/s, 30 → 1.96, 26 → 1.31,
+22 → 1.01. **Логи писать в файл, не через `| Tee-Object`:** пилот через Tee шёл 232.2 s
+(0.86 ex/s, с деградацией по ходу), те же 200 строк с `> log 2>&1` — 74.5 s (2.68 ex/s).
+Это блокировка на записи консоли, а не VRAM; оценка времени по такому логу завышается
+втрое. Детерминизм при этом сохраняется (`probe2*` побайтово равен `probe*`).
+
+**Кросс-скоры внутри серии** (`cross_probe_scores.py`, 24 JSON
+`pipeline\out\cross_{qwen08q4,qwen35_2b,qwen35_4b,qwen35_9b}_to_*_{test,val}.json`;
+`report.md` §19.8, §20.7, `README.md` §3.14, §3.15): веса между размерами не переносятся —
+D = 1024 / 2048 / 2560 / 4096, `apply_probe_model.py` падает с `target D != probe D`.
+Скоры против чужой метки дают 0.67–0.86 на тесте, но **сравнивать с 0.5 нельзя**: метки
+согласуются на 55–80 % строк, и контроль «знать исход другой модели»
+(`cross_label_control` в том же JSON) даёт 0.59–0.81. Сверх контроля скор добавляет
++0.006…+0.10 (на val местами ≈ 0) — то есть это в основном общая сложность вопросов, а не
+перенос «направления правильности». Скор сильной модели лучше ранжирует метку слабой
+(4B→0.8B 0.795 против 0.8B→4B 0.705), но направления между **разными** парами размеров
+сравнивать нельзя: у 9B→0.8B (0.667) оно хуже обратного (0.771) из-за базовой доли цели
+(0.55 против 0.13), а не из-за силы моделей. Пара 4B↔9B почти вырождена: согласие меток
+0.80, корреляция скоров 0.739, скор 9B против метки 4B даёт 0.8148 при контроле 0.8093.
+
+**Отложено:** перенос весов через выученное выравнивание пространств (ридж/Procrustes
+1024↔2560 на train, `w' = Mᵀw`) — идея описана в `README.md` §6 как нереализованная,
+решение 2026-10-28: пока не делать. Стратификация по метке источника (`cross_probe_strata.py`)
+для пар внутри серии тоже не делалась.
+
+## Kaggle: GPU вне этой машины (2026-10-30)
+
+Для моделей, которые не влезают в 6 ГБ RTX 3050 (Gemma 4 12B/26B и т.п.), есть Kaggle
+Notebooks. Аккаунт `odinodinodin`, токен лежит в `.env` как **`KAGGLE_API_TOKEN`** (файл в
+`.gitignore`, в git не попадает). CLI — `pip install kaggle` (проверено на 2.2.5), переменную
+`KAGGLE_API_TOKEN` он читает сам; старый формат `KAGGLE_USERNAME`+`KAGGLE_KEY` не нужен.
+Рабочее окружение на этой машине: `C:\Windows\Temp\opencode\kgvenv` (venv с CLI) и
+`C:\Windows\Temp\opencode\kgprobe` (ноутбук-пробник `odinodinodin/hs-gpu-probe`, приватный).
+
+### Что даёт сессия (замерено 2026-10-30, `--accelerator NvidiaTeslaT4`)
+
+| | |
+|---|---|
+| GPU | **2 × Tesla T4, по 15360 МиБ (14.56 ГиБ), sm7.5**, драйвер 580.178.04 |
+| CUDA | 12.8, `nvcc` есть (`/usr/local/cuda/bin/nvcc`) — llama.cpp с `GGML_CUDA=ON` собирается на месте |
+| torch | 2.11.0+cu128, видит оба устройства (`devices 2`) |
+| CPU / RAM | 4 vCPU Xeon 2.20 ГГц / 31 ГБ |
+| Диск | `/kaggle/working` — **20 ГБ** |
+| Интернет | **есть** (huggingface.co → 200), только после верификации телефона |
+| Прочее | `machine_shape` = `NvidiaL4` (24 ГБ) тоже доступен; `NvidiaTeslaP100` выведен — вместо него дают T4 |
+
+**Если GPU «не появился»** (нет `nvidia-smi`, `torch ... +cpu`, `devices 0`, DNS не
+резолвится) — почти всегда не пройдена верификация телефона на
+<https://www.kaggle.com/settings>. В этом состоянии заявка на GPU молча игнорируется
+(`enable_gpu: true` остаётся в метаданных), интернет блокируется, а квота **не тратится**,
+то есть по счётчику проблему не увидеть. Проверять надо лог, а не метаданные.
+
+### Квоты: следить обязательно, прогоны планировать заранее
+
+- **30 ч GPU в неделю** (20 ч TPU), сброс ежедневно в 00:00 UTC. Смотреть `kaggle quota`
+  (колонки `used / remaining / refreshAt`) **до и после каждого прогона**.
+- **CPU-сессии квоту не тратят.** Поэтому сборку llama.cpp и `probe.py` (он CPU-шаг)
+  делать в CPU-сессии, а GPU-сессию занимать только генерацией — это главный способ
+  экономить часы.
+- Расход учитывать по факту и записывать сюда (таблица ниже): тест-пробник стоил 0.01 ч.
+- **Правило пилота:** сначала 20–50 строк (2–5 мин GPU), по ним оценить полный прогон
+  (×120…×300), и только потом запускать 6000. Не запускать «на всякий случай» полный
+  набор: перезапуск = потерянные часы из 30.
+- Сессия **одноразовая**: контейнер после прогона умирает, `/kaggle/working` живёт только
+  внутри сессии. Значит, либо сборка+прогон+проба в одной сессии, либо артефакты
+  скачивать (`kaggle kernels output`) и загружать назад как dataset.
+- Диск 20 ГБ: для 26B два массива `hidden_*.npy` при 6000 строках — по ~3.5–4 ГБ, плюс
+  сам GGUF (~16–17 ГБ) в него уже не влезут одновременно. Либо пилот/части, либо качать
+  модель в сессии, писать массивы и не хранить GGUF-копию в working.
+
+**Бюджет (оценка, проверять пилотом, не считать обещанием):**
+
+| прогон | GPU | оценка времени |
+|---|---|---|
+| сборка llama.cpp с CUDA | не тратит квоту (CPU) | 10–20 мин |
+| пилот 20–50 строк | 1 сессия | 2–5 мин (≈0.05 ч) |
+| Gemma 4 12B Q4, 6000 строк | 1 × T4 (влезает в 15 ГБ) | ~30–40 мин |
+| Gemma 4 26B Q4, 6000 строк | 2 × T4 через `--split-mode layer` или L4 24 ГБ | ~1–1.5 ч |
+| `probe.py` 62 слоя × D≈5120 | не тратит квоту (4 медленных ядра) | часы, пускать в фоне |
+
+Итого на две модели — ориентировочно 3–5 ч GPU из 30 в неделю, если не перезапускать.
+
+### Рабочее место Kaggle в репозитории (2026-11-01)
+
+Всё, что относится к прогонам на Kaggle, живёт **в проекте**, не в temp:
+
+| путь | что |
+|---|---|
+| `kaggle\gemma4_12b\make_nb.py` | генератор ноутбука (8 ячеек) и `kernel-metadata.json` |
+| `kaggle\gemma4_12b\push.ps1` | собрать датасет из файлов проекта + запушить ядро |
+| `kaggle\gemma4_12b\_build\` | датасет и готовый ноутбук (в git не идёт) |
+| `kaggle\gemma4_12b\out\` | выгрузка `kernels output`, статусы, логи (в git не идёт) |
+| `kaggle\watch.ps1` | ждёт финиша ядра, пишет статус и полный лог |
+| `kaggle\README.md` | короткая памятка по запуску |
+
+```powershell
+powershell -File kaggle\gemma4_12b\push.ps1              # датасет + ядро
+powershell -File kaggle\gemma4_12b\push.ps1 -SkipDataset # вход не менялся
+powershell -File kaggle\watch.ps1 -IntervalSec 60        # ждать финиша
+```
+
+Копий исходников нет: `push.ps1` при каждом пуше берёт `hidden-states.cpp` и оба
+`CMakeLists.txt` из `llama.cpp-hiddenstates\`, входы — из `pipeline\data\`. Правка кода
+сразу уезжает на Kaggle.
+
+### Грабли, проверенные на сборке Gemma 4 12B (2026-11-01)
+
+- **Путь монтирования датасета** — `/kaggle/input/datasets/<owner>/<dataset>`, а не
+  `/kaggle/input/<dataset>`. Поэтому файлы ищутся `os.walk("/kaggle/input")` по имени
+  `hidden-states.cpp`, а не по жёсткому пути (иначе `cp: cannot stat`).
+- **`kaggle datasets create` без `--dir-mode`** пропускает подкаталоги и падает с
+  «Please upload at least one file» — структура датасета обязана быть плоской
+  (`hidden-states-CMakeLists.txt`, `examples-CMakeLists.txt`, два `.jsonl`).
+- **`/usr/local/cuda` только на чтение** (`Errno 30`), поэтому dev-симлинк `libcuda.so`
+  туда не положить. В образе есть только `libcuda.so.1` (в `/usr/local/cuda/compat`),
+  и CMake падает на `Target "ggml-cuda" links to: CUDA::cuda_driver, but the target was
+  not found`. Лечение: stub-каталог `/tmp/cuda_stubs` с симлинком на найденный
+  `libcuda.so.1`, плюс `-DCMAKE_LIBRARY_PATH=/tmp/cuda_stubs`; фолбэк, если configure
+  всё равно падает, — `-DGGML_CUDA_NO_VMM=ON`.
+- **Сборка и модель — в `/tmp`** (`/tmp/llama.cpp`, `/tmp/models`), иначе build-дерево
+  (~1 ГБ) и GGUF попадают в output и съедают 20 ГБ `/kaggle/working`.
+- **Логи запущенного ядра CLI не отдаёт** (`kernels logs` → пусто), пока контейнер жив.
+  Живой сигнал — только `kernels status` (и браузер: интерфейс ядра показывает вывод
+  ячеек в реальном времени). Отсюда `watch.ps1` с опросом статуса.
+- **Падения почти бесплатны**: три неудачные версии (v1–v3, по 1–2 мин каждая) стоили
+  0.08 ч из 30, но каждая заново качает 7.3 ГБ модели — время дороже квоты.
+- **Выгрузку класть на `D:`** (`kaggle\gemma4_12b\out`), на `C:` свободно ~13 ГБ при
+  двух массивах 12B по ~2.2 ГБ плюс архив.
+
+Ядро `odinodinodin/hs-gemma4-12b` делает всё в одной GPU-сессии: `setup` → `build`
+(клон пинованного `d4cff114c`, наши 3 файла, `-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75`,
+`-j4`) → `download` (`unsloth/gemma-4-12b-it-GGUF`, Q4_K_M) → `easy8` → `pilot40` →
+`gate` → `main_gemma4_12b_v3` (6000) → `final` (`run_summary.json`). Гейт: easy ≥7/8,
+`ok == total`, `skipped == 0`, 0 мета-текста/channel leak, `ex/s > 0.2`, оценка полного
+прогона < 4 ч; иначе 6000 строк не стартуют.
+
+### Расход GPU-часов (заполнять после каждого прогона)
+
+| дата | ноутбук / прогон | accelerator | часов | использовано из |
+|---|---|---|---|---|
+| 2026-10-30 | `hs-gpu-probe` (проверка доступности GPU) | NvidiaTeslaT4 | **0.01** | 30 |
+| 2026-11-01 | `hs-gemma4-12b` v1–v3 (три падения на монтировании и сборке) | NvidiaTeslaT4 | **0.08** | 30 |
+| 2026-11-01 | `hs-gemma4-12b` v4 (сборка + 12B Q4 6000 строк) | NvidiaTeslaT4 | **1.06** и растёт | 30 |
+| 2026-11-01 | `hs-gemma4-12b-debug` (актуальный master, адекватность ответов 12B) | NvidiaTeslaT4 | **0.50** | 30 |
+| 2026-11-01 | `hs-gemma4-12b-pin-gpu` (наш hs на пине, 1 GPU vs 2 GPU) | NvidiaTeslaT4 | **0.56** | 30 |
+| 2026-11-01 | `hs-gemma4-12b-master-gate` v1 (порт hs на master: сборка + easy8 + пилот 200) | NvidiaTeslaT4 | **0.56** | 30 |
+| 2026-11-02 | `hs-gemma4-12b-master-gate` v2 (правки BOS/suppress: сборка + easy8 8/8 + пилот 200) | NvidiaTeslaT4 | **0.47** | 30 |
+| 2026-11-02 | `hs-gemma4-12b` v5 (валидный BOS: easy8 + pilot40 + main6000) | NvidiaTeslaT4 | **1.01** | 30 |
+
+## Сохранность данных (не перезаписывать артефакты)
+
+Собранные данные дорогие и не воспроизводятся «на лету» (прогон 6000 — ~20 минут на
+модель). **Ничего не перезаписывать и не удалять без явной просьбы пользователя.**
+
+- Каждый прогон — в **свой** каталог `out\main_<tag>\` / `out\pilot_<tag>\`; тег не
+  повторять. Не запускать инструмент с `--out` поверх существующего каталога: пакетный
+  режим делает resume по `meta.jsonl` и допишет/перезапишет строки.
+- Существующие `meta.jsonl`, `labels.csv`, `baseline.*`, `probe.*`, `hidden_*.npy`
+  считать окончательными: новые вычисления — в новые файлы (`probe2.*`, новый тег),
+  оригиналы только сравнивать.
+- `.npy` большие (сотни МБ) и не входят в git — они живут только на диске. Не чистить
+  `pipeline\out\` и `C:\Windows\TEMP\opencode\`, не удалять пилоты и промежуточные
+  каталоги «для экономии места».
+- После любого прогона сверять: строк в `meta.jsonl` == ожидаемому N, `ok + skipped`
+  совпадает, формы массивов == `[N, n_layers, D]`, `probe_scores.csv` == val + test.
+- Если файл всё же нужно пересчитать (например, проверка детерминизма), писать в
+  отдельные имена и убедиться, что оригинал не изменился (`git status`, размер,
+  SHA-256).
+
+## Инварианты (нарушать нельзя)
+
+1. **Определения точек** (зафиксированы):
+   - **A** = последний токен промпта, уже отрендеренного чат-шаблоном модели с
+     `add_generation_prompt=true`; состояние, из которого выдаётся первый токен ответа.
+   - **C** = последний содержательный токен ответа, **без** EOG/конца реплики.
+   - Промпт и ответ токенизируются **раздельно** (`parse_special=true`), затем id склеиваются.
+   - Промпт токенизируется с `add_special = llama_vocab_get_add_bos(vocab)`, то есть ведущий
+     `<bos>` добавляет токенизатор (как `llama-cli`: `common_tokenize(ctx, prompt, true, true)`).
+     Причина: llama.cpp сам ставит `inputs.add_bos = llama_vocab_get_add_bos()` и **вырезает**
+     `<bos>`, который печатает чат-шаблон, ожидая его от токенизатора. До 2026-11-02 пакетный
+     режим передавал `false` и терял BOS у моделей с `add_bos_token=true` (см. раздел
+     «Потерянный `<bos>`»).
+2. **Состояния считаются отдельным проходом** по «промпт + ответ» (A и C из одного
+   прохода). Генерация (`--generate`) идёт другим проходом; перед проходом состояний
+   обязателен `llama_memory_clear(mem, true)`.
+3. **`n_batch = n_ubatch = --max-len`** и `n_tokens <= max_len`. Это гарантирует один
+   ubatch, т.е. индекс строки тензора == индекс токена. Слишком длинные примеры
+   **пропускаются** с причиной в meta, прогон не падает.
+4. **`logits=true` минимум на одной позиции** — иначе срабатывает
+   `GGML_ASSERT(n_outputs >= 1)` в `graph_reserve` (`src/llama-context.cpp:1748-1750`).
+5. **`params.warmup = false`** — иначе warmup-decode вызовет колбэк на 1–2 токенах.
+6. **Колбэк `cb_eval`**: в фазе `ask` возвращать `true` **только** для `l_out-*`
+   (возврат `false` для остальных не даёт синхронизаций); в фазе `ask=false` всегда
+   возвращать `true`, иначе `break` оборвёт вычисление графа.
+   Тензоры `l_out-0 … l_out-34` создаются в рантайме (`src/llama-context.cpp:2454-2460`),
+   источник `cb(cur, "l_out", il)` — `src/models/gemma4.cpp`; строки `l_out-N` полные
+   (`ne[1] == n_tokens`), `out_ids` влияет только на `result_norm`/`result_output`.
+7. **Свои флаги вынимаются из `argv` до `common_params_parse`** — общий парсер
+   отвергает неизвестные аргументы.
+
+## Структура кода (`hidden-states.cpp`)
+
+- `hs_state` + `cb_eval` — состояние колбэка; буферы `hs_c`/`hs_a` (`L_sel * D`)
+  выделяются один раз и переиспользуются; `enabled=false` отключает захват
+  (генерация идёт без синхронизаций на слоях).
+- `parse_layers("all" | "4,8,12" | "step=2")` → `layer_row[layer]` (−1 = не выбран).
+- `npy_write_header` / `write_npy_f16` (v1, 2-D, последовательная запись) /
+  `npy_f16_writer` (v2, 3-D, случайный доступ). **Смещение данных = размер заголовка**;
+  файл дотягивается до полного размера, чтобы пропущенные строки читались как нули.
+- `decode_ids()` — единственный способ декодировать (кладёт `logits` по нужным позициям).
+- `run_batch()` — цикл по строкам: шаблон → токенизация → генерация (если нужно) →
+  срез EOG → `llama_memory_clear` → проход состояний → запись строки npy + meta.
+  Возобновление по `id` из `meta.jsonl`, flush каждые 16 примеров.
+- `hs_argmax()` — жадный выбор токена в пакетном режиме, пропускает `suppress_tokens` модели
+  (с 2026-07-29 llama.cpp перенёс их из графа в цепочку сэмплера, у нас сэмплера нет).
+- `main()` — парсинг своих флагов, затем либо `run_batch`, либо v1-ветка.
+
+## Потерянный `<bos>`: почему 12B на Kaggle отвечала мусором (2026-11-02)
+
+`llama.cpp` при рендеринге чат-шаблона сам ставит `inputs.add_bos =
+llama_vocab_get_add_bos()` (`common/chat.cpp`) и, если шаблон напечатал `<bos>`,
+**вырезает** его из результата, ожидая, что токенизатор добавит токен обратно.
+`llama-cli` так и делает: `common_tokenize(ctx, prompt, true, true)`
+(`tools/completion/completion.cpp:279`). Наш пакетный режим токенизировал шаблонный
+промпт с `false` (`no_template ? add_bos : false`), поэтому у моделей с
+`add_bos_token=true` промпт шёл **без ведущего `<bos>`**.
+
+Проверка без загрузки весов — `hs-prompt-dump` (`examples/hidden-states/prompt_dump.cpp`,
+таргет `hs-prompt-dump`, `vocab_only`): печатает отрендеренный промпт, наличие BOS в тексте
+и id токенов при `add_special=false/true`. Примеры (2026-11-02):
+
+| модель | `add_bos` | промпт | `false` | `true` |
+|---|---|---|---|---|
+| gemma-4-12B | true | 132 симв., `<bos>` нет | 27 токенов, первый `105` | 28, первый `2` |
+| gemma-4-E4B / E2B | true | 104 симв., `<bos>` нет | 23 токена, первый `105` | 24, первый `2` |
+| nemotron_h 4B | true | `<bos>` в шаблоне нет | 32, первый `10` | 33, первый `1` |
+| LFM2.5-1.2B | true | `<bos>` вырезан | 23, первый `6` | 24, первый `1` |
+| Qwen3.5 (0.8B…9B) | false | `<bos>` нет | 28 | **те же 28** |
+| gpt-oss-20b | false | `<bos>` нет | 82 | **те же 82** |
+
+Последствия: у Gemma 4 E2B, Gemma 4 E4B и Nemotron 3 Nano 4B уже сделанные прогоны
+(`out\main_gemma4e2b`, `out\main_gemma4e4b`, `out\main_nemotron3nano4b_v2`) измеряют
+промпт без `<bos>`. Ответы там осмысленные, метки и пробы прошли контроли, поэтому
+артефакты **не пересчитываются и не удаляются**, но это не промпт `llama-cli`; при
+сравнении с новыми прогонами тех же моделей помнить про разницу в один токен.
+На Qwen 3.5 и gpt-oss правка не влияет вообще (у них `add_bos_token` выключен).
+
+На 12B тот же дефект дал катастрофу: `out\main_gemma4_12b` — strict 9/3702 = 0.002,
+`truncated` 38 %, ответы-мета-текст (`The provided text is a summary of a larger work.`).
+Версия llama.cpp была не при чём: пин и master без правки одинаково давали 0/8 на простых
+вопросах, а `llama-completion` на том же master — 8/8.
+
+Второй, более мелкий дефект: `tokenizer.ggml.suppress_tokens` у 12B — `[258882, 258883]`
+(`<image|>`, `<audio|>`). До 2026-07-29 llama.cpp применял их в графе, коммит `afeebe103`
+перенёс в `common/sampling`; наш greedy-argmax сэмплера не имеет, поэтому они стали
+доступны. Теперь пропускаются явно (`hs_argmax`). На пине правка ничего не меняет —
+подавление там ещё в графе; у остальных локальных GGUF этого ключа нет.
+
+## Обновление llama.cpp: сверка пина и master (2026-11-02)
+
+Локальный master — `llama.cpp-hiddenstates-new`, upstream `785322d17`; старый
+`llama.cpp-hiddenstates` на `d4cff114c` не удалён. В обеих копиях один и тот же наш
+исходник с исправлениями BOS/suppress.
+
+Быстрые прогоны 20 строк:
+
+- Qwen3.5-0.8B Q4: A отличается на 0.17 % нормы, cosine 0.9975, ответы 15/20;
+- Gemma 4 E2B: 35/35 `l_out`, A 0.05 %, cosine 0.9991, ответы 16/20, метки 20/20;
+- Nemotron 3 Nano 4B: те же 17/42 `l_out`, A 0.03 %, cosine 0.9998, ответы 18/20,
+  метки 20/20;
+- gpt-oss-20b, одна строка с готовым ответом: 24/24 `l_out`, A 0.02 %, cosine 0.99977,
+  форма `[1, 24, 2880]`;
+- `-fa off` и `-ngl 0` на Qwen не убрали дрейф (те же 0.17 %), значит это не FA/GPU;
+- два одинаковых прогона master и прогон после metadata-only relink побайтово равны.
+
+Полная контрольная копия Qwen Q4: `pipeline\out\main_qwen08_q4_master`, те же 6000 строк
+и флаги, что у `main_qwen08_q4`:
+
+| | пин | master |
+|---|---:|---:|
+| время | 731.8 s | 590.5 s |
+| truncated / mismatch | 22 / 38 | 27 / 37 |
+| strict / filtered_b | 0.143 / 0.118 | 0.142 / 0.117 |
+| ответы / метки совпали | — | 75.0 % / 97.3 % |
+| A: разница / cosine | — | 0.17 % нормы / 0.99756 |
+| baseline test lp / entropy | 0.680 / 0.717 | 0.707 / 0.746 |
+| λ / точка / слой | 1000 / C / 13 | 300 / C / 13 |
+| test AUROC | 0.8709 | 0.8657 |
+
+Парный ΔAUROC master−pin = −0.0054 [−0.0225, +0.0114]. Вывод: побитовой
+эквивалентности нет, но результат замороженной пробы статистически воспроизводится.
+Для новых прогонов использовать master; для воспроизведения старых `.npy` — пин.
+Не смешивать состояния разных версий в одном обучении/применении без отдельной проверки.
+
+Сверка: `pipeline/compare_runs.py` (ключ строки `(id, occurrence)`, т.к. `bb_956`
+дублируется; `--per-layer` показывает дрейф). Полные числа: `report.md` §23,
+`README.md` §3.18. Последующий валидный 12B описан отдельно ниже.
+
+## Новые прогоны: LiquidAI, Gemma BOS, Yandex и 12B (2026-11-02)
+
+Все локальные полные прогоны сделаны master-бинарником `785322d17`; Kaggle 12B — пином
+`d4cff114c` с тем же исправлением BOS. Все шесть валидных каталогов прошли
+`verify_run.py --full` без ошибок.
+
+| модель | форма | время / trunc | filtered_b | baseline lp/ent | probe λ / C-слой | test AUROC |
+|---|---:|---:|---:|---:|---:|---:|
+| LFM2.5-1.2B Instruct | 16×2048 | 299.9 s / 1 | 0.177 | 0.750/0.765 | 3000 / 9 | 0.8812 |
+| LFM2.5-2.6B | 30×2048 | 868.4 s / 128 | 0.382 | 0.766/0.780 | 3000 / 17 | 0.8812 |
+| LFM3-1.7B QAD | 24×2048 | 2090.3 s / 2509 | 0.305* | 0.728/0.725 | 1000 / 12 | 0.8608* |
+| Gemma E4B BOS/master | 42×2560 | 1197.1 s / 2 | 0.470 | 0.858/0.872 | 3000 / 20 | 0.9186 |
+| YandexGPT 5 Lite 8B | 32×4096 | 1777.7 s / 4 | 0.568 | 0.749/0.770 | 3000 / 16 | 0.9062 |
+| Gemma 12B v3 | 48×3840 | 2012.1 s / 21 | 0.572 | 0.813/0.826 | **отложена** | — |
+
+\* LFM3: 2509/6000 (41.8%) обрезаны; метрики только по 3491 завершённой строке.
+
+Особые режимы:
+
+- LFM2.5-1.2B-Thinking: специально выбрана как reasoning-пара к Instruct. Текущий
+  no-thinking пилот 200/200 truncated; позже нужен отдельный протокол с фиксированным
+  reasoning budget и выделенным final. До его фиксации обычный full-run не запускать;
+- LFM2.5-2.6B: шаблон открывает `<think>` даже при thinking=false. Использовать
+  `make_lfm_final_prompt.py`, `data/{pilot,main}_lfm25_final.jsonl`, `--no-template`;
+  A = последний токен `Final answer:`, C стандартная;
+- LFM3: штатный `<think></think>`, 1025 ответов с лишним `</think>`, модель часто
+  многословна и самоисправляется; final-cue ухудшил пилот. Точная причина 41.8% обрезок
+  не доказана. Официально `enable_thinking=false` бывает нестабилен; GGUF рекомендует
+  temp 0.1 / top_k 50 / repeat penalty 1.1, а наш raw `hs_argmax` sampler не использует.
+  Вероятна комбинация sampler mismatch + no-thinking + лимита 64; проверить позже через
+  обычный `llama-cli` на том же файле, не смешивать с Thinking-экспериментом;
+- Gemma E4B BOS: по сравнению со старым прогоном `filtered_b` 0.383→0.470, probe
+  0.9312→0.9186; парная Δ −0.0126 [-0.0259,+0.0012];
+- Gemma 12B: valid v3 находится в `out\main_gemma4_12b_v3`; probe намеренно не считать
+  до нового решения пользователя. Kaggle-сессия 61.1 мин, квота 4.98→5.99/30 ч;
+- Yandex: arch `llama`, BOS id1, C/16 test 0.9062; от Qwen9B и Gemma E4B статистически
+  не отличается.
+
+Плато соседних слоёв есть и здесь: LFM1.2 C/8–10, LFM2.6 C/15–20, LFM3 C/11–13,
+Gemma C/19–22, Yandex C/14–20. Это общий среднеслойный паттерн, а не специфика LFM.
+Полные детали: `report.md` §24–28, `README.md` §3.19–3.22.
+
+## Проверки (повторять после любых правок)
+
+| Проверка | Ожидание |
+|---|---|
+| Пакетный vs одиночный (`--no-template`, `-b 1024 -ub 1024 -c 1024` vs `--max-len 1024`) | `hidden_*.npy[0]` байт-в-байт == `[L, D]` из v1 |
+| Детерминизм: два одинаковых прогона | SHA-256 `.npy` совпадают |
+| Инвариантность A: запись с `answer` и без | векторы A байт-в-байт идентичны; без ответа A == C |
+| NaN/Inf | нет |
+| `--layers step=2` / `4,8,12` | строки == соответствующим слоям полного прогона |
+| Слишком длинный | `status: skipped` + причина, код возврата 0 |
+| Возобновление | обрабатываются только id, которых нет в meta.jsonl; массивы восстановимы |
+| TriviaQA-20, `--generate --max-new-tokens 64` | 20/20 ok; доля `truncated` ~20 % |
+| `python verify_run.py --dir out/main_<tag>` (перед `probe.py`) | 0 failed: формы `[N, L_sel, D]`, `row` без дыр, ok-строки непустые, ни одного нулевого слоя, метки не пустые, есть все три сплита |
+
+Полные числа и таблицы — в `report.md`, раздел 7.
+
+## Перед долгими прогонами (цена ошибки — часы)
+
+Вход и флаги проверять **до** запуска: прогон 6000 строк — это 20 мин (малые модели)
+или 1.5–4.5 ч, а дефект подготовки входа виден только по результату.
+
+- Сгенерировать вход и **посмотреть глазами первые 2–3 строки** `question` (начало,
+  конец, число вхождений инструкции: `count("Answer with just the answer") == 1`).
+- Сравнить промпт с эталоном, на котором снят пилот (`gptoss20b_final20*.jsonl`,
+  `pilot.jsonl`-вход): тот же шаблон, та же инструкция, то же число вхождений.
+- Проверить, что сборщик **не дублирует** то, что уже есть в `question`: после
+  `prepare_data.py` вопрос оканчивается на `\nAnswer with just the answer, no explanation.`.
+- Проверить идемпотентность: повторный запуск скрипта даёт побайтово тот же файл.
+- Сверить число строк и отсутствие пустых `question`. Дубль `id` `bb_956` в
+  `main.jsonl` — норма (две разные формулировки вопроса), он должен остаться.
+- Прогнать пилот 20–50 строк на **том же** входе (30–60 с) и только потом полный набор.
+
+**Инцидент 2026-10-22.** Первый полный прогон gpt-oss (6000 строк, 5596 с) сделан на
+входе, где инструкция «Answer with just the answer, no explanation.» стояла **дважды**:
+она уже есть в `question` из `main.jsonl`, а сборщик harmony-промпта добавил её ещё раз.
+Нашлось только после прогона; результат сохранён как `main_gptoss20b_dupinstr` и в отчёты
+не пошёл, прогон пришлось повторять. Отсюда правило: скрипты подготовки входа проверять
+до запуска, а не по результату многочасового прогона.
+
+## Коммиты
+
+- В сообщения коммитов **не** добавлять строку `Assisted-by:` и любые другие
+  упоминания AI-ассистентов (`Co-authored-by`, `Generated-by` и т.п.). Коммиты
+  оформляются только от имени автора (`Fatalist0001`).
+
+## Чего не делать
+
+- Не менять v1-ветку и её формат выхода (`[L, D]` + `hidden_states.json`).
+- Не править ядро llama.cpp — инструмент написан только на публичном API
+  (`llama.h`, `common/*.h`, включая `chat.h`, `build-info.h`).
+- Не добавлять многопоточность и лишние флаги (договорённость: «не усложнять»).
+- Не удалять и не перезаписывать собранные артефакты (`out\*`, `.npy`, `meta.jsonl`,
+  `labels.csv`, `probe.*`, `baseline.*`) без явной просьбы пользователя.
+- Не запускать `--out` в существующий каталог прогона.
+- Не менять фиксированные определения точек A и C.
+- **Не жечь GPU-часы Kaggle вслепую:** полный прогон запускать только после пилота 20–50
+  строк и подсчёта бюджета, а сборку и `probe.py` — в CPU-сессии (они квоту не тратят).
+  Перед и после каждого прогона — `kaggle quota`, расход записывать в таблицу раздела
+  «Kaggle: GPU вне этой машины».
+
+## Текущее состояние (2026-11-02)
+
+- **Локальный llama.cpp обновлён без удаления пина:** `llama.cpp-hiddenstates-new` —
+  `785322d17`, build 12033, CUDA-бинарник готов; `llama.cpp-hiddenstates` на
+  `d4cff114c` сохранён. Полный контроль Qwen Q4 на master: 590.5 s, C/13, test 0.8657;
+  против пина ΔAUROC −0.0054 [−0.0225, +0.0114], метки совпали на 97.3 %. Master — для
+  новых прогонов, пин — для исторического воспроизведения (`report.md` §23).
+- **Gemma 4 12B:** первый полный каталог `main_gemma4_12b` непригоден (strict 9/3702,
+  `truncated` 38 %) из-за потерянного `<bos>`, не версии llama.cpp. После исправления
+  валидный v3: 6000/6000, 21 truncated, 2012.1 s, `filtered_b` 0.572, baseline
+  0.813/0.826, verify 0 failed. Probe **отложена по решению пользователя**.
+- **LiquidAI no-thinking часть завершена:** LFM2.5-1.2B C/9 test 0.8812;
+  LFM2.5-2.6B C/17 0.8812; LFM3 C/12 0.8608 с оговоркой 41.8% обрезок (вероятны
+  sampler mismatch + нестабильный no-thinking + лимит 64). Thinking 1.2B — намеренно
+  отложенная reasoning-пара: позже прогнать с ограниченным reasoning budget
+  (`report.md` §24).
+- **Новые BOS/Yandex-прогоны:** Gemma E4B BOS C/20 test 0.9186 (`filtered_b` 0.470);
+  YandexGPT C/16 test 0.9062 (`filtered_b` 0.568). Победители снова около середины
+  глубины (`report.md` §26–27).
+
+- **Gemma 4 E4B прогнана полностью** (`pipeline\out\main_gemma4e4b`, 42 слоя, D = 2560):
+  6000/6000 ok, 0 skipped, truncated 1 (`qg_3418`), 1216.4 s (4.93 ex/s), mismatch 12/6000,
+  массивы `[6000, 42, 2560]` f16 по 1.20 ГиБ, `verify_run.py --full` — 0 failed. Пилот 200:
+  43.1 s (4.64 ex/s), `[200, 42, 2560]` — предсказал полный прогон с ошибкой 6 %.
+- **Разметка E4B:** strict 2332/5999 = 0.389, relaxed 0.392, `filtered_a` 0.380,
+  **`filtered_b` 2295/5999 = 0.383**; null 1 (`qg_3418`). Пустых ответов 0, маркеров
+  `thought`/`<|channel>` 0, 142 строки короче 3 символов — нормальные короткие факты.
+  Средняя длина ответа 15.3 символа (у E2B было 29.5 при вдвое меньшей доле правильных).
+- **Baseline E4B:** test logprob 0.843 [0.819, 0.865] / энтропия **0.861** [0.840, 0.883];
+  val 0.827 / 0.848. ECE сырой `exp(lp0)` 0.279 — первый токен почти всегда служебный.
+- **Проба E4B:** λ = 3000 (средний val 0.8491, отрыв от λ = 1000 всего 0.0007), пара
+  **C / слой 21** (21/42 = 50 %), val 0.9249, **test 0.9312 [0.917, 0.944]**, AUPRC 0.8922,
+  ECE 0.045 (после Платта 0.018). Контроли: перемешанные метки 0.498 ± 0.048, слой 0 —
+  A 0.674/0.683, C 0.754/0.757. Точка A на своём лучшем слое (40) даёт 0.8748, разрыв A→C
+  +0.05. Плато выбора слоя ~7 слоёв в пределах 0.005 (слои 20, 19, 23, 24, 25).
+- **Сравнение E4B со всеми** (`compare_probes.py`, парный bootstrap 1000, test): достоверно
+  лучше 0.8B (+0.0606 [+0.030, +0.092]), 2B (+0.0452 [+0.021, +0.068]) и Nemotron
+  (+0.0494 [+0.028, +0.072]); от E2B (−0.0033 [−0.023, +0.015]), 4B (+0.0130 [−0.005,
+  +0.031]), 9B (+0.0141 [−0.006, +0.032]) и gpt-oss (+0.0058 [−0.013, +0.024])
+  статистически не отличается. Точечно 0.9312 — второй результат из девяти прогонов после
+  E2B (0.9351), и разница с ней в пользу E2B, но по интервалу это тоже ноль.
+- **Потолок ~0.92–0.935 подтверждён вне серии Qwen:** E2B 0.9351, E4B 0.9312, gpt-oss
+  0.9248, 4B 0.9180, 9B 0.9172 — внутри полосы все парные различия накрывают ноль. E4B
+  вдвое крупнее E2B и отвечает правильно в 2.1 раза чаще (0.383 против 0.182), а проба
+  не лучше. Прирост над энтропией первого токена +0.070 (у E2B +0.223, у 4B/9B +0.040):
+  он зависит от информативности первого токена, а не от «силы модели».
+- **Кросс-скоры и перенос весов E4B:** E2B↔E4B — E4B→E2B 0.8358 при контроле 0.675,
+  обратное 0.7358 при контроле 0.801 (ниже контроля, то есть скор E2B ранжирует сложность
+  вопроса); Qwen 4B↔E4B — 0.8005 / 0.8323 при контроле 0.789 / 0.775. **Совпадение
+  D = 2560 переноса не даёт:** проба E4B на состояниях Qwen 4B — test AUROC 0.3252,
+  обратная — 0.4288, хуже случайного (§21.7).
+- **Детерминизм пробы E4B подтверждён:** повторный запуск в `probe2*` дал побайтово те же
+  `probe_curve.csv` и `probe_scores.csv` (SHA-256 совпали), тот же λ = 3000 и ту же пару
+  C / слой 21; оригиналы `probe.*` не изменялись.
+- Документация: `report.md` §21 (21.1–21.8), `README.md` §3.16 (и строки в §3.2/§4/§5
+  шаг 15/§6/§7), `README.md` §3.17 — рабочее место Kaggle; раздел «Kaggle: GPU вне этой
+  машины» здесь.
+
+- **Якорь кванта готов:** Qwen3.5-0.8B в Q4_K_M прогнан полностью
+  (`pipeline\out\main_qwen08_q4`, 6000/6000 ok, truncated 22, 731.8 s / 8.20 ex/s),
+  проба воспроизвела выбор BF16 (C / слой 13 / λ = 1000), test AUROC 0.8709 [0.840, 0.900],
+  перенос BF16-весов 0.8677, контроли в норме. Аномалий нет — серия размеров идёт на
+  Q4_K_M от unsloth (см. раздел «Квантование»).
+- **Серия размеров пройдена целиком: 0.8B → 2B → 4B → 9B.** 2B
+  (`pipeline\out\main_qwen35_2b_q4`, 866.0 s, truncated 32) → C/12, test 0.8855; 4B
+  (`main_qwen35_4b_q4`, 1483.5 s, truncated 20) → C/15, test 0.9180; 9B
+  (`main_qwen35_9b_q4`, 2031.1 s, **truncated 0**) → C/16, test **0.9172** [0.901, 0.933].
+- **Итог серии — плато на 4B:** 9B достоверно лучше 0.8B (+0.047 [0.016, 0.081]) и 2B
+  (+0.031 [0.007, 0.055]), но от 4B не отличается (**−0.0002 [−0.016, +0.017]**), хотя
+  отвечает правильнее (0.570 против 0.454; на test 9B права на 186 строках, где 4B
+  ошибается, 4B — на 54, где ошибается 9B). Baseline у 4B и 9B одинаковый (0.870/0.877),
+  прирост пробы над энтропией первого токена застыл на +0.040. Потолок ~0.92 — свойство
+  признака (один вектор точки C + логистика), а не объёма знаний. Подробно — раздел
+  «Серия размеров» выше, `report.md` §20, `README.md` §3.15.
+- **27B не берём:** в `Qwen3.8-27B-GGUF` лежит только `UD-Q2_K_XL` (9.15 ГБ, 2 бита) —
+  такой квант серия уже исключила (на 0.8B IQ2_XXS дал 196/200 `truncated`), и 9.15 ГБ
+  в 6 ГБ VRAM всё равно не влезает. Смысла в нём нет и по результату: 4B→9B не дало
+  прироста качества пробы.
+- **Дальше (не начато):** только другой признак (несколько слоёв/позиций, нелинейная
+  модель) вместо одного вектора слоя C и логистики; это выходит за замороженный протокол,
+  поэтому требует отдельного решения и описания, а не тихой правки `probe.py`.
+- **Nemotron 3 Nano 4B прогнан полностью** (`pipeline\out\main_nemotron3nano4b_v2`,
+  6000/6000 ok, truncated 5, 1320.6 s, проба C/20, test 0.8819): автоопределение `l_out`
+  (17 слоёв из 42), `verify_run.py` и исправления `probe.py`/`baseline.py` закоммичены
+  (`415f8d9`). Старые `main_nemotron3nano4b` / `pilot_nemotron3nano4b` непригодны
+  (`README-invalid.md`), фиктивные результаты коммита `3ad2230` удалены.
+- **gpt-oss-20b прогнан полностью** (6000 строк, `--batch-rows 8 -ngl 11`, вход
+  `gptoss20b_final6000_q_v2.jsonl`): 6000/6000 ok, truncated 27, 10733.5 s (0.56 ex/s),
+  метки strict 0.494 / filtered_b 0.490, baseline test 0.828/0.841, проба C/16
+  test 0.9248. Каталог `pipeline\out\main_gptoss20b_v2` — действительный прогон.
+- `pipeline\out\main_gptoss20b` (325/6000, остановлен вручную) и
+  `main_gptoss20b_dupinstr` (промпт с дублем инструкции) — не используются, в git не
+  входят, но и не удаляются.
+- Документация: §18 в `report.md` (эффект кванта; файл заодно восстановлен из двойной
+  кодировки), §3.13 и правки §3.2/§4/§5/§6/§7 в `README.md`, раздел «Квантование» здесь.
+  Исправлена давняя ошибка в таблицах: доля правильных у Qwen3.5-0.8B по `filtered_b`
+  равна **0.143** (856/5977), а не 0.168 — 0.168 это `correct_strict`
+  (`report.md`, §14.3/§14.6/§15.3/§15.6/§17.3/§17.6; `README.md`, §3.9/§3.10/§3.12/§6).
+- Веса выбранных проб сохраняются в `pipeline\out\main_<tag>\probe_model.npz`
+  (`w`, `mu`, `sd`, JSON `meta`); для старых прогонов — `save_probe_model.py --dir`.
+  Перенос на другой прогон той же модели/размерности — `apply_probe_model.py
+  --model <npz> --dir <каталог> --split test`.
+- Кросс-модельные скоры (проба одной модели → метка другой, `cross_probe_scores.py`),
+  тест: gpt-oss→Gemma 0.832, gpt-oss→Qwen 0.801, Qwen→Gemma 0.771, Gemma→Qwen 0.753,
+  Gemma→gpt-oss 0.690, Qwen→gpt-oss 0.679 при родных 0.86–0.94. Это сравнение
+  предсказаний, а не перенос весов: веса между D=1024/1536/2880 не переносятся.
+  Внутри серии Qwen 3.5 (12 JSON `pipeline\out\cross_{qwen08q4,qwen35_2b,qwen35_4b}_to_*`)
+  кросс AUROC 0.70–0.82 против контроля «знать исход другой модели» 0.61–0.79, то есть
+  сверх контроля +0.03…+0.10: в основном общая сложность вопросов (`report.md` §19.8).
+- Стратификация по метке источника (`cross_probe_strata.py`, 12 JSON
+  `pipeline\out\cross_strata_*`): внутри страт 0.59–0.82, добавка скора к «метке A»
+  в логистике +0.05…+0.10 — сигнал сверх бинарного исхода, но контроль на длину
+  вопроса/logprob не делался.
+- **Пилоты малых моделей с батчингом** (`hsbatch\qwen_p20_*`, `gemma_p20_*`): работает,
+  но выигрыш ~×1.2; для массовых прогонов b8 оправдан только на gpt-oss.
+- **Kaggle проверен и работает** (2026-10-30, после верификации телефона): аккаунт
+  `odinodinodin`, токен `KAGGLE_API_TOKEN` в `.env`; сессия `--accelerator NvidiaTeslaT4`
+  даёт **2 × Tesla T4 по 15 ГБ**, CUDA 12.8 с `nvcc`, интернет, 4 vCPU, 31 ГБ RAM,
+  20 ГБ `/kaggle/working`. На 2026-11-02 использовано **5.99/30 ч**; последний расход —
+  1.01 ч на валидный `hs-gemma4-12b` v5. Окружение — `kaggle/gemma4_12b/{make_nb.py,push.ps1}`,
+  `kaggle/watch.ps1`, `kaggle/README.md`.

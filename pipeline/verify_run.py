@@ -39,11 +39,41 @@ class Report:
         print(f"[warn] {name}" + (f": {detail}" if detail else ""))
 
 
+def write_report(rep, args, run_dir):
+    """Write --json even when a check aborts the rest of the run.
+
+    A caller (the stage runner, check_state.py) must be able to read the failure
+    from the file instead of guessing it from a non-zero exit code.
+    """
+    if not args.json:
+        return
+    result = {
+        "dir": run_dir.replace("\\", "/"),
+        "fails": rep.fails,
+        "warns": rep.warns,
+        "checks": rep.checks,
+    }
+    parent = os.path.dirname(os.path.abspath(args.json))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    tmp = args.json + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    os.replace(tmp, args.json)
+    print(f"written: {args.json}")
+
+
 def read_jsonl(path):
     """Records plus a list of malformed lines (interrupted runs leave those)."""
     records, errors = [], []
-    with open(path, encoding="utf-8", errors="replace") as f:
-        for i, line in enumerate(f, 1):
+    with open(path, "rb") as f:
+        for i, raw_line in enumerate(f, 1):
+            try:
+                line = raw_line.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                errors.append({"line": i, "error": f"invalid UTF-8: {exc}"})
+                continue
             if not line.strip():
                 continue
             try:
@@ -140,6 +170,7 @@ def main() -> int:
     for p in (cfg_path, meta_path, a_path, c_path):
         rep.check(f"file {os.path.basename(p)}", os.path.exists(p), p)
     if rep.fails:
+        write_report(rep, args, d)
         return 1
 
     with open(cfg_path, encoding="utf-8") as f:
@@ -256,6 +287,7 @@ def main() -> int:
     shape_ok = shape_ok and ok
     rep.check("hidden_a.npy and hidden_c.npy have the same shape", ok, f"{arr_a.shape} vs {arr_c.shape}")
     if not shape_ok:
+        write_report(rep, args, d)
         return 1
 
     n_scan = len(rows)
@@ -316,16 +348,17 @@ def main() -> int:
                   + ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in sorted(by_split.items())))
             empty_splits = [s for s in ("train", "val", "test") if by_split.get(s, [0])[0] == 0]
             rep.check("labels: train/val/test all non-empty", not empty_splits, str(empty_splits))
+            single_class = [s for s in ("train", "val", "test")
+                            if by_split.get(s, [0, 0])[0] > 0
+                            and by_split[s][1] in (0, by_split[s][0])]
+            rep.check("labels: both classes in every split", not single_class,
+                      str(single_class))
         else:
             rep.check("labels: at least one usable label", False, "all correct_filtered_b are empty")
     else:
         rep.warn("labels.csv missing", lab_path)
 
-    result = {"dir": d.replace("\\", "/"), "fails": rep.fails, "warns": rep.warns, "checks": rep.checks}
-    if args.json:
-        with open(args.json, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
-        print(f"written: {args.json}")
+    write_report(rep, args, d)
 
     print()
     print(f"{'FAILED' if rep.fails else 'OK'}: {rep.fails} failed, {rep.warns} warning(s)")

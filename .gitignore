@@ -18,10 +18,20 @@
 # Python-пайплайн: артефакты окружения; под out/ — только тяжёлые бинарники и логи
 /pipeline/.venv/
 /pipeline/__pycache__/
+/pipeline/**/__pycache__/
+/pipeline/.pytest_cache/
+/scripts/__pycache__/
 /pipeline/out/**/*.npy
 /pipeline/out/*.log
 /pipeline/out/**/*.log
 /pipeline/out/equiv/*/
+
+# Диагностика раннера: дампы промпта, preflight-отчёты, проверка идемпотентности
+/pipeline/out/prompt_*
+
+# Детерминированно пересобираемые prepared inputs (source + builder находятся в git)
+/pipeline/data/pilot_gptoss_final.jsonl
+/pipeline/data/main_gptoss_final.jsonl
 
 # Короткие prompt-trials перед валидными пилотами (итоги перенесены в документацию)
 /pipeline/out/pilot20_*/

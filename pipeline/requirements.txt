@@ -1,0 +1,7 @@
+# Runtime dependencies of pipeline/*.py.
+#
+# numpy is what the probe, baseline, verify_run and apply_probe_model actually
+# need; datasets is only used by prepare_data.py to build the question set.
+# scripts/bootstrap.ps1 installs this file into pipeline/.venv.
+numpy>=2.0
+datasets>=5.1.0

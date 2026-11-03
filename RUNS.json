@@ -1,0 +1,1462 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-03",
+  "generator": "scripts/build_runs.py",
+  "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json}",
+  "read_this_first": "docs/START-HERE.md",
+  "status_legend": {
+    "valid": "The run is internally consistent and its numbers may be cited.",
+    "invalid": "The run is broken (wrong prompt, wrong binary, zero states). Never cite it.",
+    "partial": "The run stopped early and has no complete artifacts. Never cite it."
+  },
+  "canonical_legend": "canonical=true is the run to cite for that model under the current binary and prompt regime. Non-canonical valid runs stay available for the specific comparisons named in notes.",
+  "prompt_regime_legend": {
+    "default_bos": "Stock chat template, leading <bos> added by the tokenizer when the model requires it (current behaviour).",
+    "legacy_no_bos": "Stock chat template but the required leading <bos> was lost (pre-2026-11-02 affected models).",
+    "no_template_gptoss_final": "--no-template with a pre-filled harmony final channel (make_gptoss_prompt.py).",
+    "no_template_lfm_final": "--no-template with a Final answer: cue (make_lfm_final_prompt.py)."
+  },
+  "probe_status_legend": {
+    "complete": "probe.json is the frozen-protocol result.",
+    "deferred": "Deliberately not computed. Do not run probe.py without a new explicit request.",
+    "not_run": "No probe in this directory.",
+    "not_citable": "The run itself is invalid or partial, so its probe numbers must not be cited even though files exist.",
+    "pipeline_check": "Probe exists only to check the pipeline on a pilot; not a research result."
+  },
+  "probe_protocol": "docs/START-HERE.md#frozen-probe-protocol",
+  "shape_legend": "shape = [rows in meta.jsonl, selected l_out layers, n_embd]",
+  "verify_legend": "verify.status=passed means verify.json has fails=0. It checks internal consistency of the directory, NOT that the prompt was correct: main_gemma4_12b passes verify and is still invalid. not_run means verify_run.py was never run on this directory.",
+  "main_runs": {
+    "main_qwen08": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-0.8B BF16",
+      "status": "valid",
+      "canonical": false,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        6000,
+        24,
+        1024
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5977,
+        "null": 23,
+        "truncated": 23,
+        "base_rate_filtered_b": 0.1432
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.739,
+        "entropy": 0.7673
+      },
+      "probe": {
+        "lambda": 1000.0,
+        "point": "C",
+        "layer": 13,
+        "layer_id": 13,
+        "val_auroc": 0.8895,
+        "test_auroc": 0.857,
+        "test_auprc": 0.5931,
+        "test_n": 1195,
+        "test_pos": 178
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "BF16 anchor of the quantization check. The size series uses Q4_K_M; keep this run for the BF16-vs-Q4 comparison only."
+    },
+    "main_qwen08_q4": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-0.8B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        24,
+        1024
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5978,
+        "null": 22,
+        "truncated": 22,
+        "base_rate_filtered_b": 0.1183
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.6796,
+        "entropy": 0.7171
+      },
+      "probe": {
+        "lambda": 1000.0,
+        "point": "C",
+        "layer": 13,
+        "layer_id": 13,
+        "val_auroc": 0.8838,
+        "test_auroc": 0.8709,
+        "test_auprc": 0.5477,
+        "test_n": 1196,
+        "test_pos": 150
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Anchor of the Qwen 3.5 size series. Binary 3ad2230 predates the BOS fix but add_bos_token is false for Qwen, so the prompt is unaffected."
+    },
+    "main_qwen08_q4_master": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-0.8B Q4_K_M",
+      "status": "valid",
+      "canonical": false,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "f6a0815",
+        "build": 48
+      },
+      "shape": [
+        6000,
+        24,
+        1024
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5973,
+        "null": 27,
+        "truncated": 27,
+        "base_rate_filtered_b": 0.1172
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7069,
+        "entropy": 0.7464
+      },
+      "probe": {
+        "lambda": 300.0,
+        "point": "C",
+        "layer": 13,
+        "layer_id": 13,
+        "val_auroc": 0.8813,
+        "test_auroc": 0.8657,
+        "test_auprc": 0.5404,
+        "test_n": 1198,
+        "test_pos": 145
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Master-binary control of main_qwen08_q4. Paired dAUROC -0.0054 [-0.0225, +0.0114]; answers/labels agree 75.0%/97.3%. Use for binary-version checks, not as the series point."
+    },
+    "main_qwen35_2b_q4": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-2B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        24,
+        2048
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5967,
+        "null": 33,
+        "truncated": 32,
+        "base_rate_filtered_b": 0.2526
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7831,
+        "entropy": 0.7937
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 12,
+        "layer_id": 12,
+        "val_auroc": 0.8948,
+        "test_auroc": 0.8855,
+        "test_auprc": 0.7587,
+        "test_n": 1190,
+        "test_pos": 305
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "One degenerate answer on dpql_1540 (row 2083, answer '#', empty label). Row left in place."
+    },
+    "main_qwen35_4b_q4": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-4B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        32,
+        2560
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5980,
+        "null": 20,
+        "truncated": 20,
+        "base_rate_filtered_b": 0.4538
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8704,
+        "entropy": 0.8776
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 15,
+        "layer_id": 15,
+        "val_auroc": 0.9218,
+        "test_auroc": 0.918,
+        "test_auprc": 0.9025,
+        "test_n": 1198,
+        "test_pos": 531
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Plateau partner of 9B: 0.9180 vs 0.9172, difference covers zero."
+    },
+    "main_qwen35_9b_q4": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-9B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        32,
+        4096
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 6000,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.57
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8704,
+        "entropy": 0.877
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 16,
+        "layer_id": 16,
+        "val_auroc": 0.912,
+        "test_auroc": 0.9172,
+        "test_auprc": 0.9271,
+        "test_n": 1200,
+        "test_pos": 664
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Largest size of the series that fits 6 GB VRAM. 0 truncated, 0 empty answers."
+    },
+    "main_gemma4e2b": {
+      "kind": "main",
+      "family": "gemma4-small",
+      "model": "Gemma 4 E2B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "legacy_no_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        6000,
+        35,
+        1536
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5975,
+        "null": 25,
+        "truncated": 13,
+        "base_rate_filtered_b": 0.1819
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7054,
+        "entropy": 0.7121
+      },
+      "probe": {
+        "lambda": 1000.0,
+        "point": "C",
+        "layer": 19,
+        "layer_id": 19,
+        "val_auroc": 0.9081,
+        "test_auroc": 0.9351,
+        "test_auprc": 0.7439,
+        "test_n": 1194,
+        "test_pos": 195
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "Only E2B run. Measured before the 2026-11-02 BOS fix, so the prompt lacks the leading <bos> and differs by one token from llama-cli. Answers, labels and probe passed controls; do not compare token-exact with BOS runs."
+    },
+    "main_gemma4e4b": {
+      "kind": "main",
+      "family": "gemma4-small",
+      "model": "Gemma 4 E4B Q4_K_M",
+      "status": "valid",
+      "canonical": false,
+      "usable_for_analysis": true,
+      "prompt_regime": "legacy_no_bos",
+      "restriction": null,
+      "superseded_by": "main_gemma4e4b_bos_master",
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        42,
+        2560
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5999,
+        "null": 1,
+        "truncated": 1,
+        "base_rate_filtered_b": 0.3826
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8427,
+        "entropy": 0.8614
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 21,
+        "layer_id": 21,
+        "val_auroc": 0.9249,
+        "test_auroc": 0.9312,
+        "test_auprc": 0.8922,
+        "test_n": 1200,
+        "test_pos": 454
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Old no-BOS E4B run, kept for the prompt comparison: test 0.9312 vs 0.9186 for the BOS run, paired delta -0.0126 [-0.0259, +0.0012]."
+    },
+    "main_gemma4e4b_bos_master": {
+      "kind": "main",
+      "family": "gemma4-small",
+      "model": "Gemma 4 E4B Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        42,
+        2560
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5998,
+        "null": 2,
+        "truncated": 2,
+        "base_rate_filtered_b": 0.4702
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8585,
+        "entropy": 0.8721
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 20,
+        "layer_id": 20,
+        "val_auroc": 0.9139,
+        "test_auroc": 0.9186,
+        "test_auprc": 0.9084,
+        "test_n": 1199,
+        "test_pos": 558
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Current E4B run: master binary, leading <bos> present, verify 0 fails. Replaces main_gemma4e4b for new comparisons."
+    },
+    "main_gemma4_12b": {
+      "kind": "main",
+      "family": "gemma4-12b",
+      "model": "Gemma-4-12B-It Q4_K_M",
+      "status": "invalid",
+      "canonical": false,
+      "usable_for_analysis": false,
+      "prompt_regime": "legacy_no_bos",
+      "restriction": null,
+      "superseded_by": "main_gemma4_12b_v3",
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "d4cff11",
+        "build": 1
+      },
+      "shape": [
+        6000,
+        48,
+        3840
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 3702,
+        "null": 2298,
+        "truncated": 2298,
+        "base_rate_filtered_b": 0.0011
+      },
+      "baseline_test_auroc": null,
+      "probe": null,
+      "probe_status": "not_citable",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 1
+      },
+      "notes": "Catastrophically broken prompt: no leading <bos>, answers are meta-text. Only 3702/6000 rows labeled, 4 positive, 2298 truncated. Never use for analysis. Kept only as evidence for the BOS incident."
+    },
+    "main_gemma4_12b_v3": {
+      "kind": "main",
+      "family": "gemma4-12b",
+      "model": "Gemma-4-12B-It Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "d4cff11",
+        "build": 1
+      },
+      "shape": [
+        6000,
+        48,
+        3840
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5979,
+        "null": 21,
+        "truncated": 21,
+        "base_rate_filtered_b": 0.5715
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8132,
+        "entropy": 0.8259
+      },
+      "probe": null,
+      "probe_status": "deferred",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe deferred by the user on 2026-11-02; states, labels and baseline are ready."
+    },
+    "main_gptoss20b": {
+      "kind": "main",
+      "family": "gpt-oss",
+      "model": "gpt-oss-20b MXFP4",
+      "status": "partial",
+      "canonical": false,
+      "usable_for_analysis": false,
+      "prompt_regime": "no_template_gptoss_final",
+      "restriction": null,
+      "superseded_by": "main_gptoss20b_v2",
+      "meta_rows": 325,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        325,
+        24,
+        2880
+      ],
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "baseline_test_auroc": null,
+      "probe": null,
+      "probe_status": "not_citable",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "Stopped by hand at 325/6000 rows; no labels.csv. Never use."
+    },
+    "main_gptoss20b_dupinstr": {
+      "kind": "main",
+      "family": "gpt-oss",
+      "model": "gpt-oss-20b MXFP4",
+      "status": "invalid",
+      "canonical": false,
+      "usable_for_analysis": false,
+      "prompt_regime": "no_template_gptoss_final",
+      "restriction": null,
+      "superseded_by": "main_gptoss20b_v2",
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        6000,
+        24,
+        2880
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5977,
+        "null": 23,
+        "truncated": 23,
+        "base_rate_filtered_b": 0.4984
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8349,
+        "entropy": 0.85
+      },
+      "probe": null,
+      "probe_status": "not_citable",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "Input builder duplicated the instruction inside the harmony prompt. Numbers look plausible but the prompt is wrong; never use."
+    },
+    "main_gptoss20b_v2": {
+      "kind": "main",
+      "family": "gpt-oss",
+      "model": "gpt-oss-20b MXFP4",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "no_template_gptoss_final",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        6000,
+        24,
+        2880
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5973,
+        "null": 27,
+        "truncated": 27,
+        "base_rate_filtered_b": 0.4902
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8279,
+        "entropy": 0.8409
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 16,
+        "layer_id": 16,
+        "val_auroc": 0.9157,
+        "test_auroc": 0.9248,
+        "test_auprc": 0.9197,
+        "test_n": 1192,
+        "test_pos": 575
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "Valid gpt-oss run: pre-filled final channel, --no-template, -ngl 11, --batch-rows 8. 27 truncated, 10733.5 s."
+    },
+    "main_nemotron3nano4b": {
+      "kind": "main",
+      "family": "nemotron_h",
+      "model": "NVIDIA-Nemotron-3-Nano-4B",
+      "status": "invalid",
+      "canonical": false,
+      "usable_for_analysis": false,
+      "prompt_regime": "legacy_no_bos",
+      "restriction": null,
+      "superseded_by": "main_nemotron3nano4b_v2",
+      "meta_rows": 5269,
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "shape": [
+        5269,
+        42,
+        3136
+      ],
+      "labels": {
+        "rows": 5266,
+        "labeled": 0,
+        "null": 5266,
+        "truncated": 0,
+        "base_rate_filtered_b": null
+      },
+      "baseline_test_auroc": null,
+      "probe": null,
+      "probe_status": "not_citable",
+      "verify": {
+        "status": "not_run"
+      },
+      "notes": "42 layers requested, only 17 emit l_out. The old binary marked all 5269 processed rows skipped and wrote zeros; 0 labeled rows. Never use."
+    },
+    "main_nemotron3nano4b_v2": {
+      "kind": "main",
+      "family": "nemotron_h",
+      "model": "NVIDIA-Nemotron-3-Nano-4B",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "legacy_no_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "shape": [
+        6000,
+        17,
+        3136
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5995,
+        "null": 5,
+        "truncated": 5,
+        "base_rate_filtered_b": 0.2849
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8023,
+        "entropy": 0.8155
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 8,
+        "layer_id": 20,
+        "val_auroc": 0.9059,
+        "test_auroc": 0.8819,
+        "test_auprc": 0.7357,
+        "test_n": 1200,
+        "test_pos": 327
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 1
+      },
+      "notes": "Valid run with the fixed binary: requested 42 layers auto-pruned to 17 l_out layers, shape [6000, 17, 3136]. verify warns=1 because of the expected pruning. Prompt lacks <bos> (pre-fix), same caveat as main_gemma4e2b."
+    },
+    "main_lfm25_1p2b_instruct_q4": {
+      "kind": "main",
+      "family": "lfm25",
+      "model": "LFM2.5-1.2B Instruct Q4",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        16,
+        2048
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5999,
+        "null": 1,
+        "truncated": 1,
+        "base_rate_filtered_b": 0.1774
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7499,
+        "entropy": 0.7649
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 9,
+        "layer_id": 9,
+        "val_auroc": 0.9008,
+        "test_auroc": 0.8812,
+        "test_auprc": 0.6877,
+        "test_n": 1200,
+        "test_pos": 215
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Instruct counterpart of the deferred Thinking experiment. 1 truncated row."
+    },
+    "main_lfm25_2p6b_q4_final": {
+      "kind": "main",
+      "family": "lfm25",
+      "model": "LFM2.5-2.6B Q4",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "no_template_lfm_final",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        30,
+        2048
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5862,
+        "null": 138,
+        "truncated": 128,
+        "base_rate_filtered_b": 0.3818
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7658,
+        "entropy": 0.7797
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 17,
+        "layer_id": 17,
+        "val_auroc": 0.9034,
+        "test_auroc": 0.8812,
+        "test_auprc": 0.8145,
+        "test_n": 1170,
+        "test_pos": 436
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Stock template opens thinking even with thinking=false, so the input was rebuilt with make_lfm_final_prompt.py and run with --no-template. 128 truncated, 138 null of 6000."
+    },
+    "main_lfm3_1p7b_qad_q4": {
+      "kind": "main",
+      "family": "lfm3",
+      "model": "LFM3-1.7B QAD Q4",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": "41.8% truncated: every metric uses the 3491 completed rows only.",
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        24,
+        2048
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 3491,
+        "null": 2509,
+        "truncated": 2509,
+        "base_rate_filtered_b": 0.3048
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.7275,
+        "entropy": 0.7247
+      },
+      "probe": {
+        "lambda": 1000.0,
+        "point": "C",
+        "layer": 12,
+        "layer_id": 12,
+        "val_auroc": 0.8667,
+        "test_auroc": 0.8608,
+        "test_auprc": 0.756,
+        "test_n": 713,
+        "test_pos": 220
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Style not resolved: raw argmax, unstable thinking=false and the 64-token budget are all plausible causes. Do not launch another full run before a llama-cli sampler diagnostic."
+    },
+    "main_yandexgpt5lite8b_q4": {
+      "kind": "main",
+      "family": "yandexgpt",
+      "model": "YandexGPT 5 Lite 8B Instruct Q4",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        32,
+        4096
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5996,
+        "null": 4,
+        "truncated": 4,
+        "base_rate_filtered_b": 0.5682
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.749,
+        "entropy": 0.7705
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 16,
+        "layer_id": 16,
+        "val_auroc": 0.8989,
+        "test_auroc": 0.9062,
+        "test_auprc": 0.9177,
+        "test_n": 1200,
+        "test_pos": 668
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Master binary, leading <bos>, arch llama. Statistically indistinguishable from Qwen 9B and Gemma E4B."
+    }
+  },
+  "pilots": {
+    "pilot_qwen08": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        1024
+      ],
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Old binary sanity pilot of the 0.8B BF16 model."
+    },
+    "pilot_qwen08_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        1024
+      ],
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Q4 anchor pilot; predicted the full run time within 3%."
+    },
+    "pilot_qwen08_iq2": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        1024
+      ],
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "truncated": 196,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "UD-IQ2_XXS: 196/200 truncated (answers run into thinking). This quant is excluded from the series."
+    },
+    "pilot_qwen35_2b_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        2048
+      ],
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "truncated": 1,
+      "labels": {
+        "rows": 200,
+        "labeled": 199,
+        "null": 1,
+        "truncated": 1,
+        "base_rate_filtered_b": 0.2362
+      },
+      "probe_status": "not_run",
+      "notes": "2B pilot, 28.7 s; full run 866.0 s."
+    },
+    "pilot_qwen35_4b_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        32,
+        2560
+      ],
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "truncated": 1,
+      "labels": {
+        "rows": 200,
+        "labeled": 199,
+        "null": 1,
+        "truncated": 1,
+        "base_rate_filtered_b": 0.4523
+      },
+      "probe_status": "not_run",
+      "notes": "4B pilot, 44.2 s; full run 1483.5 s."
+    },
+    "pilot_qwen35_9b_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        32,
+        4096
+      ],
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.605
+      },
+      "probe_status": "not_run",
+      "notes": "9B pilot, 74.5 s with file logging; -ngl 99 fits 5860 MiB."
+    },
+    "pilot_gemma4e2b": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "legacy_no_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        35,
+        1536
+      ],
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "E2B pilot."
+    },
+    "pilot_gemma4e4b": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "legacy_no_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        42,
+        2560
+      ],
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "E4B pilot, 43.1 s; predicted the full run within 6%."
+    },
+    "pilot_gemma4e4b_bos_master": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        42,
+        2560
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.475
+      },
+      "probe_status": "not_run",
+      "notes": "E4B BOS pilot on the master binary."
+    },
+    "pilot_gemma4_12b": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "legacy_no_bos",
+      "meta_rows": 40,
+      "shape": [
+        40,
+        48,
+        3840
+      ],
+      "binary": {
+        "commit": "d4cff11",
+        "build": 1
+      },
+      "truncated": 15,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "40-row 12B pilot with the broken prompt. Kept as evidence."
+    },
+    "pilot_nemotron3nano4b": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "legacy_no_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        42,
+        3136
+      ],
+      "binary": {
+        "commit": "c9b758d",
+        "build": 2
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Old binary: all rows skipped, zero states."
+    },
+    "pilot_nemotron3nano4b_v2": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "legacy_no_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        17,
+        3136
+      ],
+      "binary": {
+        "commit": "3ad2230",
+        "build": 37
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.31
+      },
+      "probe_status": "pipeline_check",
+      "notes": "Valid 200-row pilot. The probe in this directory is a 120/40/40 pipeline check, not a result."
+    },
+    "pilot_lfm25_1p2b_instruct_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        16,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.18
+      },
+      "probe_status": "not_run",
+      "notes": "Instruct pilot, 200/200 ok, 0 truncated."
+    },
+    "pilot_lfm25_1p2b_thinking_q4": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        16,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 200,
+      "labels": {
+        "rows": 200,
+        "labeled": 0,
+        "null": 200,
+        "truncated": 200,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Thinking model: 200/200 truncated. Blocked until a reasoning budget is fixed."
+    },
+    "pilot_lfm25_2p6b_q4_final": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "no_template_lfm_final",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        30,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 8,
+      "labels": {
+        "rows": 200,
+        "labeled": 192,
+        "null": 8,
+        "truncated": 8,
+        "base_rate_filtered_b": 0.4375
+      },
+      "probe_status": "not_run",
+      "notes": "Final-cue pilot; 8 truncated of 200."
+    },
+    "pilot_lfm3_1p7b_qad_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 79,
+      "labels": {
+        "rows": 200,
+        "labeled": 121,
+        "null": 79,
+        "truncated": 79,
+        "base_rate_filtered_b": 0.2975
+      },
+      "probe_status": "not_run",
+      "notes": "LFM3 pilot: 79/200 truncated, already showing the 64-token problem."
+    },
+    "pilot_yandexgpt5lite8b_q4": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        32,
+        4096
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 1,
+      "labels": {
+        "rows": 200,
+        "labeled": 199,
+        "null": 1,
+        "truncated": 1,
+        "base_rate_filtered_b": 0.5729
+      },
+      "probe_status": "not_run",
+      "notes": "Yandex pilot, 1 truncated."
+    }
+  },
+  "ad_hoc": {
+    "equiv": {
+      "citable": false,
+      "rows": null,
+      "notes": "Pin-vs-master comparison logs and JSON files. No meta.jsonl; not a run directory."
+    },
+    "lfm_trials_2p6": {
+      "citable": false,
+      "rows": 7,
+      "notes": "7-row LFM2.5-2.6B prompt trial, no template, 1 truncated."
+    },
+    "lfm_trials_think": {
+      "citable": false,
+      "rows": 7,
+      "notes": "7-row LFM2.5-1.2B-Thinking trial at 64 tokens: 7/7 truncated."
+    },
+    "lfm_trials_think_256": {
+      "citable": false,
+      "rows": 7,
+      "notes": "7-row LFM2.5-1.2B-Thinking trial at 256 tokens: 5/7 still truncated."
+    },
+    "pilot20_gemma4e4b_bos_master": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row BOS smoke test of the E4B prompt on the master binary."
+    },
+    "pilot20_lfm25_1p2b_inst_q4": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row smoke test of the LFM2.5-1.2B Instruct template, 0 truncated."
+    },
+    "pilot20_lfm25_1p2b_think_q4": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row Thinking trial with the stock template: 20/20 truncated."
+    },
+    "pilot20_lfm25_1p2b_think_q4_prefill": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row Thinking trial with a pre-filled reply: still 20/20 truncated."
+    },
+    "pilot20_lfm25_2p6b_q4": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row trial with the stock template: 20/20 truncated (the template opens a think block)."
+    },
+    "pilot20_lfm25_2p6b_q4_prefill": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row trial with a pre-filled final cue: 4 truncated. Led to make_lfm_final_prompt.py."
+    },
+    "pilot20_lfm25_2p6b_q4_answer": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row trial with the answer pre-filled in the input: 1 truncated."
+    },
+    "pilot20_lfm3_1p7b_final": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row LFM3 trial with a Final answer cue: 12 truncated, so the cue was rejected."
+    },
+    "pilot20_lfm3_1p7b_qad_q4": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row LFM3 smoke test with the stock template: 9 truncated."
+    },
+    "pilot20_yandexgpt5lite8b_q4": {
+      "citable": false,
+      "rows": 20,
+      "notes": "20-row YandexGPT smoke test, 0 truncated."
+    }
+  },
+  "ad_hoc_legend": "Directories in pipeline/out that look like runs but are prompt trials or comparison logs. They are kept on disk and never cited. Only main_runs may be referenced as research results."
+}

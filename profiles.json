@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-03",
+  "purpose": "One entry per model family. The runner reads the flags from here instead of relying on prose, so an agent picks a profile instead of reproducing model exceptions from memory.",
+  "how_to_use": "scripts/run.ps1 -Profile <id> -Stage <stage> -Tag <tag> -Model <path.gguf>",
+  "profile_fields": {
+    "binary": "Which llama.cpp copy to use: active (785322d17) or legacy pin (d4cff114c).",
+    "flags": "Exact llama-hidden-states flags. -b/-ub are never passed: batch mode sets them from --max-len.",
+    "inputs": "pilot/main question files. If builder is set, the runner runs it first and uses built.",
+    "prompt_expectation": "What hs-prompt-dump must report. A mismatch stops the run.",
+    "pilot_gate": "Thresholds for pipeline/gate_report.py. Overrides the defaults.",
+    "blocked": "Non-null means the stage refuses to run without -ConfirmDeferred."
+  },
+  "defaults": {
+    "binary": "active",
+    "flags": {
+      "generate": true,
+      "max_new_tokens": 64,
+      "max_len": 1024,
+      "layers": "all",
+      "ngl": 99,
+      "no_template": false,
+      "no_thinking": false,
+      "batch_rows": 1
+    },
+    "pilot_gate": {
+      "max_skipped": 0,
+      "max_truncated_ratio": 0.10,
+      "max_empty_answer_ratio": 0.02,
+      "max_channel_leak": 0,
+      "max_repetition_ratio": 0.10,
+      "max_long_answer_ratio": 0.15,
+      "max_retokenize_ratio": 0.05,
+      "max_estimated_hours": 6.0
+    }
+  },
+  "profiles": {
+    "standard": {
+      "description": "Any GGUF whose stock chat template works and which fits VRAM. Use it only when no family profile below matches.",
+      "applies_to": ["unknown"],
+      "binary": "active",
+      "flags": {},
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": null, "first_token": null, "note": "Check the dump by eye: the prompt must contain one instruction and the reported add_bos must match llama_vocab_get_add_bos for the model." },
+      "timing_reference": null,
+      "notes": [
+        "If add_bos=1 and the first token is not the BOS id, stop: the prompt lost <bos> and the run would repeat the Gemma 4 12B incident."
+      ]
+    },
+    "qwen": {
+      "description": "Qwen 3.5 family (0.8B / 2B / 4B) in Q4_K_M from unsloth.",
+      "applies_to": ["qwen3.5"],
+      "binary": "active",
+      "flags": {},
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": false, "first_token": null },
+      "timing_reference": { "pilot_200_seconds": 24.4, "run": "main_qwen08_q4" },
+      "notes": [
+        "add_bos_token is false for Qwen, so the 2026-11-02 BOS fix does not change these prompts."
+      ]
+    },
+    "qwen9b": {
+      "description": "Qwen 3.5 9B Q4_K_M: 5.68 GB, fits 6 GB VRAM only with -ngl 99 (peak 5860 MiB).",
+      "applies_to": ["qwen3.5"],
+      "binary": "active",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": false, "first_token": null },
+      "timing_reference": { "pilot_200_seconds": 74.5, "run": "main_qwen35_9b_q4" },
+      "notes": [
+        "Do not lower -ngl: 30/26/22 give 1.96/1.31/1.01 ex/s against 2.90 for 99.",
+        "Auto-fit refuses this model (n_gpu_layers already set), but -ngl 99 works.",
+        "Write stdout/stderr to a file. Piping through Tee-Object made the 9B pilot three times slower."
+      ]
+    },
+    "gemma": {
+      "description": "Gemma 4 E2B / E4B with the stock chat template. add_bos_token is true.",
+      "applies_to": ["gemma4-small"],
+      "binary": "active",
+      "flags": {},
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 2 },
+      "timing_reference": { "pilot_200_seconds": 43.1, "run": "main_gemma4e4b_bos_master" },
+      "notes": [
+        "Do not compare a new BOS run token-for-token with main_gemma4e2b or main_gemma4e4b: those lack <bos>.",
+        "The chat template prints <bos> and llama.cpp strips it, expecting the tokenizer to add it back. The dump must show first token 2."
+      ]
+    },
+    "yandex": {
+      "description": "YandexGPT 5 Lite 8B Instruct, arch llama, Q4_K_M.",
+      "applies_to": ["yandexgpt"],
+      "binary": "active",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "timing_reference": { "pilot_200_seconds": 59.3, "run": "main_yandexgpt5lite8b_q4" },
+      "notes": []
+    },
+    "nemotron": {
+      "description": "NVIDIA-Nemotron-3-Nano-4B, hybrid arch nemotron_h. Only 17 of 42 layers emit l_out.",
+      "applies_to": ["nemotron_h"],
+      "binary": "active",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "timing_reference": { "pilot_200_seconds": 44.7, "run": "main_nemotron3nano4b_v2" },
+      "expected": { "layers_with_lout": 17, "verify_warns": 1 },
+      "notes": [
+        "--layers all is correct: the binary probes l_out and drops layers without it. Expect 'selected layers after l_out probe: 17 of 42'.",
+        "verify_run.py reports warns=1 for the pruning. That is expected, not a defect.",
+        "17 zero layers or skipped rows mean the old broken binary. Stop and check --version."
+      ]
+    },
+    "gptoss20b": {
+      "description": "gpt-oss-20b MXFP4. Reasoning flags do not work in this tool, so the harmony prompt is pre-filled with the final channel and run with --no-template.",
+      "applies_to": ["gpt-oss"],
+      "binary": "active",
+      "flags": {
+        "ngl": 11,
+        "no_template": true,
+        "no_thinking": true,
+        "batch_rows": 8
+      },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl", "builder": "make_gptoss_prompt.py", "built": "data/pilot_gptoss_final.jsonl" },
+        "main": { "source": "data/main.jsonl", "builder": "make_gptoss_prompt.py", "built": "data/main_gptoss_final.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": false, "first_token": null, "note": "Point A is the last token of the pre-filled final channel, not <|start|>assistant. This is intentional." },
+      "timing_reference": { "pilot_200_seconds": 193.2, "run": "main_gptoss20b_v2" },
+      "notes": [
+        "-ngl 12+ spills to shared memory and is 2.3-2.9x slower; 11 is the optimum (2.71 s/row, 5.79 GB peak).",
+        "The instruction 'Answer with just the answer, no explanation.' must appear exactly once in the built prompt. The duplicated-instruction run main_gptoss20b_dupinstr is invalid.",
+        "Never run this profile without --no-template."
+      ]
+    },
+    "lfm25-2.6b": {
+      "description": "LFM2.5-2.6B. The stock template opens  thinking even when thinking is false, so the input ends with 'Final answer:' and runs with --no-template.",
+      "applies_to": ["lfm25"],
+      "binary": "active",
+      "flags": { "no_template": true, "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl", "builder": "make_lfm_final_prompt.py", "built": "data/pilot_lfm25_final.jsonl" },
+        "main": { "source": "data/main.jsonl", "builder": "make_lfm_final_prompt.py", "built": "data/main_lfm25_final.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1, "note": "Point A is the last token of 'Final answer:'." },
+      "timing_reference": { "pilot_200_seconds": 29.0, "run": "main_lfm25_2p6b_q4_final" },
+      "notes": [
+        "The builder must be idempotent: rebuilding data/pilot_lfm25_final.jsonl from data/pilot.jsonl must give a byte-identical file.",
+        "128 truncated and 138 null rows of 6000 in the reference run; that is accepted for this model."
+      ]
+    },
+    "lfm25-1.2b-instruct": {
+      "description": "LFM2.5-1.2B Instruct: stock template, thinking=false.",
+      "applies_to": ["lfm25"],
+      "binary": "active",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "timing_reference": { "pilot_200_seconds": 10.0, "run": "main_lfm25_1p2b_instruct_q4" },
+      "notes": []
+    },
+    "lfm25-1.2b-thinking": {
+      "description": "LFM2.5-1.2B Thinking: the reasoning half of the planned reasoning-vs-instruct experiment.",
+      "applies_to": ["lfm25"],
+      "binary": "active",
+      "flags": { "ngl": 99, "max_new_tokens": 256 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "timing_reference": null,
+      "blocked": {
+        "id": "run:lfm25-1.2b-thinking",
+        "reason": "The fixed no-thinking pilot was 200/200 truncated. A reasoning budget, a final-answer extraction rule and a C-point rule must be fixed and written down before any run. This is not part of the frozen protocol."
+      },
+      "notes": [
+        "Do not run the standard 6000-row workflow for this model."
+      ]
+    },
+    "lfm3": {
+      "description": "LFM3-1.7B QAD Q4. Stock no-thinking prompt is correct, but 41.8% of rows do not finish within 64 tokens.",
+      "applies_to": ["lfm3"],
+      "binary": "active",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "pilot_gate": { "max_truncated_ratio": 0.60, "max_empty_answer_ratio": 0.05, "max_long_answer_ratio": 0.80 },
+      "timing_reference": { "pilot_200_seconds": 69.7, "run": "main_lfm3_1p7b_qad_q4" },
+      "blocked": {
+        "id": "run:lfm3-sampler-diagnostic",
+        "reason": "Only a cheap llama-cli diagnostic (temp=0.1, top_k=50, repeat_penalty=1.1 vs raw argmax) was proposed. Do not launch another 6000-row run before it."
+      },
+      "notes": [
+        "The reference run is usable only for the 3491 completed rows; every metric carries that restriction."
+      ]
+    },
+    "gemma4-12b-kaggle": {
+      "description": "Gemma 4 12B on Kaggle (2 x T4). Not runnable on the local 6 GB GPU.",
+      "applies_to": ["gemma4-12b"],
+      "binary": "kaggle",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 2 },
+      "pilot_gate": { "max_estimated_hours": 4.0 },
+      "timing_reference": { "pilot_200_seconds": 67.0, "run": "main_gemma4_12b_v3" },
+      "blocked": {
+        "id": "kaggle:full-run",
+        "reason": "Kaggle GPU hours are limited to 30 per week. Run the pilot, estimate the budget, report the quota, and get an explicit request before a full 6000-row session."
+      },
+      "notes": [
+        "Workflow: kaggle/gemma4_12b/push.ps1, then kaggle/watch.ps1, then kaggle kernels output into a new version directory.",
+        "Probe for main_gemma4_12b_v3 is deferred by the user; the states, labels and baseline are ready.",
+        "The local runner does not drive Kaggle; use run.ps1 only for verify/baseline/probe on a downloaded directory."
+      ]
+    }
+  }
+}

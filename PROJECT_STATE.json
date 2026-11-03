@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-03",
+  "project": {
+    "name": "llama-hidden-states",
+    "repo": "https://github.com/Fatalist0001/confidenceResearch",
+    "branch": "main",
+    "purpose": "Extract per-layer hidden states at points A and C from GGUF models and test linear probes for answer correctness.",
+    "docs": {
+      "start": "docs/START-HERE.md",
+      "agent_contract": "AGENTS.md",
+      "setup": "docs/SETUP.md",
+      "research": "README.md",
+      "report": "report.md",
+      "runs": "RUNS.json",
+      "profiles": "profiles.json",
+      "history": "docs/history/AGENTS-full-2026-11-02.md",
+      "old_readme": "docs/README-full-2026-11-02.md"
+    }
+  },
+  "binaries": {
+    "active": {
+      "dir": "llama.cpp-hiddenstates-new",
+      "commit": "785322d17",
+      "build": 12033,
+      "exe": "llama.cpp-hiddenstates-new/build/bin/Release/llama-hidden-states.exe",
+      "prompt_dump": "llama.cpp-hiddenstates-new/build/bin/Release/hs-prompt-dump.exe",
+      "use_for": "all new local runs"
+    },
+    "legacy": {
+      "dir": "llama.cpp-hiddenstates",
+      "commit": "d4cff114c",
+      "build": 9869,
+      "exe": "llama.cpp-hiddenstates/build/bin/Release/llama-hidden-states.exe",
+      "prompt_dump": "llama.cpp-hiddenstates/build/bin/Release/hs-prompt-dump.exe",
+      "use_for": "bit-exact reproduction of pre-2026-11-02 states only"
+    }
+  },
+  "upstream": {
+    "url": "https://github.com/ggml-org/llama.cpp",
+    "tracked_files": [
+      "examples/CMakeLists.txt",
+      "examples/hidden-states/CMakeLists.txt",
+      "examples/hidden-states/hidden-states.cpp",
+      "examples/hidden-states/load_example.py",
+      "examples/hidden-states/prompt_dump.cpp"
+    ],
+    "note": "Only these files are tracked inside either llama.cpp copy. A fresh clone has no upstream sources; run scripts/bootstrap.ps1 first."
+  },
+  "python": {
+    "requires": ">=3.11",
+    "venv": "pipeline/.venv",
+    "requirements": "pipeline/requirements.txt",
+    "direct_dependencies": ["numpy", "datasets"]
+  },
+  "protocol": {
+    "label_column": "correct_filtered_b",
+    "feature": "one hidden vector of one layer, point A or C",
+    "standardization": "mean/std fitted on train only",
+    "model": "L2-regularized logistic regression (Newton/IRLS)",
+    "lambdas": [100, 300, 1000, 3000],
+    "lambda_selection": "max mean val AUROC over all point/layer configs",
+    "config_selection": "max val AUROC at the selected lambda",
+    "test_evaluations": 1,
+    "bootstrap": {"n": 1000, "seed": 42},
+    "bins": 10
+  },
+  "authorization": {
+    "default": "read_only: inspect, explain and validate; do not start new expensive runs",
+    "run_requires_explicit_user_request": true,
+    "blocked_actions": [
+      {
+        "id": "probe:main_gemma4_12b_v3",
+        "reason": "Probe deferred by the user on 2026-11-02. States, labels and baseline are ready; do not run probe.py until the user asks again."
+      },
+      {
+        "id": "run:lfm25-1.2b-thinking",
+        "reason": "Thinking experiment needs a separately fixed reasoning budget, final budget and C-point rule. The no-thinking pilot was 200/200 truncated."
+      },
+      {
+        "id": "run:lfm3-sampler-diagnostic",
+        "reason": "Only a cheap llama-cli diagnostic was proposed, not a new full run. Do not launch another 6000-row LFM3 run."
+      },
+      {
+        "id": "kaggle:full-run",
+        "reason": "Kaggle GPU hours are limited. Pilot first, estimate the budget, and report the quota before a full run."
+      },
+      {
+        "id": "protocol:change",
+        "reason": "Changing lambdas, splits, points, layer selection or the label column invalidates comparability with all existing runs."
+      },
+      {
+        "id": "artifacts:rewrite-or-delete",
+        "reason": "Existing .npy, meta.jsonl, labels.csv, baseline.* and probe.* are final. Recompute into new file names or a new tag."
+      }
+    ]
+  },
+  "deferred_tasks": [
+    {
+      "id": "probe:main_gemma4_12b_v3",
+      "status": "deferred",
+      "next_step": "Run probe.py only after explicit approval."
+    },
+    {
+      "id": "run:lfm25-1.2b-thinking",
+      "status": "planned",
+      "next_step": "Fix reasoning budget, final extraction rule and C-point definition first."
+    },
+    {
+      "id": "diagnostic:lfm3-sampler",
+      "status": "planned",
+      "next_step": "Compare raw argmax with llama-cli and temp=0.1/top_k=50/repeat_penalty=1.1 on the same GGUF."
+    },
+    {
+      "id": "research:richer-feature",
+      "status": "idea",
+      "next_step": "Multiple layers/positions or a non-linear model; requires a new protocol, not a silent edit of probe.py."
+    },
+    {
+      "id": "research:other-dataset",
+      "status": "idea",
+      "next_step": "NQ-Open or similar; freeze the protocol before looking at test."
+    },
+    {
+      "id": "plan:hallucination",
+      "status": "idea",
+      "doc": "HALLUCINATION_PLAN.md"
+    },
+    {
+      "id": "plan:quant-transfer-strict",
+      "status": "idea",
+      "doc": "QUANT_TRANSFER_PLAN.md"
+    }
+  ],
+  "guards": {
+    "protected": [
+      "pipeline/out/**/hidden_*.npy",
+      "pipeline/out/**/meta.jsonl",
+      "pipeline/out/**/labels.csv",
+      "pipeline/out/**/baseline.*",
+      "pipeline/out/**/probe*.json",
+      "pipeline/out/**/probe*_scores.csv",
+      "pipeline/out/**/probe*_curve.csv",
+      "pipeline/out/**/probe*_model.npz"
+    ],
+    "never_overwrite_run_dir": true,
+    "generation_requires_prompt_record": true,
+    "pilot_requires_labeled_class_balance_gate": true,
+    "main_requires_passed_pilot_gate": true,
+    "main_requires_matching_pilot_provenance": ["model", "profile", "binary", "flags"],
+    "probe_requires_passed_verify": true,
+    "keep_duplicate_id": "bb_956",
+    "log_to_file": "Do not pipe long runs through Tee-Object.",
+    "no_batch_flags": "Do not pass -b/-ub; batch mode sets them from --max-len."
+  },
+  "tests": {
+    "unit": "python -m unittest discover -s pipeline/tests -v",
+    "registry": "python scripts/build_runs.py --check",
+    "state": "python scripts/check_state.py",
+    "environment": "python scripts/doctor.py",
+    "ci": ".github/workflows/ci.yml"
+  }
+}

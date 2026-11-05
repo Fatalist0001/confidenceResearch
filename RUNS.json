@@ -532,14 +532,24 @@
         "logprob": 0.8132,
         "entropy": 0.8259
       },
-      "probe": null,
-      "probe_status": "deferred",
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 28,
+        "layer_id": 28,
+        "val_auroc": 0.9162,
+        "test_auroc": 0.9107,
+        "test_auprc": 0.9301,
+        "test_n": 1195,
+        "test_pos": 678
+      },
+      "probe_status": "complete",
       "verify": {
         "status": "passed",
         "fails": 0,
         "warns": 0
       },
-      "notes": "Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe deferred by the user on 2026-11-02; states, labels and baseline are ready."
+      "notes": "Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe computed locally on 2026-11-04 (lambda 3000, C/28): val 0.9162, test 0.9107 [0.8950, 0.9262]; probe2 reproduced it byte-for-byte."
     },
     "main_gptoss20b": {
       "kind": "main",

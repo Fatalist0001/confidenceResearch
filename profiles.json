@@ -237,7 +237,7 @@
       },
       "notes": [
         "Workflow: kaggle/gemma4_12b/push.ps1, then kaggle/watch.ps1, then kaggle kernels output into a new version directory.",
-        "Probe for main_gemma4_12b_v3 is deferred by the user; the states, labels and baseline are ready.",
+        "Probe for main_gemma4_12b_v3 was computed locally on 2026-11-04 (lambda 3000, C/28, test 0.9107); probe2 matched byte-for-byte.",
         "The local runner does not drive Kaggle; use run.ps1 only for verify/baseline/probe on a downloaded directory."
       ]
     }

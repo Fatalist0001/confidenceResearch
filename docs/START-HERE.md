@@ -70,7 +70,7 @@
 | Qwen3.5-9B Q4 | `main_qwen35_9b_q4` | 32×4096 | 0.570 | 0.877 | C / 16 | 0.9172 |
 | Gemma 4 E2B | `main_gemma4e2b` | 35×1536 | 0.182 | 0.712 | C / 19 | 0.9351 |
 | Gemma 4 E4B | `main_gemma4e4b_bos_master` | 42×2560 | 0.470 | 0.872 | C / 20 | 0.9186 |
-| Gemma 4 12B | `main_gemma4_12b_v3` | 48×3840 | 0.572 | 0.826 | отложена | — |
+| Gemma 4 12B | `main_gemma4_12b_v3` | 48×3840 | 0.572 | 0.826 | C / 28 | 0.9107 |
 | gpt-oss-20b | `main_gptoss20b_v2` | 24×2880 | 0.490 | 0.841 | C / 16 | 0.9248 |
 | Nemotron 3 Nano 4B | `main_nemotron3nano4b_v2` | 17×3136 | 0.285 | 0.816 | C / 20 | 0.8819 |
 | LFM2.5-1.2B Instruct | `main_lfm25_1p2b_instruct_q4` | 16×2048 | 0.177 | 0.765 | C / 9 | 0.8812 |
@@ -136,7 +136,6 @@
 
 | id | что нельзя | почему |
 |---|---|---|
-| `probe:main_gemma4_12b_v3` | `probe.py` для 12B | проба отложена пользователем 2026-11-02 |
 | `run:lfm25-1.2b-thinking` | обычный прогон Thinking | нужен отдельный reasoning budget, правило извлечения final и правило точки C |
 | `run:lfm3-sampler-diagnostic` | новый полный прогон LFM3 | сначала дешёвая диагностика сэмплера в `llama-cli` |
 | `kaggle:full-run` | полный прогон на Kaggle | квота 30 ч/неделю; сначала пилот и бюджет |

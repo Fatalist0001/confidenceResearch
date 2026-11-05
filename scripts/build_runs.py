@@ -78,8 +78,8 @@ MAIN = {
     ),
     "main_gemma4_12b_v3": dict(
         family="gemma4-12b", model="Gemma-4-12B-It Q4_K_M", status="valid", canonical=True,
-        prompt_regime="default_bos", usable=True, probe_status="deferred",
-        notes="Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe deferred by the user on 2026-11-02; states, labels and baseline are ready.",
+        prompt_regime="default_bos", usable=True,
+        notes="Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe computed locally on 2026-11-04 (lambda 3000, C/28): val 0.9162, test 0.9107 [0.8950, 0.9262]; probe2 reproduced it byte-for-byte.",
     ),
     "main_gptoss20b": dict(
         family="gpt-oss", model="gpt-oss-20b MXFP4", status="partial", canonical=False,

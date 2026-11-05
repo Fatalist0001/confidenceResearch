@@ -209,7 +209,6 @@ probe → probe2 → compare; точные команды — в `docs/START-HER
 
 | id | что нельзя |
 |---|---|
-| `probe:main_gemma4_12b_v3` | `probe.py` для 12B — проба отложена пользователем |
 | `run:lfm25-1.2b-thinking` | обычный прогон Thinking |
 | `run:lfm3-sampler-diagnostic` | новый полный прогон LFM3 до диагностики сэмплера |
 | `kaggle:full-run` | полный прогон на Kaggle без пилота и бюджета |

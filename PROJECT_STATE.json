@@ -70,10 +70,6 @@
     "run_requires_explicit_user_request": true,
     "blocked_actions": [
       {
-        "id": "probe:main_gemma4_12b_v3",
-        "reason": "Probe deferred by the user on 2026-11-02. States, labels and baseline are ready; do not run probe.py until the user asks again."
-      },
-      {
         "id": "run:lfm25-1.2b-thinking",
         "reason": "Thinking experiment needs a separately fixed reasoning budget, final budget and C-point rule. The no-thinking pilot was 200/200 truncated."
       },
@@ -96,11 +92,6 @@
     ]
   },
   "deferred_tasks": [
-    {
-      "id": "probe:main_gemma4_12b_v3",
-      "status": "deferred",
-      "next_step": "Run probe.py only after explicit approval."
-    },
     {
       "id": "run:lfm25-1.2b-thinking",
       "status": "planned",

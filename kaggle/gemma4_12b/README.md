@@ -37,7 +37,9 @@ Copy-Item kaggle\gemma4_12b\out\v5\out\main_gemma4_12b_v3\* pipeline\out\main_ge
 ```
 
 Выполнены `verify_run.py --full --input data/main.jsonl` → `label.py` → `baseline.py`.
-Проба 12B отложена по решению пользователя.
+Проба посчитана локально 2026-11-04: λ=3000, C/28, val AUROC 0.9162,
+test AUROC **0.9107** [0.8950, 0.9262], test AUPRC 0.9301. `probe2` совпал
+побайтово с `probe.*`.
 
 `main_gemma4_12b` без суффикса — непригодный старый прогон без ведущего `<bos>`
 (`report.md` §22); не перезаписывать и не использовать.
@@ -48,6 +50,7 @@ Copy-Item kaggle\gemma4_12b\out\v5\out\main_gemma4_12b_v3\* pipeline\out\main_ge
 - main 6000/6000, 21 truncated, 16 retokenize mismatch;
 - 2012.1 s (2.98 ex/s), `[6000,48,3840]`, по 2109.4 MiB;
 - `filtered_b` 0.572, baseline test 0.813/0.826;
+- проба (локально 2026-11-04): λ 3000, C/28, test 0.9107 [0.895, 0.926], AUPRC 0.9301;
 - сессия 61.1 мин, расход 1.01 GPU-ч; всего использовано 5.99/30 ч.
 
 ## Грабли

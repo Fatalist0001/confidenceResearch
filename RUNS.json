@@ -551,6 +551,55 @@
       },
       "notes": "Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe computed locally on 2026-11-04 (lambda 3000, C/28): val 0.9162, test 0.9107 [0.8950, 0.9262]; probe2 reproduced it byte-for-byte."
     },
+    "main_gemma4_26b_a4b_udq4km": {
+      "kind": "main",
+      "family": "gemma4-26b-a4b",
+      "model": "Gemma 4 26B-A4B UD-Q4_K_M",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": null,
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        30,
+        2816
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5968,
+        "null": 32,
+        "truncated": 32,
+        "base_rate_filtered_b": 0.7078
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.8385,
+        "entropy": 0.8428
+      },
+      "probe": {
+        "lambda": 3000.0,
+        "point": "C",
+        "layer": 16,
+        "layer_id": 16,
+        "val_auroc": 0.9018,
+        "test_auroc": 0.9077,
+        "test_auprc": 0.9576,
+        "test_n": 1195,
+        "test_pos": 846
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Valid Kaggle v2 run on two T4 GPUs: 6000/6000, 32 truncated, shape [6000, 30, 2816], verify 0 fails and 0 warnings. Probe lambda 3000, C/16: val 0.9018, test 0.9077 [0.8893, 0.9235]; probe2 reproduced both CSVs byte-for-byte."
+    },
     "main_gptoss20b": {
       "kind": "main",
       "family": "gpt-oss",

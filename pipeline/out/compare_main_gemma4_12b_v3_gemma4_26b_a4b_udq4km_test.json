@@ -1,0 +1,30 @@
+{
+  "split": "test",
+  "a": "D:/VScode_pr/confidenceResearch/pipeline/out/main_gemma4_12b_v3/probe_scores.csv",
+  "b": "D:/VScode_pr/confidenceResearch/pipeline/out/main_gemma4_26b_a4b_udq4km/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1190,
+    "pos_a": 677,
+    "pos_b": 843,
+    "base_rate_a": 0.5689075630252101,
+    "base_rate_b": 0.7084033613445379,
+    "label_mismatch_rows": 238,
+    "a_auroc": 0.9100808808497528,
+    "b_auroc": 0.9074835652824925,
+    "a_auprc": 0.9301643691841974,
+    "b_auprc": 0.9576418066172345,
+    "delta_auroc": -0.0025973155672602832,
+    "delta_auprc": 0.0274774374330371
+  },
+  "delta_auroc_ci": [
+    -0.021311967471943326,
+    0.015462244805078266
+  ],
+  "delta_auprc_ci": [
+    0.01384609988732717,
+    0.0414920750157799
+  ],
+  "share_b_higher_auroc": 0.396
+}

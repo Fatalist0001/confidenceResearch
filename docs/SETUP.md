@@ -214,6 +214,9 @@ $env:KAGGLE_API_TOKEN = ((Get-Content .env |
 & 'C:\Windows\Temp\opencode\kgvenv\Scripts\kaggle.exe' quota
 powershell -File kaggle\gemma4_12b\push.ps1
 powershell -File kaggle\watch.ps1 -Kernel odinodinodin/hs-gemma4-12b -IntervalSec 60
+
+powershell -File kaggle\gemma4_26b_a4b\push.ps1
+powershell -File kaggle\watch.ps1 -Kernel odinodinodin/hs-gemma4-26b-a4b -IntervalSec 60
 ```
 
 Правила: сначала пилот 20–50 строк, потом оценка бюджета, только потом 6000 строк.

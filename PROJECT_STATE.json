@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-03",
+  "updated": "2026-11-05",
   "project": {
     "name": "llama-hidden-states",
     "repo": "https://github.com/Fatalist0001/confidenceResearch",

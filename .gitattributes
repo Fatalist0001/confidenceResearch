@@ -1,0 +1,2 @@
+# labels.csv stores model answers verbatim; embedded lines may end with spaces.
+pipeline/out/**/labels.csv whitespace=-blank-at-eol

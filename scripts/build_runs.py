@@ -81,6 +81,11 @@ MAIN = {
         prompt_regime="default_bos", usable=True,
         notes="Valid Kaggle run after the BOS fix: 6000/6000, 21 truncated, verify 0 fails. Probe computed locally on 2026-11-04 (lambda 3000, C/28): val 0.9162, test 0.9107 [0.8950, 0.9262]; probe2 reproduced it byte-for-byte.",
     ),
+    "main_gemma4_26b_a4b_udq4km": dict(
+        family="gemma4-26b-a4b", model="Gemma 4 26B-A4B UD-Q4_K_M", status="valid", canonical=True,
+        prompt_regime="default_bos", usable=True,
+        notes="Valid Kaggle v2 run on two T4 GPUs: 6000/6000, 32 truncated, shape [6000, 30, 2816], verify 0 fails and 0 warnings. Probe lambda 3000, C/16: val 0.9018, test 0.9077 [0.8893, 0.9235]; probe2 reproduced both CSVs byte-for-byte.",
+    ),
     "main_gptoss20b": dict(
         family="gpt-oss", model="gpt-oss-20b MXFP4", status="partial", canonical=False,
         prompt_regime="no_template_gptoss_final", usable=False, superseded_by="main_gptoss20b_v2",

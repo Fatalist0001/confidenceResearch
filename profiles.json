@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-03",
+  "updated": "2026-11-05",
   "purpose": "One entry per model family. The runner reads the flags from here instead of relying on prose, so an agent picks a profile instead of reproducing model exceptions from memory.",
   "how_to_use": "scripts/run.ps1 -Profile <id> -Stage <stage> -Tag <tag> -Model <path.gguf>",
   "profile_fields": {
@@ -239,6 +239,28 @@
         "Workflow: kaggle/gemma4_12b/push.ps1, then kaggle/watch.ps1, then kaggle kernels output into a new version directory.",
         "Probe for main_gemma4_12b_v3 was computed locally on 2026-11-04 (lambda 3000, C/28, test 0.9107); probe2 matched byte-for-byte.",
         "The local runner does not drive Kaggle; use run.ps1 only for verify/baseline/probe on a downloaded directory."
+      ]
+    },
+    "gemma4-26b-a4b-kaggle": {
+      "description": "Gemma 4 26B-A4B on Kaggle (2 x T4). Not runnable on the local 6 GB GPU.",
+      "applies_to": ["gemma4-26b-a4b"],
+      "binary": "kaggle",
+      "flags": { "ngl": 99 },
+      "inputs": {
+        "pilot": { "source": "data/pilot.jsonl" },
+        "main": { "source": "data/main.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": true, "first_token": 2 },
+      "pilot_gate": { "max_estimated_hours": 4.0 },
+      "timing_reference": { "pilot_40_seconds": 21.0, "run": "main_gemma4_26b_a4b_udq4km" },
+      "blocked": {
+        "id": "kaggle:full-run",
+        "reason": "Kaggle GPU hours are limited. Run the pilot, estimate the budget, report the quota, and get an explicit request before a full 6000-row session."
+      },
+      "notes": [
+        "Workflow: kaggle/gemma4_26b_a4b/push.ps1, then Kaggle status/output into a new version directory.",
+        "The v2 run passed its gate and structural validation: 6000/6000 rows, 32 truncated, shape [6000,30,2816].",
+        "The local runner does not drive Kaggle; use run.ps1 only for label/verify/baseline/probe on a downloaded directory."
       ]
     }
   }

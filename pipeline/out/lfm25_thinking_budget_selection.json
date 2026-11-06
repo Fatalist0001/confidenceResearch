@@ -1,0 +1,58 @@
+{
+  "selection_data": "train-only development rows",
+  "criterion": "smallest budget with coverage >= 0.950 and effective accuracy within 0.020 of the best eligible candidate",
+  "min_coverage": 0.95,
+  "margin": 0.02,
+  "best_effective_accuracy": 0.3,
+  "selected_budget": 32,
+  "candidates": [
+    {
+      "budget": 32,
+      "rows": 200,
+      "extracted": 199,
+      "coverage": 0.995,
+      "labeled": 199,
+      "positives": 57,
+      "labeled_accuracy": 0.2864321608040201,
+      "effective_accuracy": 0.285,
+      "labels": "pipeline\\out\\diag_lfm25_thinking_r32_train200_protocol\\labels_v2.csv",
+      "summary": "pipeline\\out\\diag_lfm25_thinking_r32_train200_protocol\\summary_v2.json"
+    },
+    {
+      "budget": 64,
+      "rows": 200,
+      "extracted": 199,
+      "coverage": 0.995,
+      "labeled": 199,
+      "positives": 59,
+      "labeled_accuracy": 0.2964824120603015,
+      "effective_accuracy": 0.295,
+      "labels": "pipeline\\out\\diag_lfm25_thinking_r64_train200_protocol\\labels_v2.csv",
+      "summary": "pipeline\\out\\diag_lfm25_thinking_r64_train200_protocol\\summary_v2.json"
+    },
+    {
+      "budget": 128,
+      "rows": 200,
+      "extracted": 200,
+      "coverage": 1.0,
+      "labeled": 200,
+      "positives": 59,
+      "labeled_accuracy": 0.295,
+      "effective_accuracy": 0.295,
+      "labels": "pipeline\\out\\diag_lfm25_thinking_r128_train200_protocol\\labels_v2.csv",
+      "summary": "pipeline\\out\\diag_lfm25_thinking_r128_train200_protocol\\summary_v2.json"
+    },
+    {
+      "budget": 256,
+      "rows": 200,
+      "extracted": 200,
+      "coverage": 1.0,
+      "labeled": 200,
+      "positives": 60,
+      "labeled_accuracy": 0.3,
+      "effective_accuracy": 0.3,
+      "labels": "pipeline\\out\\diag_lfm25_thinking_r256_train200_protocol\\labels_v2.csv",
+      "summary": "pipeline\\out\\diag_lfm25_thinking_r256_train200_protocol\\summary_v2.json"
+    }
+  ]
+}

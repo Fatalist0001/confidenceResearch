@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-05",
+  "updated": "2026-11-06",
   "project": {
     "name": "llama-hidden-states",
     "repo": "https://github.com/Fatalist0001/confidenceResearch",
@@ -10,6 +10,7 @@
       "start": "docs/START-HERE.md",
       "agent_contract": "AGENTS.md",
       "setup": "docs/SETUP.md",
+      "lfm25_thinking_protocol": "docs/LFM25-THINKING-PROTOCOL.md",
       "research": "README.md",
       "report": "report.md",
       "runs": "RUNS.json",
@@ -70,10 +71,6 @@
     "run_requires_explicit_user_request": true,
     "blocked_actions": [
       {
-        "id": "run:lfm25-1.2b-thinking",
-        "reason": "Thinking experiment needs a separately fixed reasoning budget, final budget and C-point rule. The no-thinking pilot was 200/200 truncated."
-      },
-      {
         "id": "run:lfm3-sampler-diagnostic",
         "reason": "Only a cheap llama-cli diagnostic was proposed, not a new full run. Do not launch another 6000-row LFM3 run."
       },
@@ -92,11 +89,6 @@
     ]
   },
   "deferred_tasks": [
-    {
-      "id": "run:lfm25-1.2b-thinking",
-      "status": "planned",
-      "next_step": "Fix reasoning budget, final extraction rule and C-point definition first."
-    },
     {
       "id": "diagnostic:lfm3-sampler",
       "status": "planned",

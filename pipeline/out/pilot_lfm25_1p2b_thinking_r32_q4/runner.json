@@ -1,0 +1,26 @@
+﻿{
+    "stage":  "pilot",
+    "tag":  "lfm25_1p2b_thinking_r32_q4",
+    "profile":  "lfm25-1.2b-thinking",
+    "model":  "D:\\Lm studio\\.lmstudio\\models\\LiquidAI\\LFM2.5-1.2B-Thinking-GGUF\\LFM2.5-1.2B-Thinking-Q4_0.gguf",
+    "input":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot_lfm25_thinking_r32_final.jsonl",
+    "input_sha256":  "2ADB07061CAE71D15F0C8538891BB123FB3EC69D55CAE2256AD2754737AD08B5",
+    "questions":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot.jsonl",
+    "questions_sha256":  "278EDB60B868C04C1C692831330EB4EE62C6974D166B103054863A17A9CAF741",
+    "binary":  "D:\\VScode_pr\\confidenceResearch\\llama.cpp-hiddenstates-new\\build\\bin\\Release\\llama-hidden-states.exe",
+    "commit":  "785322d17",
+    "build":  12033,
+    "flags":  {
+                  "generate":  false,
+                  "max_new_tokens":  64,
+                  "max_len":  1024,
+                  "layers":  "all",
+                  "ngl":  99,
+                  "no_template":  true,
+                  "no_thinking":  false,
+                  "thinking":  false,
+                  "batch_rows":  1
+              },
+    "started":  "2026-11-05T17:30:52",
+    "host":  "DESKTOP-GO8LTLT"
+}

@@ -14,6 +14,7 @@
 | `profiles.json` | флаги и ожидания по семействам моделей |
 | `PROJECT_STATE.json` | бинарники, протокол, заблокированные действия |
 | `docs/SETUP.md` | как поднять окружение с нуля |
+| `docs/LFM25-THINKING-PROTOCOL.md` | отдельный reasoning-протокол LFM2.5-1.2B-Thinking |
 | `docs/history/AGENTS-full-2026-11-02.md` | старый подробный `AGENTS.md` (история) |
 
 ---
@@ -47,6 +48,7 @@
 | | `legacy_no_bos` | штатный шаблон, но `<bos>` потерян (прогоны до 2026-11-02) |
 | | `no_template_gptoss_final` | `--no-template`, harmony `final` предзаполнен |
 | | `no_template_lfm_final` | `--no-template`, cue `Final answer:` |
+| | `no_template_lfm_reasoning_final` | replay после 32 reasoning-токенов и принудительного `Final answer:` |
 | `probe_status` | `complete` | `probe.json` — результат замороженного протокола |
 | | `deferred` | проба отложена намеренно, без новой просьбы не запускать |
 | | `not_citable` | прогон невалиден, числа пробы цитировать нельзя |
@@ -75,11 +77,15 @@
 | gpt-oss-20b | `main_gptoss20b_v2` | 24×2880 | 0.490 | 0.841 | C / 16 | 0.9248 |
 | Nemotron 3 Nano 4B | `main_nemotron3nano4b_v2` | 17×3136 | 0.285 | 0.816 | C / 20 | 0.8819 |
 | LFM2.5-1.2B Instruct | `main_lfm25_1p2b_instruct_q4` | 16×2048 | 0.177 | 0.765 | C / 9 | 0.8812 |
+| LFM2.5-1.2B Thinking | `main_lfm25_1p2b_thinking_r32_q4_v2` | 16×2048 | 0.194 | 0.662 | C / 9 | 0.8813² |
 | LFM2.5-2.6B | `main_lfm25_2p6b_q4_final` | 30×2048 | 0.382 | 0.780 | C / 17 | 0.8812 |
 | LFM3-1.7B | `main_lfm3_1p7b_qad_q4` | 24×2048 | 0.305¹ | 0.725 | C / 12 | 0.8608¹ |
 | YandexGPT 5 Lite 8B | `main_yandexgpt5lite8b_q4` | 32×4096 | 0.568 | 0.771 | C / 16 | 0.9062 |
 
 ¹ LFM3: 2509 из 6000 строк обрезаны; метрики только по 3491 завершённой строке.
+
+² Thinking: точка A измерена после 32 reasoning-токенов, у Instruct — до них. По A эти
+два прогона не сравниваются; C сопоставима.
 
 Форма — `[6000, число слоёв с l_out, D]`. Для Nemotron в таблице указан реальный номер
 слоя (`selected.layer_id`); в `probe.json` поле `selected.layer` — индекс внутри списка
@@ -137,7 +143,6 @@
 
 | id | что нельзя | почему |
 |---|---|---|
-| `run:lfm25-1.2b-thinking` | обычный прогон Thinking | нужен отдельный reasoning budget, правило извлечения final и правило точки C |
 | `run:lfm3-sampler-diagnostic` | новый полный прогон LFM3 | сначала дешёвая диагностика сэмплера в `llama-cli` |
 | `kaggle:full-run` | полный прогон на Kaggle | квота 30 ч/неделю; сначала пилот и бюджет |
 | `protocol:change` | правка λ/splits/точек/метки | ломает сравнимость со всеми прогонами |
@@ -223,7 +228,7 @@ powershell -File scripts\run.ps1 -Stage compare -Profile qwen -Tag qwen4b_v2 `
 | `gptoss20b` | gpt-oss-20b: готовый harmony `final`, `--no-template`, `-ngl 11`, `--batch-rows 8` |
 | `lfm25-2.6b` | LFM2.5-2.6B: готовый cue `Final answer:`, `--no-template` |
 | `lfm25-1.2b-instruct` | LFM2.5-1.2B Instruct |
-| `lfm25-1.2b-thinking` | заблокирован |
+| `lfm25-1.2b-thinking` | reasoning 32 + final 64 + replay; см. отдельный протокол |
 | `lfm3` | LFM3-1.7B: мягкий гейт по обрезке (60 %) |
 | `gemma4-12b-kaggle` | только Kaggle, локально не запускается |
 | `gemma4-26b-a4b-kaggle` | только Kaggle, 2×T4; локально не запускается |
@@ -272,6 +277,50 @@ powershell -File scripts\run.ps1 -Stage prompt -Profile gptoss20b -Tag gptoss_v3
 
 Профиль `lfm25-2.6b` соберёт вход с cue `Final answer:` и запустит `--no-template`.
 Штатный шаблон открывает ` thinking`, поэтому его использовать нельзя.
+
+### LFM2.5-1.2B-Thinking
+
+Этот режим состоит из reasoning/final preprocessing и replay состояний. Бюджеты,
+stop-rule и точки зафиксированы в `docs/LFM25-THINKING-PROTOCOL.md`.
+
+```powershell
+$MODEL = 'D:\Lm studio\.lmstudio\models\LiquidAI\LFM2.5-1.2B-Thinking-GGUF\LFM2.5-1.2B-Thinking-Q4_0.gguf'
+$TAG = 'lfm25_1p2b_thinking_r32_q4_v2'
+
+powershell -File scripts\prepare_lfm_thinking.ps1 -Stage pilot -Model $MODEL -Tag $TAG
+powershell -File scripts\run.ps1 -Stage prompt -PromptKind pilot `
+  -Profile lfm25-1.2b-thinking -Tag $TAG -Model $MODEL
+powershell -File scripts\run.ps1 -Stage pilot -Profile lfm25-1.2b-thinking `
+  -Tag $TAG -Model $MODEL -QuestionsFile data\pilot.jsonl
+
+# Только после passed gate и просмотра ответов:
+powershell -File scripts\prepare_lfm_thinking.ps1 -Stage main -Model $MODEL -Tag $TAG
+powershell -File scripts\run.ps1 -Stage prompt -PromptKind main `
+  -Profile lfm25-1.2b-thinking -Tag $TAG -Model $MODEL
+powershell -File scripts\run.ps1 -Stage main -Profile lfm25-1.2b-thinking `
+  -Tag $TAG -Model $MODEL -QuestionsFile data\main.jsonl
+powershell -File scripts\run.ps1 -Stage label -Profile lfm25-1.2b-thinking `
+  -Tag $TAG -QuestionsFile data\main.jsonl
+```
+
+Дальше обычные `verify → baseline → probe → probe2`:
+
+```powershell
+powershell -File scripts\run.ps1 -Stage verify -Profile lfm25-1.2b-thinking -Tag $TAG
+powershell -File scripts\run.ps1 -Stage baseline -Profile lfm25-1.2b-thinking -Tag $TAG
+powershell -File scripts\run.ps1 -Stage probe -Profile lfm25-1.2b-thinking -Tag $TAG
+powershell -File scripts\run.ps1 -Stage probe2 -Profile lfm25-1.2b-thinking -Tag $TAG
+powershell -File scripts\run.ps1 -Stage compare -Profile lfm25-1.2b-thinking -Tag $TAG `
+  -Ref out\main_lfm25_1p2b_instruct_q4\probe_scores.csv -Split test
+```
+
+`meta.raw.jsonl` сохраняет неизменённый replay-meta; итоговый `meta.jsonl` получает
+baseline из final-generation pass до запуска gate. Если reasoning-проход прерван,
+`prepare_lfm_thinking.ps1 -Stage main -Resume` продолжит с последней завершённой строки
+в новый каталог и сольёт части, не меняя исходный.
+
+Ориентир завершённого прогона: 6000/6000, 5961 размеченная строка, probe λ=1000, C/9,
+test AUROC 0.8813 [0.855,0.905]; против Instruct ΔAUROC +0.0016 [−0.0278,+0.0316].
 
 ### Посмотреть существующий прогон
 

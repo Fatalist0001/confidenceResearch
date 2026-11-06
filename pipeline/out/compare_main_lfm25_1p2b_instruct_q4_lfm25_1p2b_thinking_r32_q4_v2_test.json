@@ -1,0 +1,30 @@
+{
+  "split": "test",
+  "a": "D:/VScode_pr/confidenceResearch/pipeline/out/main_lfm25_1p2b_instruct_q4/probe_scores.csv",
+  "b": "D:/VScode_pr/confidenceResearch/pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/probe_scores.csv",
+  "n_boot": 1000,
+  "bootstrap_seed": 42,
+  "metrics": {
+    "n": 1190,
+    "pos_a": 213,
+    "pos_b": 210,
+    "base_rate_a": 0.17899159663865546,
+    "base_rate_b": 0.17647058823529413,
+    "label_mismatch_rows": 183,
+    "a_auroc": 0.8797170604658315,
+    "b_auroc": 0.8813265306122449,
+    "a_auprc": 0.6856280402685294,
+    "b_auprc": 0.6491244627711789,
+    "delta_auroc": 0.0016094701464133276,
+    "delta_auprc": -0.03650357749735056
+  },
+  "delta_auroc_ci": [
+    -0.027769425677227712,
+    0.031557311468518714
+  ],
+  "delta_auprc_ci": [
+    -0.10189931889435165,
+    0.02820021866059983
+  ],
+  "share_b_higher_auroc": 0.552
+}

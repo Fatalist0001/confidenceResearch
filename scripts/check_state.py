@@ -34,7 +34,7 @@ REQUIRED_FILES = [
     "docs/START-HERE.md",
     "docs/SETUP.md",
     "docs/history/AGENTS-full-2026-11-02.md",
-    ".github/workflows/ci.yml",
+    "docs/LFM25-THINKING-PROTOCOL.md",
     "pipeline/requirements.txt",
     "pipeline/gate_report.py",
     "pipeline/preflight.py",

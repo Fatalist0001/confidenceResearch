@@ -39,6 +39,17 @@
 /pipeline/out/lfm_trials_*/
 /pipeline/out/lfm_prompt_trials.jsonl
 /pipeline/out/main_lfm25_final_idempotent.jsonl
+/pipeline/out/diag_lfm25_thinking_*/
+/pipeline/out/lfm25_thinking_*_reasoning/
+/pipeline/out/lfm25_thinking_*_reasoning_rest_*/
+/pipeline/out/lfm25_thinking_*_finalgen/
+/pipeline/out/lfm25_thinking_*_protocol/
+/pipeline/out/**/*.log.stdout
+/pipeline/out/pilot_lfm25_1p2b_thinking_r32_q4/meta.raw.jsonl
+/pipeline/out/main_lfm25_1p2b_thinking_r32_q4/meta.raw.jsonl
+/pipeline/out/pilot_lfm25_1p2b_thinking_r32_q4_v2/meta.raw.jsonl
+/pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/meta.raw.jsonl
+/pipeline/data/pilot_lfm25_thinking_r32_final.jsonl
 
 .env
 .vscode

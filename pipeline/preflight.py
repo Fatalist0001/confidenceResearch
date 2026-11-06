@@ -81,8 +81,12 @@ def check_input(path, expect_rows=None, require_instruction=False, allow_duplica
     if expect_rows is not None:
         rep.add("row count", len(rows) == expect_rows, f"{len(rows)} vs expected {expect_rows}")
 
-    instr = [(r.get("question") if isinstance(r.get("question"), str) else "").count(INSTRUCTION)
-             for r in rows]
+    instruction_texts = [
+        r.get("original_question") if isinstance(r.get("original_question"), str)
+        else (r.get("question") if isinstance(r.get("question"), str) else "")
+        for r in rows
+    ]
+    instr = [text.count(INSTRUCTION) for text in instruction_texts]
     doubled = [str(r.get("id")) for r, c in zip(rows, instr) if c > 1]
     missing = sum(1 for c in instr if c == 0)
     rep.add("instruction is never duplicated", not doubled,
@@ -111,14 +115,18 @@ def _report(path, rep, rows):
     summary = None
     if rows:
         questions = [r.get("question") if isinstance(r.get("question"), str) else "" for r in rows]
+        instruction_sources = [
+            r.get("original_question") if isinstance(r.get("original_question"), str) else question
+            for r, question in zip(rows, questions)
+        ]
         summary = {
             "rows": len(rows),
             "first_id": str(rows[0].get("id")),
             "first_question": questions[0][:300],
             "last_id": str(rows[-1].get("id")),
             "last_question": questions[-1][-300:],
-            "instruction_min": min(q.count(INSTRUCTION) for q in questions),
-            "instruction_max": max(q.count(INSTRUCTION) for q in questions),
+            "instruction_min": min(q.count(INSTRUCTION) for q in instruction_sources),
+            "instruction_max": max(q.count(INSTRUCTION) for q in instruction_sources),
         }
     return {
         "input": path,

@@ -1,0 +1,40 @@
+{
+  "batch": "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot_lfm25_thinking_r32_final.jsonl",
+  "generate": false,
+  "ggml_version": "0.28.0",
+  "layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "llama_cpp_build": 12033,
+  "llama_cpp_commit": "785322d17",
+  "max_len": 1024,
+  "max_new_tokens": 64,
+  "model": "D:\\Lm studio\\.lmstudio\\models\\LiquidAI\\LFM2.5-1.2B-Thinking-GGUF\\LFM2.5-1.2B-Thinking-Q4_0.gguf",
+  "model_name": "LFM2.5-1.2B-Thinking",
+  "n_embd": 2048,
+  "n_examples": 200,
+  "n_layers": 16,
+  "n_layers_selected": 16,
+  "point_definitions": {
+    "A": "last token of the prompt already rendered by the model chat template with add_generation_prompt=true - the state from which the first answer token is emitted",
+    "C": "last content token of the answer, EOG/replica-end tokens removed"
+  },
+  "template": false,
+  "thinking": false,
+  "version": 1
+}

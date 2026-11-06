@@ -1,0 +1,195 @@
+{
+  "dir": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_lfm25_1p2b_thinking_r32_q4_v2",
+  "stage": "main",
+  "profile": "lfm25-1.2b-thinking",
+  "input": "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\main_lfm25_1p2b_thinking_r32_q4_v2_final.jsonl",
+  "log": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_lfm25_1p2b_thinking_r32_q4_v2.log",
+  "passed": true,
+  "fails": 0,
+  "warns": 1,
+  "thresholds": {
+    "max_skipped": 0,
+    "max_truncated_ratio": 0.1,
+    "max_empty_answer_ratio": 0.05,
+    "max_channel_leak": 0,
+    "max_repetition_ratio": 0.1,
+    "max_long_answer_ratio": 0.15,
+    "max_retokenize_ratio": 0.05,
+    "max_estimated_hours": 6.0
+  },
+  "summary": {
+    "rows": 6000,
+    "ok": 6000,
+    "skipped": 0,
+    "truncated": 0,
+    "truncated_ratio": 0.0,
+    "empty_answers": 39,
+    "channel_leaks": 0,
+    "thought_leaks": 0,
+    "ex_per_s": 50.18,
+    "seconds": 119.6,
+    "estimated_hours_6000": 0.033,
+    "shape": [
+      6000,
+      16,
+      2048
+    ]
+  },
+  "checks": [
+    {
+      "check": "meta rows == config n_examples",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 vs 6000"
+    },
+    {
+      "check": "meta rows == input rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 vs 6000"
+    },
+    {
+      "check": "meta id order matches input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "first mismatch: None"
+    },
+    {
+      "check": "meta splits match input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "input Counter({'train': 3600, 'val': 1200, 'test': 1200}) vs meta Counter({'train': 3600, 'val': 1200, 'test': 1200})"
+    },
+    {
+      "check": "input duplicate ids are the known ones",
+      "ok": true,
+      "severity": "warn",
+      "detail": "duplicates: ['bb_956']"
+    },
+    {
+      "check": "row indices contiguous from 0",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 rows"
+    },
+    {
+      "check": "skipped rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 skipped"
+    },
+    {
+      "check": "all rows ok",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 ok of 6000"
+    },
+    {
+      "check": "truncated share",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/6000 (limit 0.1)",
+      "value": 0.0
+    },
+    {
+      "check": "empty answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "39/6000 generated (limit 0.05)",
+      "value": 0.0065
+    },
+    {
+      "check": "no chat-protocol leak in answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 rows"
+    },
+    {
+      "check": "no thinking block in answers",
+      "ok": true,
+      "severity": "warn",
+      "detail": "0 rows"
+    },
+    {
+      "check": "answers are not degenerate",
+      "ok": true,
+      "severity": "warn",
+      "detail": "most common answer 1% of rows: 'London'",
+      "value": 0.0054
+    },
+    {
+      "check": "answers are not looping",
+      "ok": true,
+      "severity": "fail",
+      "detail": "2/1818 long answers repeat one word (limit 0.1)",
+      "value": 0.0011001100110011
+    },
+    {
+      "check": "share of very long answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "421/5961 over 100 chars (limit 0.15)",
+      "value": 0.07062573393725885
+    },
+    {
+      "check": "hidden_a.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[6000, 16, 2048] vs [6000, 16, 2048]"
+    },
+    {
+      "check": "hidden_c.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[6000, 16, 2048] vs [6000, 16, 2048]"
+    },
+    {
+      "check": "hidden_a and hidden_c shapes agree",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[6000, 16, 2048] vs [6000, 16, 2048]"
+    },
+    {
+      "check": "log: processed rows match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 vs 6000"
+    },
+    {
+      "check": "log: expected rows match config",
+      "ok": true,
+      "severity": "fail",
+      "detail": "6000 vs 6000"
+    },
+    {
+      "check": "log: ok/skipped match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "log 6000/0 vs meta 6000/0"
+    },
+    {
+      "check": "log: truncated matches meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 vs 0"
+    },
+    {
+      "check": "log: written shape matches arrays",
+      "ok": true,
+      "severity": "warn",
+      "detail": "[6000, 16, 2048] vs [6000, 16, 2048]"
+    },
+    {
+      "check": "log has retokenize summary",
+      "ok": false,
+      "severity": "warn",
+      "detail": "no 'retokenize mismatch:' line in D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_lfm25_1p2b_thinking_r32_q4_v2.log"
+    },
+    {
+      "check": "throughput recorded",
+      "ok": true,
+      "severity": "fail",
+      "detail": "50.18 ex/s"
+    }
+  ]
+}

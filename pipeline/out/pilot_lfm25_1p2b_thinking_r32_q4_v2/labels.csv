@@ -1,0 +1,201 @@
+id,row,split,correct_strict,correct_relaxed,correct_filtered_a,correct_filtered_b,correct,truncated,n_answer_tokens,answer,gold_main
+sfq_21874,0,train,1,1,1,1,1,False,7," The answer is ""Hyperlink"".",HYPERLINK
+qz_2440,1,train,0,0,0,0,0,False,13," The film is ""The Fidelity Fiduciary Bank.""",Mary Poppins
+odql_9835,2,train,0,0,0,0,0,False,1, China,BHUTAN
+sfq_17775,3,train,0,0,0,0,0,False,24," The song ""Up Where We Belong"" is associated with the film ""The Pursuit of Happyness.""",AN OFFICER AND A GENTLEMAN
+qw_15528,4,train,0,0,0,0,0,False,5, Leo Tolstoy?,Rudyard Kipling
+dpql_1548,5,train,0,0,0,0,0,False,11, The surname is Bunter's form teacher's surname.,QUELCH
+qz_1800,6,train,1,1,1,1,1,False,13," The answer is the ""Christmas Song"" by The Beatles.",The Beatles
+dpql_2349,7,train,0,0,0,0,0,False,6, Clint Eastwood himself?,Gene Hackman
+sfq_22280,8,train,0,0,0,0,0,False,20," Jane Austen's novel ""Pride and Prejudice"" is where this relationship is central.",PERSUASION
+odql_4855,9,train,0,0,0,0,0,False,14," The series is ""The Land of Stories"" by Mary Grand Pre.",'HARRY POTTER'
+qb_9568,10,train,0,0,0,0,0,False,4, Joe Frazier,George Foreman
+qw_4190,11,train,0,0,0,0,0,False,3, 15 minutes,Mexico
+sfq_2348,12,train,0,0,0,0,0,False,9," The opera is ""The Magic Flute.""",Madame Butterfly
+wh_2109,13,train,0,0,0,0,0,False,6, The element is KEL...,NICKEL
+bb_7429,14,train,1,1,1,1,1,False,6, The guitarist is Les Paul.,Les Paul
+qb_5655,15,train,0,0,0,0,0,False,2, Alexander Pope,Thomas Chippendale
+wh_833,16,train,0,0,0,0,0,False,10," The answer is ""A Song for Steve Andrews"".",UNDER MILKWOOD
+sfq_20635,17,train,1,1,1,1,1,False,10, Ananas is the French term for pineapple.,Pineapple
+wh_2629,18,train,0,0,0,0,0,False,8, The answer is the fairy godmother.,TOAD
+qg_494,19,train,0,0,0,0,0,False,8, The South Central neighborhood of Los Angeles.,Watts
+qw_11386,20,train,1,1,1,1,1,False,1, Port,Port
+sfq_15472,21,train,0,0,0,0,0,False,7," The name is ""Nissan"".",HONDA
+qz_1130,22,train,1,1,0,1,1,False,1, O,O
+sfq_19115,23,train,1,1,0,0,1,False,12, Steveland Judkins is known as Steveland Judkins.,STEVIE WONDER
+qw_14324,24,train,1,1,1,1,1,False,5, The pancreas produces insulin.,Pancreas
+sfq_6943,25,train,1,1,1,1,1,False,12, The highest prime number less than 100 is 97.,97
+tc_1938,26,train,0,0,0,0,0,False,2, United Kingdom,South Africa
+bt_4125,27,train,0,0,0,0,0,False,7," Achilles of Troy fought Hector,",Ajax
+odql_13628,28,train,0,0,0,0,0,False,6, The answer is Manchester United.,Peterborough United
+qw_1816,29,train,0,0,0,0,0,False,5, Paul Cézanne?,Paul Gauguin
+sfq_20015,30,train,0,0,0,0,0,False,1, Abraham,Jesse
+dpql_2287,31,train,0,0,0,0,0,False,7, A ribbon or a specific item.,A Horse Collar
+qg_2238,32,train,0,0,0,0,0,False,13," The space station in question is the Salyut 1,",Skylab
+odql_8256,33,train,1,1,1,1,1,False,20, The Boxing Day Tsunami occurred in 2004. So the answer is 2004.,2004
+sfq_11176,34,train,0,0,0,0,0,False,4, Sir Alex Ferguson?,Theo Walcott
+qb_8500,35,train,0,0,0,0,0,False,7, The first name is Ratched?,Mildred
+wh_532,36,train,0,0,0,0,0,False,11," The single is ""It's a Wonderful Life.""",JIMMY BOYD
+qg_1234,37,train,0,0,0,0,0,False,12, Her power of truth-telling through her presence or aura.,Lasso
+sfq_24275,38,train,1,1,1,1,1,False,11, The capital city of Saudi Arabia is Riyadh.,RIYADH
+qg_869,39,train,1,1,1,1,1,False,1, Netherlands,The Netherlands
+sfq_24087,40,train,1,1,1,1,1,False,4, Miguel de Cervantes,(Miguel de) Cervantes
+qw_7349,41,train,0,0,0,0,0,False,17," The number of gifts in the ""Twelve Days of Christmas"" is 12,",364
+bb_5225,42,train,1,1,1,1,1,False,10, The International Red Cross and Red Crescent Movement.,The Red Cross
+dpql_5620,43,train,0,0,0,0,0,False,1, London,San Francisco
+bt_1591,44,train,0,0,0,0,0,False,8, The name is Catherine Zeta Jones.,Mariette
+sfq_6053,45,train,0,0,0,0,0,False,16, The answer is the 250th anniversary of the establishment of the British Museum.,Royal Botanical Gardens at Kew
+qf_1525,46,train,0,0,0,0,0,False,2, A woman,transvestite
+qb_5400,47,train,0,0,0,0,0,False,6, The answer is Manchester United.,Fulham FC
+tc_1921,48,train,0,0,0,0,0,False,34," The designer is likely the one associated with the auction event mentioned. Since the question refers to ""Diana's dress auction,"" I might need to infer who Diana is.",Victor Edelstein
+qz_4845,49,train,0,0,0,0,0,False,13," Florence is a city in Italy, known as a cultural hub.",Centaur
+qg_808,50,train,1,1,1,1,1,False,14, The lowest level of the Earth's atmosphere is the troposphere.,Troposphere
+dpql_5914,51,train,0,0,0,0,0,False,26," The motor scooter named 'The Wasp' is known as the ""Wasp"" or maybe ""Wasp"" itself?",Vespa
+qb_866,52,train,1,1,0,0,1,False,5, Caesar and Cleo.,Sonny and Cher
+qz_2466,53,train,0,0,0,0,0,False,15," The movie ""Seven Pounds"" stars Matthew McConaughey,",Will Smith
+bb_1292,54,train,1,1,1,1,1,False,15, Oktoberfest is held annually in September. So the answer should be September.,September
+sfq_8782,55,train,0,0,0,0,0,False,11, The answer is the Republic of the Comoros.,VANUATU
+tc_1686,56,train,0,0,0,0,0,False,17, The answer is that no US president won the Nobel Peace Prize in 1920.,Woodrow Wilson
+qg_4604,57,train,0,0,0,0,0,False,5, The United States Army.,National Guard
+odql_10315,58,train,0,0,0,0,0,False,4, Led Zeppelin,'THE YARDBIRDS'.
+dpql_277,59,train,1,1,0,0,1,False,4, Dolores Haze,Lolita
+wh_3251,60,train,1,1,1,1,1,False,13, Petra is located in Jordan. So the answer should be Jordan.,JORDAN
+sfq_17002,61,train,0,0,0,0,0,False,17," The book is called ""The Washington Post Reported by Bernstein and Woodward"".",All the President's Men
+bt_2111,62,train,0,0,0,0,0,False,7, The smallest Canadian province is Ontario?,Prince Edward Island
+qf_1053,63,train,1,1,1,1,1,False,3, Robben Island,Robben Island
+qf_527,64,train,1,1,1,1,1,False,20," The most popular non-alcoholic drink is often considered to be something like soda or maybe coffee,",coffee
+jp_4336,65,train,0,0,0,0,0,False,8," The show is ""The Good Place.""",Grey's Anatomy
+bb_2130,66,train,0,0,0,0,0,False,13, The UK's loudest bird is the Great White Pelican.,Bittern
+wh_3298,67,train,0,0,0,0,0,False,17," The core and crust contain various materials like iron, silicates, and other minerals,",THE MANTLE
+qw_11908,68,train,0,0,0,0,0,False,15, The number of odd numbers between 12 and 42 is 20.,15
+qw_5777,69,train,0,0,0,0,0,False,24," The 1974 film ""The Train"" (also known as ""The Train"" or ""The Train"" maybe?",The Taking of Pelham One Two Three
+bb_2568,70,train,0,0,0,0,0,False,4, The open ocean.,Sea
+dpql_2028,71,train,1,1,1,1,1,False,12, The main polluting substance in acid rain is sulfur dioxide.,Sulphur
+jp_1350,72,train,1,1,1,1,1,False,12, Pangaea and Gondwana were continents that were once connected,Continents
+qb_9676,73,train,0,0,0,0,0,False,16, The numbers 100-109 in food E Numbers are typically associated with red.,Yellow
+qw_12980,74,train,0,0,0,0,0,False,9, The Statue of Peace was unveiled there.,Yellow submarine
+sfq_5258,75,train,1,1,1,1,1,False,2, The eye,Eye
+qb_1757,76,train,0,0,0,0,0,False,17," The national flag of New Zealand features five stars, so the answer is 5.",Four
+sfq_22467,77,train,0,0,0,0,0,False,14," The English League Cup was first contested in the 19th century,",1960's
+qz_340,78,train,1,1,1,1,1,False,2, Oscar Wilde,Oscar Wilde
+qz_3023,79,train,0,0,0,0,0,False,7," The couple is Robert and Jane,",The Earl and Countess of Wessex
+qf_2298,80,train,1,1,1,1,1,False,3, 1912,1912
+qf_2053,81,train,1,1,1,1,1,False,10, Darwin is the capital of Australia's Northern Territory.,Northern Territory
+qb_5139,82,train,1,1,1,1,1,False,5, Saddam Hussein,Saddam Hussein
+qw_9422,83,train,1,1,1,1,1,False,3, William Wordsworth,William Wordsworth
+qw_1606,84,train,0,0,0,0,0,False,1, William,Anne
+qf_2232,85,train,0,0,0,0,0,False,17," The only place in the United States with a royal palace is Washington, D.C.,",Honolulu
+odql_8838,86,train,0,0,0,0,0,False,20," The series is called ""The Spotters"" or maybe ""The Spotters"" series?",I-SPY
+sfq_14547,87,train,0,0,0,0,0,False,12," The show is ""The Late Show with Stephen Colbert.""",Time Team
+dpql_3499,88,train,0,0,0,0,0,False,2, Manchester United,Blackburn Rovers
+dpql_5268,89,train,0,0,0,0,0,False,1, Mars,Mercury
+sfq_14187,90,train,0,0,0,0,0,False,1, London,MANCHESTER
+qw_6247,91,train,0,0,0,0,0,False,13," Sherlock Holmes was proficient in the Sherlockian method,",Baritsu
+qg_675,92,train,1,1,1,1,1,False,11, The adrenal glands are located on top of the kidneys.,Kidneys
+odql_15048,93,train,1,1,1,1,1,False,8, The capital of Aragon is Zaragoza.,Zaragoza
+bt_1718,94,train,0,0,0,0,0,False,4, Leo Tolstoy,London
+bt_3844,95,train,0,0,0,0,0,False,11, The super-tanker was the SS Great Eastern.,Sea Empress
+qb_1751,96,train,1,1,1,1,1,False,7, The breed is Labrador Retriever.,Labrador Retriever
+qg_48,97,train,0,0,0,0,0,False,18," The date refers to the proposed doomsday scenario linked to the Y2K bug,",Mayan
+sfq_15080,98,train,0,0,0,0,0,False,15, The god of the north winds in Greek mythology is Apollodorus?,Boreas
+wh_3819,99,train,0,0,0,0,0,False,1, England,SPAIN
+qg_3215,100,train,0,0,0,0,0,False,15, The product is likely a snack or food item that's marketed for its taste,Miller Lite Beer
+qb_6288,101,train,1,1,1,1,1,False,6," June is the sixth month,",June
+qf_3155,102,train,0,0,0,0,0,False,4, Sir Robert Taylor?,Timothy Dalton
+bb_5704,103,train,0,0,0,0,0,False,7, The answer is David Beckham.,David Letterman
+qg_3384,104,train,0,0,0,0,0,False,10, The Allseer or maybe the Norns?,Valkyries
+qg_1358,105,train,0,0,0,0,0,False,4, Stanley Kubrick?,George Lucas
+odql_2344,106,train,0,0,0,0,0,False,4, Zanzibar?,SAO TOME
+odql_14551,107,train,0,0,0,0,0,False,6, The band is The Who.,'JOY DIVISION'
+odql_9627,108,train,0,0,0,0,0,False,12," The family was the Kennedys, specifically Robert Kennedy.",THE BARRETTS
+wh_4018,109,train,0,0,0,0,0,False,10, The answer is the island named after the language.,JAVA
+odql_11679,110,train,0,0,0,0,0,False,16, The actor Errol Flynn was born on the island of St. Helena.,TASMANIA
+sfq_24154,111,train,0,0,0,0,0,False,8, The quotes are attributed to Albert Einstein.,Benjamin Franklin
+sfq_11824,112,train,1,1,1,1,1,False,3, Arctic Tern,TERN
+qg_3551,113,train,1,1,1,1,1,False,1, Bolivia,Bolivia
+tb_666,114,train,0,0,0,0,0,False,13," The sauce is known as ""Ham & Coffee Sauce,""",Red-eye gravy
+bb_912,115,train,0,0,0,0,0,False,16, The fortified wine drink Sherry is named after the town of Sherry itself.,Jerez
+sfq_634,116,train,0,0,0,0,0,False,30," Hydrogen cyanide is known for its characteristic sharp, pungent odor, often described as resembling the smell of rotten cabbage or something similar.",ALMONDS
+sfq_2414,117,train,0,0,0,0,0,False,16," The risen Jesus said ""Touch me not"" to those who doubted him.",Mary Magdelene
+odql_6990,118,train,1,1,1,1,1,False,8, The treaty is the Treaty of Utrecht.,Utrecht
+qb_6399,119,train,0,0,0,0,0,False,6, The sign is the Lion.,Libra
+jp_1975,120,val,1,1,1,1,1,False,13," The Tet Offensive was a major event in 1968,",Tet
+odql_9226,121,val,0,0,0,0,0,False,23," The artificial harbors were called the ""Manhattan Docks"" or maybe ""Coastal Tugs""?",MULBERRY
+jp_2293,122,val,0,0,0,0,0,False,6, A character or a title?,Jump
+jp_3910,123,val,1,1,1,1,1,False,13, The Banker's Family (or maybe the Rothschild family?,Rothschild
+odql_3654,124,val,0,0,0,0,0,False,38," He was better known for his role in the 1970s counterculture movement, particularly as a figure associated with the counterculture or maybe someone specific like a musician or activist.",'THE BLACK PANTHER'
+odql_7185,125,val,0,0,0,0,0,False,9, The answer is The Light of Darkness.,THOMAS HEARNS
+qw_10079,126,val,0,0,0,0,0,False,7, The answer is the Royal Society.,The British Museum
+sfq_7254,127,val,0,0,0,0,0,False,6, The band is The Beatles.,PROCUL HARUM
+sfq_80,128,val,0,0,0,0,0,False,9," The answer is ""Dame Margaret Knight"".",ANGELA RIPPON
+odql_9592,129,val,1,1,1,1,1,False,2, Cornell University,CORNELL
+odql_4457,130,val,0,0,0,0,0,False,14," The term ""Rock and Roll"" was popularized by various figures,",Alan Freed
+bt_2428,131,val,0,0,0,0,0,False,8, The Royal National Golf Club in Brighton.,Saint Andrews
+qb_162,132,val,0,0,0,0,0,False,1, Japan,South Korea
+sfq_24622,133,val,0,0,0,0,0,False,2, Theodore Roosevelt,James A Garfield
+qb_3553,134,val,0,0,0,0,0,False,18, The author of 'Seven Pillars of Wisdom' is Robert A. Heinlein.,T E Lawrence
+odql_2368,135,val,1,1,1,1,1,False,6, The metallic element is copper.,COPPER
+sfq_23299,136,val,0,0,0,0,0,False,6, The answer is The Beatles.,DR HOOK
+bb_4587,137,val,0,0,0,0,0,False,8, The terms are from the list provided.,Skateboarding
+wh_4300,138,val,0,0,0,0,0,False,12," The musical ""Blood Brothers"" was written by Stephen Schwartz.",WILLY RUSSELL
+bb_92,139,val,1,1,1,1,1,False,18, FIDE is the international federation for chess. So the answer should be FIDE.,Chess
+qb_7956,140,val,0,0,0,0,0,False,14," The answer is the ""Gimlet"" or maybe another term?",Catherine Wheel
+odql_11309,141,val,0,0,0,0,0,False,11, The answer is the Bar Council of England and Wales.,The Law Society
+bt_1444,142,val,1,1,1,1,1,False,16, Armorial bearings are studied as part of heraldic or armorial studies.,Heraldry
+qw_13262,143,val,0,0,0,0,0,False,7, The actor is David Tennant.,Paul McGann
+sfq_6197,144,val,0,0,0,0,0,False,3, William Radcliffe,Lord Guildford Dudley
+bb_3905,145,val,1,1,0,0,1,False,5, Olea europaea,Olive
+qw_13284,146,val,0,0,0,0,0,False,4, New York City.,Quebec
+qw_8487,147,val,0,1,0,0,0,False,23," The primary distinction is the separation of Wales from England, specifically the presence of the English Channel and the Welsh border.",Bristol Channel
+qw_45,148,val,0,0,0,0,0,False,11," The computer's name wasn't specified in the film,",HAL
+sfq_5677,149,val,0,0,0,0,0,False,1, Moses,NOAH
+dpql_5750,150,val,1,1,1,1,1,False,3, Carl Sagan,Carl Sagan
+dpql_447,151,val,0,0,0,0,0,False,2, A farmer,TRAINSPOTTER
+odql_1420,152,val,0,0,0,0,0,False,8, The answer is The Twilight Zone.,'TOP OF THE POPS'
+qb_6622,153,val,0,0,0,0,0,False,21," The card game is called ""Bubble"" or maybe ""Blaze Bubble Shootout""?",Poker
+sfq_14492,154,val,0,0,0,0,0,False,14," The series is ""The Luggage"" by Rincewind.",Discworld
+odql_2092,155,val,0,0,0,0,0,False,16, The Eurovision Song Contest is held in Sweden. So the answer should be Sweden.,SERBIA
+jp_4329,156,val,0,0,0,0,0,False,6, The answer is John Mayer.,Jessica Simpson
+qg_1929,157,val,0,0,0,0,0,False,1, Silver,Molybdenum
+odql_14378,158,val,0,0,0,0,0,False,12," The State of Franklin was a fictional state in North Carolina,",TENNESSEE
+odql_8433,159,val,0,0,0,0,0,False,15, The Colossus of Rhodes was a statue of the Greek god Zeus.,APOLLO
+wh_4343,160,test,0,0,0,0,0,False,8, Spider-Man: Into the Spider-Verse,THE AVENGERS
+dpql_1884,161,test,1,1,1,1,1,False,23," Suicide by seppuku is also known as ""Hara-kiri"" or sometimes ""Yūrei""",HARA-KIRI
+bb_4945,162,test,0,0,0,0,0,False,10, The Bundesliga refers to the German football league system.,Federal
+sfq_4245,163,test,1,1,1,1,1,False,23," The Adi Granth is associated with Sikhism, and its holy book is the Guru Granth Sahib.",Sikh(ism)
+sfq_20017,164,test,0,0,0,0,0,False,19, The SPLA (Southern People's Liberation Army) was founded by Peter Benenson?,Amnesty International
+sfq_19297,165,test,0,0,0,0,0,False,12, The Ardennes Grand Prix is held at Le Mans?,Spa
+jp_2379,166,test,1,1,1,1,1,False,1, Massachusetts,Massachusetts
+qb_603,167,test,0,0,0,0,0,False,20," The Strawberry Museum is located in Wepion, which is in the Republic of Estonia.",Belgium
+bb_3356,168,test,0,0,0,0,0,False,14, Roger Federer won his seventh French Open title in 2012.,Rafael Nadal
+sfq_1177,169,test,0,0,0,0,0,False,10, Zeus's son by Danae is Poseidon?,Perseus
+qw_13422,170,test,0,0,0,0,0,False,4, George Orwell?,Nikita Khruschev
+odql_6190,171,test,0,0,0,0,0,False,8, The sixth book following Acts is Romans.,EPISTLE TO THE ROMANS
+bb_743,172,test,0,0,0,0,0,False,11, The 1948 Winter Olympics were held in Sweden.,Switzerland
+qf_2991,173,test,1,1,1,1,1,False,7, A PCB is a circuit board.,Printed Circuit Board
+odql_13246,174,test,0,0,0,0,0,False,13," The title character in ""Johnny English"" is played by...",Rowan Atkinson
+sfq_25987,175,test,0,0,0,0,0,False,16," The last three holes are Redbud, Nandina, and Hotly.",Augusta
+qb_7931,176,test,0,0,0,0,0,False,6, The answer is a Giant.,Squirrel
+sfq_10109,177,test,0,0,0,0,0,False,2, 4,Eight
+qw_3390,178,test,1,1,1,1,1,False,7, The capital of Manitoba is Winnipeg.,Winnipeg
+wh_3377,179,test,0,0,0,0,0,False,16," The title song for ""From Russia With Love"" is ""The Russian Theme"",",LIONEL BART
+dpql_5223,180,test,0,0,0,0,0,False,1, Cardiff,LLANDUDNO
+sfq_178,181,test,1,1,1,1,1,False,4, A pulsar.,PULSAR
+odql_6602,182,test,1,1,1,1,1,False,4, The Niger River.,NIGER
+odql_2741,183,test,0,0,0,0,0,False,12, The birthplace of David Garrick is Gloucester.,HEREFORD
+qg_1847,184,test,1,1,0,0,1,False,8," OJ Simpson was riding a car,",White Ford Bronco
+bb_3197,185,test,0,1,0,0,0,False,24," The Axis Powers were primarily Germany, Italy, and Japan. So the main three are Germany, Italy, and Japan.","Germany, Japan, Italy"
+qw_14421,186,test,0,1,0,0,0,False,26," The declaration of aims and policies before an election is often referred to as a ""party platform"" or ""party program.""",Manifesto
+bb_4458,187,test,0,0,0,0,0,False,14," The Turkish Van is a breed of domestic horse, specifically from Turkey.",Cat
+dpql_3596,188,test,0,0,0,0,0,False,13, The demoiselle is a small variety of the heron.,Crane
+sfq_21495,189,test,1,1,0,0,1,False,9, The fourth house is Slytherin.,Hufflepuff
+odql_2555,190,test,0,0,0,0,0,False,5, Plynlimmon.,HEREFORD
+dpql_5706,191,test,0,0,0,0,0,False,17," The capital cities of the European Union are typically referred to by their respective member states,",Madrid
+odql_1340,192,test,0,0,0,0,0,False,8, The answer is Judd Coman.,TRINA GULLIVER
+sfq_7793,193,test,0,0,0,0,0,False,11, The female lead was played by Katharine Hepburn.,Deborah Kerr
+bb_4415,194,test,1,1,1,1,1,False,6, The answer is 1.,1
+qz_2165,195,test,0,0,0,0,0,False,8, The presenter was David Sedaris.,Max Bygraves
+sfq_23975,196,test,0,0,0,0,0,False,9, The answer is Jada Pinkett Smith.,Joan Rivers
+qb_4411,197,test,1,1,0,0,1,False,16, Barbara McCorquodale was known as Frances Hodgson Burnett.,Barbara Cartland
+sfq_9583,198,test,0,0,0,0,0,False,12, The other two events are the pommel horse and...,RINGS
+qf_662,199,test,0,0,0,0,0,False,14," Black Nell's horse is known as the ""Black Nell"" itself,",Wild Bill Hickok's

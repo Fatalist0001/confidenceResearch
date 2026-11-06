@@ -116,6 +116,12 @@ MAIN = {
         prompt_regime="default_bos", usable=True,
         notes="Instruct counterpart of the deferred Thinking experiment. 1 truncated row.",
     ),
+    "main_lfm25_1p2b_thinking_r32_q4_v2": dict(
+        family="lfm25", model="LFM2.5-1.2B-Thinking Q4 (32 reasoning tokens)", status="valid", canonical=True,
+        prompt_regime="no_template_lfm_reasoning_final", usable=True,
+        restriction="A is post-reasoning (last token of the forced Final answer: cue), so A is not token-equivalent to the Instruct run; C is directly comparable. 39/6000 rows have no extracted final and no label.",
+        notes="First complete Thinking run: 32 generated reasoning tokens, forced final cue, 64 final tokens. 6000/6000 states, 5961 labeled (39 empty finals), verify 0 fails and 0 warnings. Probe lambda 1000, C/9: val 0.8819, test 0.8813 [0.8553, 0.9051]; probe2 reproduced both CSVs byte-for-byte. Against main_lfm25_1p2b_instruct_q4 on common test rows: delta AUROC +0.0016 [-0.0278, +0.0316], delta AUPRC -0.0365 [-0.1019, +0.0282].",
+    ),
     "main_lfm25_2p6b_q4_final": dict(
         family="lfm25", model="LFM2.5-2.6B Q4", status="valid", canonical=True,
         prompt_regime="no_template_lfm_final", usable=True,
@@ -163,7 +169,15 @@ PILOTS = {
     "pilot_lfm25_1p2b_instruct_q4": dict(status="valid", prompt_regime="default_bos",
                                           notes="Instruct pilot, 200/200 ok, 0 truncated."),
     "pilot_lfm25_1p2b_thinking_q4": dict(status="invalid", prompt_regime="default_bos",
-                                          notes="Thinking model: 200/200 truncated. Blocked until a reasoning budget is fixed."),
+                                           notes="Thinking model: 200/200 truncated. Blocked until a reasoning budget is fixed."),
+    "pilot_lfm25_1p2b_thinking_r32_q4": dict(
+        status="partial", prompt_regime="no_template_lfm_reasoning_final",
+        notes="Valid state replay, but the runner stopped before labeling because Invoke-PilotGate captured stdout with the exit code. Kept as evidence; superseded by the v2 pilot.",
+    ),
+    "pilot_lfm25_1p2b_thinking_r32_q4_v2": dict(
+        status="valid", prompt_regime="no_template_lfm_reasoning_final",
+        notes="Fixed reasoning protocol pilot: 32 reasoning tokens, forced final cue, 64 final tokens, 200/200 extracted, both label classes present; gate passed with one expected replay-log warning.",
+    ),
     "pilot_lfm25_2p6b_q4_final": dict(status="valid", prompt_regime="no_template_lfm_final",
                                        notes="Final-cue pilot; 8 truncated of 200."),
     "pilot_lfm3_1p7b_qad_q4": dict(status="valid", prompt_regime="default_bos",
@@ -370,7 +384,7 @@ def pilot_entry(name, curated):
 def build_document():
     return {
         "schema_version": 1,
-        "updated": "2026-11-03",
+        "updated": "2026-11-06",
         "generator": "scripts/build_runs.py",
         "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json}",
         "read_this_first": "docs/START-HERE.md",
@@ -385,6 +399,7 @@ def build_document():
             "legacy_no_bos": "Stock chat template but the required leading <bos> was lost (pre-2026-11-02 affected models).",
             "no_template_gptoss_final": "--no-template with a pre-filled harmony final channel (make_gptoss_prompt.py).",
             "no_template_lfm_final": "--no-template with a Final answer: cue (make_lfm_final_prompt.py).",
+            "no_template_lfm_reasoning_final": "--no-template replay after 32 generated reasoning tokens and a forced Final answer: cue (lfm_reasoning.py).",
         },
         "probe_status_legend": {
             "complete": "probe.json is the frozen-protocol result.",

@@ -40,6 +40,17 @@ class PreflightTest(unittest.TestCase):
         self.assertIn("instruction is never duplicated", out)
         self.assertIn("q_3", out)
 
+    def test_generated_reasoning_may_quote_instruction(self):
+        path = os.path.join(self.dir, "prepared.jsonl")
+        instruction = "Answer with just the answer, no explanation."
+        helpers.write_jsonl(path, [{
+            "id": "x",
+            "original_question": f"question?\n{instruction}",
+            "question": f"rendered user: question?\n{instruction}\nassistant: model repeats {instruction}",
+        }])
+        code, out = run_preflight(["--input", path, "--require-instruction"])
+        self.assertEqual(code, 0, out)
+
     def test_missing_instruction_is_a_failure_when_required(self):
         path = helpers.make_input(os.path.join(self.dir, "bare.jsonl"), n=20, instruction="")
         code, out = run_preflight(["--input", path, "--require-instruction"])

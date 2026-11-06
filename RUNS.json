@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-03",
+  "updated": "2026-11-06",
   "generator": "scripts/build_runs.py",
   "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json}",
   "read_this_first": "docs/START-HERE.md",
@@ -14,7 +14,8 @@
     "default_bos": "Stock chat template, leading <bos> added by the tokenizer when the model requires it (current behaviour).",
     "legacy_no_bos": "Stock chat template but the required leading <bos> was lost (pre-2026-11-02 affected models).",
     "no_template_gptoss_final": "--no-template with a pre-filled harmony final channel (make_gptoss_prompt.py).",
-    "no_template_lfm_final": "--no-template with a Final answer: cue (make_lfm_final_prompt.py)."
+    "no_template_lfm_final": "--no-template with a Final answer: cue (make_lfm_final_prompt.py).",
+    "no_template_lfm_reasoning_final": "--no-template replay after 32 generated reasoning tokens and a forced Final answer: cue (lfm_reasoning.py)."
   },
   "probe_status_legend": {
     "complete": "probe.json is the frozen-protocol result.",
@@ -853,6 +854,55 @@
       },
       "notes": "Instruct counterpart of the deferred Thinking experiment. 1 truncated row."
     },
+    "main_lfm25_1p2b_thinking_r32_q4_v2": {
+      "kind": "main",
+      "family": "lfm25",
+      "model": "LFM2.5-1.2B-Thinking Q4 (32 reasoning tokens)",
+      "status": "valid",
+      "canonical": true,
+      "usable_for_analysis": true,
+      "prompt_regime": "no_template_lfm_reasoning_final",
+      "restriction": "A is post-reasoning (last token of the forced Final answer: cue), so A is not token-equivalent to the Instruct run; C is directly comparable. 39/6000 rows have no extracted final and no label.",
+      "meta_rows": 6000,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        6000,
+        16,
+        2048
+      ],
+      "labels": {
+        "rows": 6000,
+        "labeled": 5961,
+        "null": 39,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.1941
+      },
+      "baseline_test_auroc": {
+        "logprob": 0.6336,
+        "entropy": 0.6621
+      },
+      "probe": {
+        "lambda": 1000.0,
+        "point": "C",
+        "layer": 9,
+        "layer_id": 9,
+        "val_auroc": 0.8819,
+        "test_auroc": 0.8813,
+        "test_auprc": 0.6491,
+        "test_n": 1190,
+        "test_pos": 210
+      },
+      "probe_status": "complete",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "First complete Thinking run: 32 generated reasoning tokens, forced final cue, 64 final tokens. 6000/6000 states, 5961 labeled (39 empty finals), verify 0 fails and 0 warnings. Probe lambda 1000, C/9: val 0.8819, test 0.8813 [0.8553, 0.9051]; probe2 reproduced both CSVs byte-for-byte. Against main_lfm25_1p2b_instruct_q4 on common test rows: delta AUROC +0.0016 [-0.0278, +0.0316], delta AUPRC -0.0365 [-0.1019, +0.0282]."
+    },
     "main_lfm25_2p6b_q4_final": {
       "kind": "main",
       "family": "lfm25",
@@ -1365,6 +1415,58 @@
       },
       "probe_status": "not_run",
       "notes": "Thinking model: 200/200 truncated. Blocked until a reasoning budget is fixed."
+    },
+    "pilot_lfm25_1p2b_thinking_r32_q4": {
+      "kind": "pilot",
+      "status": "partial",
+      "citable": false,
+      "prompt_regime": "no_template_lfm_reasoning_final",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        16,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Valid state replay, but the runner stopped before labeling because Invoke-PilotGate captured stdout with the exit code. Kept as evidence; superseded by the v2 pilot."
+    },
+    "pilot_lfm25_1p2b_thinking_r32_q4_v2": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "no_template_lfm_reasoning_final",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        16,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": 0.24
+      },
+      "probe_status": "not_run",
+      "notes": "Fixed reasoning protocol pilot: 32 reasoning tokens, forced final cue, 64 final tokens, 200/200 extracted, both label classes present; gate passed with one expected replay-log warning."
     },
     "pilot_lfm25_2p6b_q4_final": {
       "kind": "pilot",

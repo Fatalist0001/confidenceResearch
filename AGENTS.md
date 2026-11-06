@@ -195,8 +195,8 @@ probe → probe2 → compare; точные команды — в `docs/START-HER
   `-ngl 11`, `--batch-rows 8`, инструкция ровно одна.
 - **LFM2.5-2.6B:** профиль строит cue `Final answer:` и использует `--no-template`;
   A — последний токен cue.
-- **LFM2.5-1.2B-Thinking:** обычный прогон запрещён (200/200 truncated); сначала
-  зафиксировать reasoning/final budgets, извлечение final и C.
+- **LFM2.5-1.2B-Thinking:** отдельный протокол зафиксирован в
+  `docs/LFM25-THINKING-PROTOCOL.md`: reasoning 32, final 64, A после reasoning.
 - **Nemotron:** нормально 17 `l_out` из 42 и `verify warns=1`; нули/skipped — дефект.
 - **Qwen3.5-9B:** только `-ngl 99`, лог в файл (пик ~5860 MiB).
 - **Gemma 12B+:** только Kaggle; quota → pilot → бюджет → явное разрешение на main.
@@ -209,7 +209,6 @@ probe → probe2 → compare; точные команды — в `docs/START-HER
 
 | id | что нельзя |
 |---|---|
-| `run:lfm25-1.2b-thinking` | обычный прогон Thinking |
 | `run:lfm3-sampler-diagnostic` | новый полный прогон LFM3 до диагностики сэмплера |
 | `kaggle:full-run` | полный прогон на Kaggle без пилота и бюджета |
 | `protocol:change` | правка λ/splits/точек/метки |
@@ -298,5 +297,6 @@ probe → probe2 → compare; точные команды — в `docs/START-HER
 | реестр прогонов | `RUNS.json` |
 | флаги по моделям | `profiles.json` |
 | бинарники, протокол, блокировки | `PROJECT_STATE.json` |
+| reasoning-протокол LFM2.5-Thinking | `docs/LFM25-THINKING-PROTOCOL.md` |
 | история: инциденты, старые команды, все детали | `docs/history/AGENTS-full-2026-11-02.md` |
 | Kaggle | `kaggle/README.md` |

@@ -40,7 +40,9 @@ param(
     [string]$Split = 'test',
     [switch]$ConfirmDeferred,
     [switch]$AllowGateWarnings,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [ValidateSet('both', 'pilot', 'main')]
+    [string]$PromptKind = 'both'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -300,15 +302,18 @@ function Resolve-QuestionSource($profileConfig, [string]$kind) {
 
 function Assert-InputMatchesProfile($profileConfig, [string]$inputPath) {
     if ($DryRun) { return }
-    $text = Get-Content -LiteralPath $inputPath -TotalCount 1 -Encoding UTF8
+    $firstLine = Get-Content -LiteralPath $inputPath -TotalCount 1 -Encoding UTF8
+    try { $firstRow = $firstLine | ConvertFrom-Json }
+    catch { Fail "could not parse the first input row: $inputPath" }
+    $text = [string](Get-Prop $firstRow 'question')
     $gptoss = $text -match '<\|start\|>system'
     $lfm = $text -match 'Final answer:\s*$'
     $id = $Profile
     if ($gptoss -and $id -ne 'gptoss20b') {
         Fail "this input is a pre-filled gpt-oss harmony prompt, but -Profile is '$id'. Use -Profile gptoss20b, and the runner will pass --no-template."
     }
-    if ($lfm -and $id -ne 'lfm25-2.6b') {
-        Fail "this input ends with a 'Final answer:' cue, but -Profile is '$id'. Use -Profile lfm25-2.6b."
+    if ($lfm -and $id -notin @('lfm25-2.6b', 'lfm25-1.2b-thinking')) {
+        Fail "this input ends with a 'Final answer:' cue, but -Profile is '$id'. Use an LFM final-prefill profile."
     }
     if ($id -eq 'gptoss20b' -and -not $gptoss) {
         Fail "profile gptoss20b needs the harmony final prompt built by make_gptoss_prompt.py; $inputPath does not look like one."
@@ -463,8 +468,24 @@ function Invoke-PilotGate([string]$runDir, [string]$inputPath, [string]$logPath,
         '--json', $gatePath)
     Write-Step "gate $kind"
     $py = Get-PythonPath
-    & $py @pyArgs
-    return $LASTEXITCODE
+    $argLine = ($pyArgs | ForEach-Object { Quote-Arg $_ }) -join ' '
+    $proc = Start-Process -FilePath $py -ArgumentList $argLine -NoNewWindow -Wait -PassThru
+    return $proc.ExitCode
+}
+
+function Invoke-MetaPostprocessor($profileConfig, [string]$runDir) {
+    $postprocessor = Get-Prop $profileConfig 'meta_postprocessor'
+    if (-not $postprocessor) { return }
+    if ($postprocessor -ne 'lfm_reasoning_final') {
+        Fail "unknown meta_postprocessor '$postprocessor' in profile '$Profile'"
+    }
+    $meta = Join-Path $runDir 'meta.jsonl'
+    $raw = Join-Path $runDir 'meta.raw.jsonl'
+    Assert-Absent $raw 'raw meta backup'
+    Move-Item -LiteralPath $meta -Destination $raw
+    Write-Step "finalizing reasoning replay metadata"
+    Invoke-Python @((Join-Path $Pipeline 'lfm_reasoning.py'), 'finalize-replay',
+        '--replay-meta', $raw, '--out', $meta)
 }
 
 function Write-RunnerRecord([string]$runDir, $flags, [string]$inputPath,
@@ -580,6 +601,8 @@ function Invoke-Generation([string]$kind) {
     Invoke-Binary $binary.exe $argv $logPath
 
     if ($DryRun) { return }
+
+    Invoke-MetaPostprocessor $profileConfig $runDir
 
     $gateCode = Invoke-PilotGate $runDir $inputPath $logPath $kind
     if ($gateCode -ne 0) {
@@ -818,7 +841,8 @@ switch ($Stage) {
         Assert-Tag
         $profileConfig = Get-Profile $Profile
         $binary = Get-Binary (Get-Prop $profileConfig 'binary')
-        foreach ($kind in @('pilot', 'main')) {
+        $promptKinds = if ($PromptKind -eq 'both') { @('pilot', 'main') } else { @($PromptKind) }
+        foreach ($kind in $promptKinds) {
             $path = Resolve-InputPath $profileConfig $kind -Build
             Assert-InputMatchesProfile $profileConfig $path
             Invoke-PromptCheck $kind $profileConfig $binary $path

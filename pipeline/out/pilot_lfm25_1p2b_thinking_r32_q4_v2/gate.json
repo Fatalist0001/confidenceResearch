@@ -1,0 +1,214 @@
+{
+  "dir": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\pilot_lfm25_1p2b_thinking_r32_q4_v2",
+  "stage": "pilot",
+  "profile": "lfm25-1.2b-thinking",
+  "input": "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot_lfm25_1p2b_thinking_r32_q4_v2_final.jsonl",
+  "log": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\pilot_lfm25_1p2b_thinking_r32_q4_v2.log",
+  "passed": true,
+  "fails": 0,
+  "warns": 1,
+  "thresholds": {
+    "max_skipped": 0,
+    "max_truncated_ratio": 0.1,
+    "max_empty_answer_ratio": 0.05,
+    "max_channel_leak": 0,
+    "max_repetition_ratio": 0.1,
+    "max_long_answer_ratio": 0.15,
+    "max_retokenize_ratio": 0.05,
+    "max_estimated_hours": 6.0
+  },
+  "summary": {
+    "rows": 200,
+    "ok": 200,
+    "skipped": 0,
+    "truncated": 0,
+    "truncated_ratio": 0.0,
+    "empty_answers": 0,
+    "channel_leaks": 0,
+    "thought_leaks": 0,
+    "ex_per_s": 55.23,
+    "seconds": 3.6,
+    "estimated_hours_6000": 0.03,
+    "shape": [
+      200,
+      16,
+      2048
+    ]
+  },
+  "checks": [
+    {
+      "check": "meta rows == config n_examples",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 vs 200"
+    },
+    {
+      "check": "meta rows == input rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 vs 200"
+    },
+    {
+      "check": "meta id order matches input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "first mismatch: None"
+    },
+    {
+      "check": "meta splits match input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "input Counter({'train': 120, 'val': 40, 'test': 40}) vs meta Counter({'train': 120, 'val': 40, 'test': 40})"
+    },
+    {
+      "check": "input duplicate ids are the known ones",
+      "ok": true,
+      "severity": "warn",
+      "detail": "none"
+    },
+    {
+      "check": "row indices contiguous from 0",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 rows"
+    },
+    {
+      "check": "skipped rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 skipped"
+    },
+    {
+      "check": "all rows ok",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 ok of 200"
+    },
+    {
+      "check": "truncated share",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/200 (limit 0.1)",
+      "value": 0.0
+    },
+    {
+      "check": "empty answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/200 generated (limit 0.05)",
+      "value": 0.0
+    },
+    {
+      "check": "no chat-protocol leak in answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 rows"
+    },
+    {
+      "check": "no thinking block in answers",
+      "ok": true,
+      "severity": "warn",
+      "detail": "0 rows"
+    },
+    {
+      "check": "answers are not degenerate",
+      "ok": true,
+      "severity": "warn",
+      "detail": "most common answer 1% of rows: 'The answer is Manchester United.'",
+      "value": 0.01
+    },
+    {
+      "check": "answers are not looping",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/58 long answers repeat one word (limit 0.1)",
+      "value": 0.0
+    },
+    {
+      "check": "share of very long answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "7/200 over 100 chars (limit 0.15)",
+      "value": 0.035
+    },
+    {
+      "check": "hidden_a.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[200, 16, 2048] vs [200, 16, 2048]"
+    },
+    {
+      "check": "hidden_c.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[200, 16, 2048] vs [200, 16, 2048]"
+    },
+    {
+      "check": "hidden_a and hidden_c shapes agree",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[200, 16, 2048] vs [200, 16, 2048]"
+    },
+    {
+      "check": "log: processed rows match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 vs 200"
+    },
+    {
+      "check": "log: expected rows match config",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 vs 200"
+    },
+    {
+      "check": "log: ok/skipped match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "log 200/0 vs meta 200/0"
+    },
+    {
+      "check": "log: truncated matches meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 vs 0"
+    },
+    {
+      "check": "log: written shape matches arrays",
+      "ok": true,
+      "severity": "warn",
+      "detail": "[200, 16, 2048] vs [200, 16, 2048]"
+    },
+    {
+      "check": "log has retokenize summary",
+      "ok": false,
+      "severity": "warn",
+      "detail": "no 'retokenize mismatch:' line in D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\pilot_lfm25_1p2b_thinking_r32_q4_v2.log"
+    },
+    {
+      "check": "estimated full run is affordable",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0.03 h for 6000 rows at 55.23 ex/s (limit 6 h)",
+      "value": 0.03
+    },
+    {
+      "check": "labels rows == meta rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "200 vs 200"
+    },
+    {
+      "check": "both label classes present",
+      "ok": true,
+      "severity": "fail",
+      "detail": "48 positive, 152 negative, 0 null"
+    },
+    {
+      "check": "null labels are explained by truncated rows",
+      "ok": true,
+      "severity": "warn",
+      "detail": "0 null vs 0 truncated"
+    }
+  ]
+}

@@ -62,6 +62,13 @@ class RunnerContractTest(unittest.TestCase):
         self.assertNotIn("Tee-Object", self.text)
         self.assertNotIn("| Out-Host", self.text)
 
+    def test_gate_returns_only_the_process_exit_code(self):
+        start = self.text.index("function Invoke-PilotGate")
+        end = self.text.index("function Invoke-MetaPostprocessor", start)
+        block = self.text[start:end]
+        self.assertIn("Start-Process", block)
+        self.assertIn("return $proc.ExitCode", block)
+
 
 if __name__ == "__main__":
     unittest.main()

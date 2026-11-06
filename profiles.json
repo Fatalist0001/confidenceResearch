@@ -9,6 +9,7 @@
     "inputs": "pilot/main question files. If builder is set, the runner runs it first and uses built.",
     "prompt_expectation": "What hs-prompt-dump must report. A mismatch stops the run.",
     "pilot_gate": "Thresholds for pipeline/gate_report.py. Overrides the defaults.",
+    "meta_postprocessor": "Optional named postprocessor run after extraction and before the gate.",
     "blocked": "Non-null means the stage refuses to run without -ConfirmDeferred."
   },
   "defaults": {
@@ -181,22 +182,22 @@
       "notes": []
     },
     "lfm25-1.2b-thinking": {
-      "description": "LFM2.5-1.2B Thinking: the reasoning half of the planned reasoning-vs-instruct experiment.",
+      "description": "LFM2.5-1.2B Thinking: fixed 32-token reasoning, forced final cue, 64-token final pass, then state replay.",
       "applies_to": ["lfm25"],
       "binary": "active",
-      "flags": { "ngl": 99, "max_new_tokens": 256 },
+      "flags": { "ngl": 99, "generate": false, "max_new_tokens": 64, "no_template": true },
       "inputs": {
-        "pilot": { "source": "data/pilot.jsonl" },
-        "main": { "source": "data/main.jsonl" }
+        "pilot": { "source": "data/pilot_lfm25_1p2b_thinking_r32_q4_v2_final.jsonl" },
+        "main": { "source": "data/main_lfm25_1p2b_thinking_r32_q4_v2_final.jsonl" }
       },
       "prompt_expectation": { "add_bos": true, "first_token": 1 },
+      "pilot_gate": { "max_empty_answer_ratio": 0.05 },
       "timing_reference": null,
-      "blocked": {
-        "id": "run:lfm25-1.2b-thinking",
-        "reason": "The fixed no-thinking pilot was 200/200 truncated. A reasoning budget, a final-answer extraction rule and a C-point rule must be fixed and written down before any run. This is not part of the frozen protocol."
-      },
+      "meta_postprocessor": "lfm_reasoning_final",
       "notes": [
-        "Do not run the standard 6000-row workflow for this model."
+        "Protocol: docs/LFM25-THINKING-PROTOCOL.md.",
+        "Run scripts/prepare_lfm_thinking.ps1 for pilot/main before scripts/run.ps1.",
+        "A is post-reasoning at the Final answer: cue; C is the last token of extracted final."
       ]
     },
     "lfm3": {

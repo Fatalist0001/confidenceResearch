@@ -1,0 +1,228 @@
+{
+  "kind": "hotpotqa_frozen_transfer",
+  "protocol": {
+    "path": "D:/VScode_pr/confidenceResearch/pipeline/data/hotpotqa_qwen08_v2/protocol.json",
+    "sha256": "f0f1f88cfc277247d97c37f2acf8ec8c0728a7b85a9121e8c9fcbf5d830d0657",
+    "bytes": 37067
+  },
+  "source_probe": {
+    "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4/probe_model.npz",
+    "sha256": "5e948cd2146d95fef7ad2b66b21c9c5d12fdd3cfc02c250f30fcb81a1ca7088c",
+    "bytes": 27636
+  },
+  "frozen_feature": {
+    "point": "C",
+    "layer_id": 13,
+    "target_array_index": 0,
+    "lambda": 1000.0,
+    "standardization": "unchanged saved train mu/sd",
+    "fit_on_target": false,
+    "calibration": false
+  },
+  "dataset": {
+    "repo": "hotpotqa/hotpot_qa",
+    "revision": "1908d6afbbead072334abe2965f91bd2709910ab",
+    "config": "distractor",
+    "split": "validation",
+    "url": "https://huggingface.co/datasets/hotpotqa/hotpot_qa/resolve/1908d6afbbead072334abe2965f91bd2709910ab/distractor/validation-00000-of-00001.parquet",
+    "rows": 7405,
+    "source": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/data/hotpotqa_raw/validation-00000-of-00001.parquet",
+      "sha256": "c20b638ca82b21d04fe12e14ff417ad05153d4d215a65de54497fca4e972f7c6",
+      "bytes": 27452575
+    },
+    "license": "CC BY-SA 4.0"
+  },
+  "binary_caveat": "Source: 3ad2230/build 37; target: 785322d17/build 12033. Prior master control had 75.0% answer and 97.3% label agreement; this is not a bit-exact dataset-only transfer.",
+  "accuracy_all_attempts": {
+    "n": 500,
+    "correct": 161,
+    "em": 0.322,
+    "em_ci": [
+      0.284,
+      0.366
+    ],
+    "f1": 0.42861666033558526,
+    "f1_ci": [
+      0.390209837845101,
+      0.46822610826939776
+    ]
+  },
+  "coverage": {
+    "attempted": 500,
+    "primary": 499,
+    "primary_fraction": 0.998,
+    "completed": 499,
+    "completion_reasons": {
+      "completed": 499,
+      "truncated": 1
+    },
+    "analysis_reasons": {
+      "included": 499,
+      "truncated": 1
+    },
+    "truncated": 1,
+    "empty_answers": 0
+  },
+  "primary": {
+    "n": 499,
+    "correct": 161,
+    "em": 0.3226452905811623,
+    "f1": 0.4293903346218502,
+    "label_column": "hotpot_em",
+    "same_rows_for_all_methods": true
+  },
+  "metrics": {
+    "probe": {
+      "n": 499,
+      "pos": 161,
+      "base_rate": 0.3226452905811623,
+      "auroc": 0.6441067293910103,
+      "auprc": 0.44505756145034364,
+      "auroc_ci": [
+        0.5938879016616446,
+        0.6974776859527319
+      ],
+      "auprc_ci": [
+        0.3774585757438897,
+        0.5304527405058972
+      ]
+    },
+    "logprob": {
+      "n": 499,
+      "pos": 161,
+      "base_rate": 0.3226452905811623,
+      "auroc": 0.6654783343746554,
+      "auprc": 0.4744774759649171,
+      "auroc_ci": [
+        0.6134951798365763,
+        0.7115452766807949
+      ],
+      "auprc_ci": [
+        0.40559707667292705,
+        0.5570943948401927
+      ]
+    },
+    "negative_entropy": {
+      "n": 499,
+      "pos": 161,
+      "base_rate": 0.3226452905811623,
+      "auroc": 0.6879341394391562,
+      "auprc": 0.4889045646149876,
+      "auroc_ci": [
+        0.6350851804185137,
+        0.7348401472677637
+      ],
+      "auprc_ci": [
+        0.41711755830228747,
+        0.5753303310747266
+      ]
+    }
+  },
+  "paired_deltas": {
+    "probe_vs_logprob": {
+      "auroc": {
+        "delta": -0.0213716049836451,
+        "ci": [
+          -0.08912697292355677,
+          0.05246039946603212
+        ]
+      },
+      "auprc": {
+        "delta": -0.02941991451457343,
+        "ci": [
+          -0.11518202503977663,
+          0.06267242841806946
+        ]
+      }
+    },
+    "probe_vs_negative_entropy": {
+      "auroc": {
+        "delta": -0.04382741004814583,
+        "ci": [
+          -0.1135525179726914,
+          0.030655264136152396
+        ]
+      },
+      "auprc": {
+        "delta": -0.04384700316464396,
+        "ci": [
+          -0.13412392594853026,
+          0.05069042180192861
+        ]
+      }
+    }
+  },
+  "retained_accuracy_50": {
+    "probe": {
+      "retained": 250,
+      "correct": 106,
+      "accuracy": 0.424,
+      "coverage": 0.501002004008016
+    },
+    "logprob": {
+      "retained": 250,
+      "correct": 109,
+      "accuracy": 0.436,
+      "coverage": 0.501002004008016
+    },
+    "negative_entropy": {
+      "retained": 250,
+      "correct": 112,
+      "accuracy": 0.448,
+      "coverage": 0.501002004008016
+    }
+  },
+  "bootstrap": {
+    "n": 1000,
+    "seed": 42,
+    "interval": "percentile 95%, resample questions; paired deltas"
+  },
+  "artifacts": {
+    "runner.json": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/runner.json",
+      "sha256": "2877f73e386ef6718dfe147ca5f2a3a011abf45544ff25644f1d57ec1eac2af2",
+      "bytes": 1731
+    },
+    "config.json": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/config.json",
+      "sha256": "48b9f0c3ed00c0a07cdf1492b98677a3719c88132cb7c0e5110724da50575d61",
+      "bytes": 902
+    },
+    "meta.jsonl": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/meta.jsonl",
+      "sha256": "b25a51a587ce761a24d2804b1882909f10dfe84729a399b794425b227e5609b5",
+      "bytes": 208163
+    },
+    "labels.csv": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/labels.csv",
+      "sha256": "c82439085bbb183b1e2449ab18d716bc45b786a0559c54965b1a7fec4b8849d1",
+      "bytes": 32293
+    },
+    "hidden_c.npy": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/hidden_c.npy",
+      "sha256": "4731497cfdb47fa759ad8c81bc9d24b83d4f5aa40d2d9558cea5ee194ebb64f8",
+      "bytes": 1024128
+    },
+    "verify.json": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/verify.json",
+      "sha256": "9ae6d5cb1b1ebb50e24096a7e3c56e56b5cbd2c5df69608fa0b29018357fbdd5",
+      "bytes": 3771
+    },
+    "gate.json": {
+      "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/gate.json",
+      "sha256": "1b374d4e8ce4db5a70b652cd4be9f7df3b8fbc638e55cb040d3ba6449f683737",
+      "bytes": 5035
+    }
+  },
+  "implementation": {
+    "path": "D:/VScode_pr/confidenceResearch/pipeline/hotpotqa.py",
+    "sha256": "9cc50237f5c78b727896c0e77bad1c3b0317a2a4198bb29f932bca43be52863c",
+    "bytes": 30392
+  },
+  "scores": {
+    "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2/transfer_scores.csv",
+    "sha256": "57a00f562c5f84ab1f38a354a56f828f7dabed66998902220b90abc1498b17bd",
+    "bytes": 68263
+  }
+}

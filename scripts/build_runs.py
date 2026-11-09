@@ -41,6 +41,13 @@ MAIN = {
         prompt_regime="default_bos", usable=True,
         notes="Master-binary control of main_qwen08_q4. Paired dAUROC -0.0054 [-0.0225, +0.0114]; answers/labels agree 75.0%/97.3%. Use for binary-version checks, not as the series point.",
     ),
+    "main_qwen08_q4_hotpotqa_v2": dict(
+        family="qwen3.5", model="Qwen3.5-0.8B Q4_K_M", status="valid", canonical=False,
+        prompt_regime="default_bos", usable=True, probe_status="frozen_transfer",
+        evaluation={"kind": "hotpotqa_frozen_transfer", "label_column": "hotpot_em", "required_splits": ["test"]},
+        restriction="HotpotQA whole-answer EM, all supplied context, frozen C/model-layer-13 feature with source train scaling. Not a newly trained TriviaQA series point or an agent evaluation; source and target binaries differ.",
+        notes="Authorized preliminary transfer test after a disjoint technical pilot. Original-JSON audit verified the pinned parquet; short source contexts were retained by explicit user decision. Source main_qwen08_q4 weights, standardization, point, layer and lambda are unchanged. No target training, calibration, search or additional answer-verification pass.",
+    ),
     "main_qwen35_2b_q4": dict(
         family="qwen3.5", model="Qwen3.5-2B Q4_K_M", status="valid", canonical=True,
         prompt_regime="default_bos", usable=True,
@@ -146,6 +153,11 @@ PILOTS = {
                           notes="Old binary sanity pilot of the 0.8B BF16 model."),
     "pilot_qwen08_q4": dict(status="valid", prompt_regime="default_bos",
                              notes="Q4 anchor pilot; predicted the full run time within 3%."),
+    "pilot_qwen08_q4_hotpotqa_v2": dict(
+        status="valid", prompt_regime="default_bos",
+        evaluation={"kind": "hotpotqa_frozen_transfer", "label_column": "hotpot_em", "required_splits": ["test"]},
+        notes="Disjoint technical pilot for the Qwen 0.8B frozen HotpotQA transfer protocol. All supplied context retained, raw argmax, official whole-answer labels and full state verification; no target fitting or layer selection.",
+    ),
     "pilot_qwen08_iq2": dict(status="invalid", prompt_regime="default_bos",
                               notes="UD-IQ2_XXS: 196/200 truncated (answers run into thinking). This quant is excluded from the series."),
     "pilot_qwen35_2b_q4": dict(status="valid", prompt_regime="default_bos",
@@ -181,7 +193,15 @@ PILOTS = {
     "pilot_lfm25_2p6b_q4_final": dict(status="valid", prompt_regime="no_template_lfm_final",
                                        notes="Final-cue pilot; 8 truncated of 200."),
     "pilot_lfm3_1p7b_qad_q4": dict(status="valid", prompt_regime="default_bos",
-                                    notes="LFM3 pilot: 79/200 truncated, already showing the 64-token problem."),
+                                     notes="LFM3 pilot: 79/200 truncated, already showing the 64-token problem."),
+    "pilot_lfm3_1p7b_qad_q4_sampler_v3": dict(
+        status="invalid", prompt_regime="default_bos",
+        notes="Raw-argmax control after correcting the LFM3 BOS expectation. 79/200 truncated; failed the 10% gate. Diagnostic evidence only, no new main run.",
+    ),
+    "pilot_lfm3_1p7b_qad_q4_sampler_v4": dict(
+        status="invalid", prompt_regime="default_bos",
+        notes="Actual common_sampler diagnostic: temp=0.1, top_k=50, repeat_penalty=1.1, seed=42+row. 83/200 truncated; failed the 10% gate. Sampling did not fix completion; no new main run or probe.",
+    ),
     "pilot_yandexgpt5lite8b_q4": dict(status="valid", prompt_regime="default_bos",
                                        notes="Yandex pilot, 1 truncated."),
 }
@@ -254,6 +274,7 @@ def artifacts(name, allow_malformed=False):
     baseline_path = os.path.join(directory, "baseline.json")
     probe_path = os.path.join(directory, "probe.json")
     verify_path = os.path.join(directory, "verify.json")
+    transfer_path = os.path.join(directory, "transfer.json")
     return {
         "config": cfg,
         "meta": meta,
@@ -261,24 +282,30 @@ def artifacts(name, allow_malformed=False):
         "baseline": read_json(baseline_path) if os.path.exists(baseline_path) else None,
         "probe": read_json(probe_path) if os.path.exists(probe_path) else None,
         "verify": read_json(verify_path) if os.path.exists(verify_path) else None,
+        "transfer": read_json(transfer_path) if os.path.exists(transfer_path) else None,
     }
 
 
-def label_summary(labels, meta):
+def label_summary(labels, meta, label_column="correct_filtered_b"):
     if labels is None:
-        return {"rows": None, "labeled": None, "null": None,
-                "truncated": None,
-                "base_rate_filtered_b": None}
-    values = [str(row.get("correct_filtered_b", "")).strip() for row in labels]
+        result = {"rows": None, "labeled": None, "null": None,
+                  "truncated": None, "base_rate_filtered_b": None}
+        if label_column != "correct_filtered_b":
+            result.update(label_column=label_column, base_rate=None)
+        return result
+    values = [str(row.get(label_column, "")).strip() for row in labels]
     labeled = sum(value in ("0", "1") for value in values)
     positive = sum(value == "1" for value in values)
-    return {
+    result = {
         "rows": len(labels),
         "labeled": labeled,
         "null": len(labels) - labeled,
         "truncated": sum(bool(r.get("truncated")) for r in meta),
-        "base_rate_filtered_b": round4(positive / labeled) if labeled else None,
+        "base_rate_filtered_b": round4(positive / labeled) if labeled and label_column == "correct_filtered_b" else None,
     }
+    if label_column != "correct_filtered_b":
+        result.update(label_column=label_column, base_rate=round4(positive / labeled) if labeled else None)
+    return result
 
 
 def baseline_summary(data):
@@ -333,6 +360,7 @@ def main_entry(name, curated):
     else:
         probe_status = curated.get("probe_status", "not_run")
     verify = data["verify"]
+    evaluation = curated.get("evaluation") or {}
     entry = {
         "kind": "main",
         "family": curated["family"],
@@ -349,7 +377,7 @@ def main_entry(name, curated):
         "meta_rows": len(meta),
         "binary": binary_summary(cfg),
         "shape": shape(cfg, len(meta)),
-        "labels": label_summary(data["labels"], meta),
+        "labels": label_summary(data["labels"], meta, evaluation.get("label_column", "correct_filtered_b")),
         "baseline_test_auroc": baseline_summary(data["baseline"]),
         "probe": probe,
         "probe_status": probe_status,
@@ -359,14 +387,22 @@ def main_entry(name, curated):
                    if verify is not None else {"status": "not_run"}),
         "notes": curated["notes"],
     })
+    if evaluation:
+        entry["evaluation"] = evaluation
+        transfer = data["transfer"]
+        entry["transfer"] = ({key: transfer[key] for key in (
+            "source_probe", "protocol", "frozen_feature", "accuracy_all_attempts", "coverage", "primary",
+            "metrics", "paired_deltas", "retained_accuracy_50", "binary_caveat",
+        )} if transfer is not None else None)
     return entry
 
 
 def pilot_entry(name, curated):
     data = artifacts(name, allow_malformed=curated["status"] != "valid")
     cfg, meta = data["config"], data["meta"]
-    labels = label_summary(data["labels"], meta)
-    return {
+    evaluation = curated.get("evaluation") or {}
+    labels = label_summary(data["labels"], meta, evaluation.get("label_column", "correct_filtered_b"))
+    entry = {
         "kind": "pilot",
         "status": curated["status"],
         "citable": False,
@@ -379,14 +415,17 @@ def pilot_entry(name, curated):
         "probe_status": curated.get("probe_status", "not_run"),
         "notes": curated["notes"],
     }
+    if evaluation:
+        entry["evaluation"] = evaluation
+    return entry
 
 
 def build_document():
     return {
         "schema_version": 1,
-        "updated": "2026-11-06",
+        "updated": "2026-11-09",
         "generator": "scripts/build_runs.py",
-        "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json}",
+        "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json,transfer.json}",
         "read_this_first": "docs/START-HERE.md",
         "status_legend": {
             "valid": "The run is internally consistent and its numbers may be cited.",
@@ -407,6 +446,7 @@ def build_document():
             "not_run": "No probe in this directory.",
             "not_citable": "The run itself is invalid or partial, so its probe numbers must not be cited even though files exist.",
             "pipeline_check": "Probe exists only to check the pipeline on a pilot; not a research result.",
+            "frozen_transfer": "transfer.json applies an existing probe without target training, calibration or layer selection; evaluation labels/splits are recorded separately.",
         },
         "probe_protocol": "docs/START-HERE.md#frozen-probe-protocol",
         "shape_legend": "shape = [rows in meta.jsonl, selected l_out layers, n_embd]",

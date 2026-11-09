@@ -16,6 +16,43 @@ import numpy as np
 from baseline import auroc, auprc
 
 
+def load_probe_model(path):
+    """Load portable weights without pickle; never fit or change standardization."""
+    with np.load(path, allow_pickle=False) as saved:
+        info = json.loads(str(saved["meta"]))
+        w = np.asarray(saved["w"], dtype=np.float64)
+        mu = np.asarray(saved["mu"], dtype=np.float64)
+        sd = np.asarray(saved["sd"], dtype=np.float64)
+    if info.get("point") not in ("A", "C"):
+        raise ValueError("saved probe must specify point A or C")
+    if w.ndim != 1 or mu.ndim != 1 or sd.shape != mu.shape or w.shape != (len(mu) + 1,):
+        raise ValueError("invalid saved w/mu/sd shapes")
+    if not all(np.isfinite(x).all() for x in (w, mu, sd)) or not (sd > 0).all():
+        raise ValueError("saved weights must be finite and every train sd must be positive")
+    return {"info": info, "w": w, "mu": mu, "sd": sd}
+
+
+def score_hidden(probe, hidden, rows, layers):
+    """Resolve the frozen model layer ID in the target, not the source array index."""
+    info = probe["info"]
+    layer_id = int(info["layer_id"] if "layer_id" in info else info["layer"])
+    if hidden.ndim != 3 or hidden.shape[1] != len(layers) or len(set(layers)) != len(layers):
+        raise ValueError("target hidden array does not match its layer list")
+    if layer_id not in layers:
+        raise ValueError(f"target has no frozen model layer {layer_id}")
+    if hidden.shape[2] != len(probe["mu"]):
+        raise ValueError(f"target D={hidden.shape[2]} != probe D={len(probe['mu'])}")
+    layer = layers.index(layer_id)
+    idx = np.asarray(rows, dtype=np.int64)
+    if idx.ndim != 1 or np.any(idx < 0) or np.any(idx >= hidden.shape[0]):
+        raise ValueError("target row index is out of range")
+    x = np.asarray(hidden[idx, layer, :], dtype=np.float64)
+    if not np.isfinite(x).all():
+        raise ValueError("non-finite target hidden states")
+    z = (x - probe["mu"]) / probe["sd"]
+    return probe["w"][0] + z @ probe["w"][1:], layer
+
+
 def read_labels(path):
     out = {}
     with open(path, encoding="utf-8", newline="") as f:
@@ -53,12 +90,11 @@ def main():
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    npz = np.load(args.model, allow_pickle=True)
-    w = np.asarray(npz["w"], dtype=np.float64)
-    mu = np.asarray(npz["mu"], dtype=np.float64)
-    sd = np.asarray(npz["sd"], dtype=np.float64)
-    info = json.loads(str(npz["meta"])) if "meta" in npz else {}
-    point = info.get("point", "C")
+    if args.out and os.path.exists(args.out):
+        raise SystemExit(f"output already exists: {args.out}; choose a new filename")
+    probe = load_probe_model(args.model)
+    info = probe["info"]
+    point = info["point"]
     layer = int(info.get("layer", 0))
     layer_id = int(info.get("layer_id", layer))
     print(f"probe: point {point}, array layer {layer} (model layer {layer_id}), "
@@ -71,14 +107,9 @@ def main():
     print(f"{args.split}: {len(rows)} rows, {int(y.sum())} positives")
 
     arr = np.load(os.path.join(args.dir, f"hidden_{point.lower()}.npy"), mmap_mode="r")
-    if arr.shape[2] != mu.shape[0]:
-        raise SystemExit(f"target D={arr.shape[2]} != probe D={mu.shape[0]}")
-    if arr.shape[1] <= layer:
-        raise SystemExit(f"target has {arr.shape[1]} layers, probe needs index {layer}")
-
-    X = np.asarray(arr[idx, layer, :], dtype=np.float64)
-    z = (X - mu) / sd
-    score = w[0] + z @ w[1:]
+    with open(os.path.join(args.dir, "config.json"), encoding="utf-8") as f:
+        config = json.load(f)
+    score, layer = score_hidden(probe, arr, idx, [int(x) for x in config["layers"]])
 
     res = {
         "model": args.model,

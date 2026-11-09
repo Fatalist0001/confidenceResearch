@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-06",
+  "updated": "2026-11-09",
   "project": {
     "name": "llama-hidden-states",
     "repo": "https://github.com/Fatalist0001/confidenceResearch",
@@ -11,6 +11,8 @@
       "agent_contract": "AGENTS.md",
       "setup": "docs/SETUP.md",
       "lfm25_thinking_protocol": "docs/LFM25-THINKING-PROTOCOL.md",
+      "hotpotqa_transfer_protocol": "docs/HOTPOTQA-TRANSFER.md",
+      "hotpotqa_source_audit": "docs/HOTPOTQA-SOURCE-AUDIT.md",
       "research": "README.md",
       "report": "report.md",
       "runs": "RUNS.json",
@@ -124,7 +126,11 @@
       "pipeline/out/**/probe*.json",
       "pipeline/out/**/probe*_scores.csv",
       "pipeline/out/**/probe*_curve.csv",
-      "pipeline/out/**/probe*_model.npz"
+      "pipeline/out/**/probe*_model.npz",
+      "pipeline/out/**/transfer*.json",
+      "pipeline/out/**/transfer*_scores.csv",
+      "pipeline/data/hotpotqa_*/protocol.json",
+      "pipeline/data/hotpotqa_source_audit_*.json"
     ],
     "never_overwrite_run_dir": true,
     "generation_requires_prompt_record": true,

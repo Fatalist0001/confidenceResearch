@@ -15,6 +15,8 @@
 | `PROJECT_STATE.json` | бинарники, протокол, заблокированные действия |
 | `docs/SETUP.md` | как поднять окружение с нуля |
 | `docs/LFM25-THINKING-PROTOCOL.md` | отдельный reasoning-протокол LFM2.5-1.2B-Thinking |
+| `docs/HOTPOTQA-TRANSFER.md` | замороженный перенос C/13 Qwen 0.8B на HotpotQA без обучения |
+| `docs/HOTPOTQA-SOURCE-AUDIT.md` | побайтовая проверка источника и коротких контекстов HotpotQA |
 | `docs/history/AGENTS-full-2026-11-02.md` | старый подробный `AGENTS.md` (история) |
 
 ---
@@ -221,6 +223,7 @@ powershell -File scripts\run.ps1 -Stage compare -Profile qwen -Tag qwen4b_v2 `
 |---|---|
 | `standard` | любая модель, для которой нет отдельного профиля |
 | `qwen` | Qwen3.5 0.8B / 2B / 4B, Q4_K_M |
+| `qwen-hotpotqa` | только Qwen3.5-0.8B Q4_K_M, сохранённая C/13 проба, 200+500 HotpotQA; без обучения/калибровки |
 | `qwen9b` | Qwen3.5 9B: только `-ngl 99`, лог в файл |
 | `gemma` | Gemma 4 E2B / E4B, ожидается `add_bos=1`, первый токен `2` |
 | `yandex` | YandexGPT 5 Lite 8B |
@@ -229,7 +232,7 @@ powershell -File scripts\run.ps1 -Stage compare -Profile qwen -Tag qwen4b_v2 `
 | `lfm25-2.6b` | LFM2.5-2.6B: готовый cue `Final answer:`, `--no-template` |
 | `lfm25-1.2b-instruct` | LFM2.5-1.2B Instruct |
 | `lfm25-1.2b-thinking` | reasoning 32 + final 64 + replay; см. отдельный протокол |
-| `lfm3` | LFM3-1.7B: мягкий гейт по обрезке (60 %) |
+| `lfm3` | LFM3-1.7B: диагностический sampler-профиль, гейт 10%; новый полный прогон заблокирован |
 | `gemma4-12b-kaggle` | только Kaggle, локально не запускается |
 | `gemma4-26b-a4b-kaggle` | только Kaggle, 2×T4; локально не запускается |
 
@@ -332,6 +335,37 @@ test AUROC 0.8813 [0.855,0.905]; против Instruct ΔAUROC +0.0016 [−0.027
 
 Числа брать из `probe.json` / `baseline.json` / `verify.json`, а не из README: README
 может отставать, `RUNS.json` генерируется из артефактов.
+
+### HotpotQA: замороженная проба, а не новое обучение
+
+Протокол — `docs/HOTPOTQA-TRANSFER.md`. Разрешённый предварительный тест использует
+только Qwen3.5-0.8B Q4_K_M и готовую пробу `main_qwen08_q4/probe_model.npz`
+(C / model layer 13, λ=1000). В целевом массиве сохранён один слой, его index равен 0.
+
+В `data/hotpotqa_qwen08_v2/protocol.json` до генерации зафиксированы 200 disjoint
+pilot ID, 500 evaluation ID, входы, эталоны, token diagnostics и контрольные суммы
+модели, пробы, runtime и кода. Все фактически предоставленные документы остаются в
+исходном порядке. У 2 pilot и 7 evaluation вопросов в оригинальном JSON менее 10
+абзацев; пользователь разрешил сохранить эти вопросы и весь доступный текст после
+проверки источника. Дополнять контекст или заменять ID нельзя.
+
+Workflow: `doctor -> inputs -> prompt -> pilot`, затем passed gate + full state
+verify + просмотр ответов, после чего `main -> label -> verify -> transfer`.
+Для каждого этапа используйте `scripts/run.ps1 -Profile qwen-hotpotqa -Tag <new>`;
+для генерации нужен исходный GGUF Qwen 0.8B Q4_K_M. `-Stage all -DryRun` показывает
+этот маршрут без запуска модели. Повтор требует нового тега и явной просьбы.
+
+**Нельзя запускать `baseline`, `probe` или `probe2` на transfer-каталоге:** эти
+стадии обучают или калибруют на целевых данных. Раннер отказывает даже если профиль
+при анализе опущен либо подставлен другой. Сохранённые `w/mu/sd`, точка, слой и λ
+не меняются.
+
+Оценка HotpotQA использует официальный whole-answer `hotpot_em` и answer F1, а не
+тренировочную TriviaQA-метку `correct_filtered_b`. Все попытки входят в accuracy;
+probe/logprob/negative entropy сравниваются на одной primary-выборке завершённых
+непустых ответов с валидными состояниями и first-token scores. Выходы —
+`transfer.json` и `transfer_scores.csv`, оба create-only. Результаты в реестре
+отделены полем `evaluation` и `probe_status=frozen_transfer` от новых обученных проб.
 
 ### Kaggle
 

@@ -185,7 +185,7 @@ class GateTest(unittest.TestCase):
         self.assertEqual(code, 0, out)
         self.assertGreater(report["warns"], 0)
 
-    def test_lfm3_profile_raises_the_truncation_limit(self):
+    def test_lfm3_diagnostic_does_not_relax_the_truncation_limit(self):
         if not os.path.exists(PROFILES):
             self.skipTest("profiles.json is missing")
         d, inp, log = self.healthy("lfm3", n=60)
@@ -195,11 +195,49 @@ class GateTest(unittest.TestCase):
                 row["truncated"] = True
         rewrite_meta(d, truncate_every_other)
         helpers.write_log(log, rows=90, expected=90, truncated=45, seconds=30.0)
-        # 50% truncated: fails the default 10% limit, passes the LFM3 override (60%)
+        # The sampler diagnostic must meet the same 10% completion gate.
         code, _, _ = run_gate(d, inp, log, profile="standard")
         self.assertEqual(code, 1)
         code, _, _ = run_gate(d, inp, log, profile="lfm3")
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
+
+    def official_labels(self, run_dir):
+        import csv
+        path = os.path.join(run_dir, "labels.csv")
+        rows = helpers.read_csv_rows(path)
+        for row in rows:
+            row["hotpot_em"] = row.pop("correct_filtered_b")
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+            writer.writeheader()
+            writer.writerows(rows)
+
+    def test_official_labels_cover_truncated_attempts(self):
+        d, inp, log = self.healthy("official")
+        rewrite_meta(d, lambda r: r.update(truncated=r["row"] == 0))
+        helpers.write_log(log, rows=60, truncated=1, seconds=30.0)
+        self.official_labels(d)
+        code, out, report = run_gate(d, inp, log, profile="qwen-hotpotqa")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(report["label_column"], "hotpot_em")
+        self.assertTrue(next(c for c in report["checks"] if c["check"] == "official labels cover all attempted rows")["ok"])
+
+    def test_missing_official_labels_are_a_hard_failure(self):
+        d, inp, log = self.healthy("missingofficial")
+        code, out, report = run_gate(d, inp, log, profile="qwen-hotpotqa")
+        self.assertEqual(code, 1, out)
+        self.assertFalse(report["passed"])
+        self.assertIn("correctness label column exists", out)
+
+    def test_transfer_budget_estimates_500_not_6000_rows(self):
+        d, inp, log = self.healthy("transferbudget")
+        self.official_labels(d)
+        helpers.write_log(log, rows=60, seconds=240.0)
+        code, out, report = run_gate(d, inp, log, profile="qwen-hotpotqa")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(report["summary"]["main_rows"], 500)
+        self.assertLess(report["summary"]["estimated_hours_main"], 1)
+        self.assertGreater(report["summary"]["estimated_hours_6000"], 6)
 
 
 if __name__ == "__main__":

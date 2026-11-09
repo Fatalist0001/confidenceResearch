@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-05",
+  "updated": "2026-11-09",
   "purpose": "One entry per model family. The runner reads the flags from here instead of relying on prose, so an agent picks a profile instead of reproducing model exceptions from memory.",
   "how_to_use": "scripts/run.ps1 -Profile <id> -Stage <stage> -Tag <tag> -Model <path.gguf>",
   "profile_fields": {
     "binary": "Which llama.cpp copy to use: active (785322d17) or legacy pin (d4cff114c).",
     "flags": "Exact llama-hidden-states flags. -b/-ub are never passed: batch mode sets them from --max-len.",
-    "inputs": "pilot/main question files. If builder is set, the runner runs it first and uses built.",
+    "inputs": "pilot/main generation files. If builder is set, the runner runs it first and uses built. Optional questions points to the separate unrendered gold/question file.",
     "prompt_expectation": "What hs-prompt-dump must report. A mismatch stops the run.",
     "pilot_gate": "Thresholds for pipeline/gate_report.py. Overrides the defaults.",
     "meta_postprocessor": "Optional named postprocessor run after extraction and before the gate.",
@@ -22,7 +22,11 @@
       "ngl": 99,
       "no_template": false,
       "no_thinking": false,
-      "batch_rows": 1
+      "batch_rows": 1,
+      "temperature": null,
+      "top_k": null,
+      "repeat_penalty": null,
+      "seed": null
     },
     "pilot_gate": {
       "max_skipped": 0,
@@ -64,6 +68,30 @@
       "timing_reference": { "pilot_200_seconds": 24.4, "run": "main_qwen08_q4" },
       "notes": [
         "add_bos_token is false for Qwen, so the 2026-11-02 BOS fix does not change these prompts."
+      ]
+    },
+    "qwen-hotpotqa": {
+      "description": "Qwen3.5-0.8B Q4_K_M only: frozen C/13 probe transfer to 500 HotpotQA distractor dev questions after a disjoint 200-row pilot.",
+      "applies_to": ["qwen3.5"],
+      "binary": "active",
+      "flags": { "max_len": 8192, "layers": "13" },
+      "inputs": {
+        "pilot": { "source": "data/hotpotqa_qwen08_v2/pilot.jsonl", "questions": "data/hotpotqa_qwen08_v2/pilot.questions.jsonl" },
+        "main": { "source": "data/hotpotqa_qwen08_v2/main.jsonl", "questions": "data/hotpotqa_qwen08_v2/main.questions.jsonl" }
+      },
+      "prompt_expectation": { "add_bos": false, "first_token": null },
+      "evaluation": {
+        "kind": "hotpotqa_frozen_transfer",
+        "protocol": "data/hotpotqa_qwen08_v2/protocol.json",
+        "label_column": "hotpot_em",
+        "required_splits": ["test"],
+        "expected_rows": { "pilot": 200, "main": 500 }
+      },
+      "timing_reference": null,
+      "notes": [
+        "All supplied paragraphs stay in dataset order. No retrieval, padding or gold-document selection. The original JSON audit confirmed nine selected records supply fewer than the nominal ten; the user approved keeping every ID and its full available context.",
+        "Generation inputs have no gold answers or supporting-fact annotations. The runner uses the matching *.questions.jsonl only for labeling.",
+        "Never run probe.py, baseline calibration, layer selection or training on this profile. -Stage transfer applies the saved main_qwen08_q4 probe as-is."
       ]
     },
     "qwen9b": {
@@ -204,13 +232,19 @@
       "description": "LFM3-1.7B QAD Q4. Stock no-thinking prompt is correct, but 41.8% of rows do not finish within 64 tokens.",
       "applies_to": ["lfm3"],
       "binary": "active",
-      "flags": { "ngl": 99 },
+      "flags": {
+        "ngl": 99,
+        "temperature": 0.1,
+        "top_k": 50,
+        "repeat_penalty": 1.1,
+        "seed": 42
+      },
       "inputs": {
         "pilot": { "source": "data/pilot.jsonl" },
         "main": { "source": "data/main.jsonl" }
       },
-      "prompt_expectation": { "add_bos": true, "first_token": 1 },
-      "pilot_gate": { "max_truncated_ratio": 0.60, "max_empty_answer_ratio": 0.05, "max_long_answer_ratio": 0.80 },
+      "prompt_expectation": { "add_bos": false, "first_token": 124894, "note": "The stock LFM3 template already contains the BOS token." },
+      "pilot_gate": { "max_truncated_ratio": 0.10, "max_empty_answer_ratio": 0.05, "max_long_answer_ratio": 0.80 },
       "timing_reference": { "pilot_200_seconds": 69.7, "run": "main_lfm3_1p7b_qad_q4" },
       "blocked": {
         "id": "run:lfm3-sampler-diagnostic",

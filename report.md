@@ -1,7 +1,7 @@
 # Отчёт: извлечение скрытых состояний из GGUF-модели через llama.cpp
 
 **Начат:** 2026-10-12
-**Актуализирован:** 2026-11-02
+**Актуализирован:** 2026-11-09
 **Окружение:** Windows, llama.cpp собран с CUDA (GPU: RTX 3050, 6 ГБ)
 **Модель для проверки:** `gemma-4-E2B-it-Q4_K_M.gguf` (arch `gemma4`, 35 слоёв, D=1536)
 
@@ -2949,3 +2949,121 @@ probe, `probe_model.npz`, verify, gate, `meta.raw.jsonl`), подготовит�
 `out/lfm25_thinking_main_lfm25_1p2b_thinking_r32_q4_v2_{reasoning,reasoning_rest_from_1566,finalgen,protocol}`,
 входы `data/{pilot,main}_lfm25_1p2b_thinking_r32_q4_v2_final.jsonl`, сравнения
 `out/compare_main_lfm25_1p2b_instruct_q4_lfm25_1p2b_thinking_r32_q4_v2_{test,val}.json`.
+
+## 31. HotpotQA: frozen-перенос Qwen3.5-0.8B (2026-11-09)
+
+**Преимущества над стандартной уверенностью не обнаружено.** Проба ранжирует выше
+случайного, но ниже обоих first-token baseline по point estimates; парные интервалы
+разностей накрывают ноль. Параметры после просмотра результата не менялись.
+
+### 31.1. Протокол и источник
+
+Источник пробы — `out/main_qwen08_q4/probe_model.npz`: λ=1000, **C / model layer 13**,
+1024 координаты, исходные train `mu/sd` и веса. SHA-256
+`5e948cd2146d95fef7ad2b66b21c9c5d12fdd3cfc02c250f30fcb81a1ca7088c`.
+Target сохраняет только слой 13, его array index = 0. Обучения, перевыбора слоя,
+калибровки, поиска или дополнительных модельных verification-проходов нет.
+
+HotpotQA dev/distractor, Hugging Face revision
+`1908d6afbbead072334abe2965f91bd2709910ab`, 7405 строк. ID-only порядок по
+`SHA256(UTF8(f"hotpotqa-qwen08-v1:42:{id}"))`, tie по ID; первые 200 — pilot,
+следующие 500 — evaluation, без пересечения и замены вопросов.
+
+Подготовка сначала остановилась на ошибочном ожидании «ровно 10 абзацев». По
+решению пользователя источник проверен независимо: официальный dev JSON получен
+из web archive на D:, 46 320 117 байт, SHA-256
+`4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea`, совпадает с
+историческим HF checksum-record до parquet-конвертации. Все поля всех 7405 строк,
+порядок документов, заголовки и строки предложений совпали с parquet без
+нормализации. В оригинале 60 коротких контекстов; в выбранных pilot/main — 2/7.
+Пользователь разрешил продолжить со всеми исходными ID и всем доступным текстом.
+Нет удаления distractors, выбора gold-документов или дополнения контекста.
+
+Prepared-каталог `data/hotpotqa_qwen08_v2/`; прежний хеш-префикс `v1` сохранён.
+Промпты pilot 231–3345 токенов, evaluation 137–2834; все оставляют 64 answer-токена
+при max_len 8192. Штатный `enable_thinking=false` шаблон добавляет уже закрытый
+пустой think-блок; reasoning не генерируется. A измерена после полного шаблона,
+C — после последнего содержательного токена ответа, без EOG. Определения точек и
+порядок проходов не менялись.
+
+Сохранённый `protocol.json` до inference, SHA-256
+`f0f1f88cfc277247d97c37f2acf8ec8c0728a7b85a9121e8c9fcbf5d830d0657`, включает ID,
+input/gold/token diagnostics, model/probe/runtime/code fingerprints. Prompt и run
+проверены через раннер. Текст связан hash входа, фактическая длина — `pos_a + 1`:
+поля `question` и `n_prompt` в C++ metadata не требуются и не добавлялись.
+
+### 31.2. Выполнение и accuracy
+
+Модель — тот же Qwen3.5-0.8B Q4_K_M GGUF, 24 слоя × 1024. Target binary `785322d17`,
+build 12033; raw argmax, max_new_tokens 64, max_len 8192, batch_rows 1, `-ngl 99`.
+
+| | pilot | evaluation |
+|---|---:|---:|
+| generated / captured | 200/200 | 500/500 |
+| skipped / empty / truncated | 0 / 0 / 0 | 0 / 0 / 1 |
+| retokenize mismatch | 0/200 | 1/500 |
+| массив A и C, f16 | `[200,1,1024]` | `[500,1,1024]` |
+| время binary | 90.7 s | 348.1 s |
+| ex/s | 2.20 | 1.44 |
+| gate / full state verify | passed, 0 fails/warns | passed, 0 fails/warns |
+| official whole-answer EM | 59/200 = 0.2950 | 161/500 = 0.3220 |
+| mean answer F1 | 0.4097 | 0.4286 |
+
+Для всех 500 попыток: EM 0.3220 [0.2840,0.3660], F1 0.4286 [0.3902,0.4682].
+Оценивается весь фактический ответ, включая обрыв; нет substring matching или
+извлечения удобного final. Source training label остаётся `correct_filtered_b`,
+target evaluation label — официальный `hotpot_em`, split только `test`.
+
+Обрыв: row 247, `5add23d05542994734353871`, вопрос о первичной обязанности Austrian
+Pinscher и Maremma Sheepdog. Модель потратила 64 токена на описание пород вместо
+короткого `to guard`; official EM = 0. Строка сохранена в all-attempt accuracy,
+но исключена из ranking. Пустых ответов нет. Все 500 state-векторов конечны.
+
+### 31.3. Одинаковая primary-выборка и frozen scores
+
+499 завершённых непустых ответов, 161 positive, primary coverage 99.8%. C-состояния
+и first-token scores валидны; одна общая маска для всех методов. Bootstrap 1000,
+seed 42; AUPRC — average precision с группировкой ties.
+
+| score | AUROC [95% CI] | AUPRC [95% CI] | correct в top 250 | retained EM |
+|---|---:|---:|---:|---:|
+| frozen C/13 | 0.6441 [0.5939,0.6975] | 0.4451 [0.3775,0.5305] | 106 | 0.424 |
+| first-token logprob | 0.6655 [0.6135,0.7115] | 0.4745 [0.4056,0.5571] | 109 | 0.436 |
+| negative first-token entropy | 0.6879 [0.6351,0.7348] | 0.4889 [0.4171,0.5753] | 112 | 0.448 |
+
+Top 250 — заранее заданные 50%, округлённые вверх от 499 строк (50.1% coverage);
+ties по исходному row order. Это описательная accuracy при фиксированном бюджете,
+не оптимальный порог и не эффект реальной проверки ответов.
+
+| probe − baseline | ΔAUROC [95% CI] | ΔAUPRC [95% CI] |
+|---|---:|---:|
+| logprob | −0.0214 [−0.0891,+0.0525] | −0.0294 [−0.1152,+0.0627] |
+| negative entropy | −0.0438 [−0.1136,+0.0307] | −0.0438 [−0.1341,+0.0507] |
+
+Преимущества frozen-пробы над обоими baseline не подтверждено. При этом интервал
+AUROC пробы выше 0.5: некоторый перенос сигнала есть. Тест не доказывает, что
+baseline лучше во всей популяции; все парные интервалы включают ноль.
+
+### 31.4. Сохранность и ограничения
+
+Source probe SHA-256 после scoring совпадает с исходной, `w/mu/sd` неизменны.
+Target fitting artifacts `probe.*`/`baseline.*` отсутствуют. `transfer_scores.csv`
+содержит ровно 500 test-строк; на 499 строках присутствуют все три score, на row 247
+все они пусты. Итоговые outputs не переписывались.
+
+Source binary — `3ad2230`, build 37; target — `785322d17`, build 12033. Предыдущий
+master-control имел 75.0% answer agreement и 97.3% label agreement. Здесь изменены
+датасет/контекст, правило разметки и runtime, поэтому ослабление ranking нельзя
+приписать только смене датасета. Сравнение трёх методов на target остаётся парным.
+Вывод ограничен Qwen 0.8B Q4 и не обобщается на 14 исследовательских конфигураций
+или tool-assisted GAIA. Другие модели и GAIA не запускались.
+
+Артефакты: `out/{pilot,main}_qwen08_q4_hotpotqa_v2`,
+`data/hotpotqa_qwen08_v2/protocol.json`, `data/hotpotqa_source_audit_v1.json`.
+Итог `transfer.json`, SHA-256
+`6b5bb46649d083d5aeb1c2f56b8a0c6b27cbd1e311646ab189ac821a9cda27cd`;
+`transfer_scores.csv`, SHA-256
+`57a00f562c5f84ab1f38a354a56f828f7dabed66998902220b90abc1498b17bd`.
+Подробный frozen-протокол — `docs/HOTPOTQA-TRANSFER.md`, проверка источника —
+`docs/HOTPOTQA-SOURCE-AUDIT.md`. Unit suite: 111 tests OK; PowerShell parser и JSON
+валидны, doctor без ошибок/предупреждений. Коммит и push не запрашивались.

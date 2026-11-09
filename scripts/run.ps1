@@ -27,7 +27,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('doctor', 'inputs', 'prompt', 'pilot', 'main', 'label', 'verify',
-                 'baseline', 'probe', 'probe2', 'compare', 'status', 'all')]
+                 'baseline', 'probe', 'probe2', 'compare', 'transfer', 'status', 'all')]
     [string]$Stage,
 
     [string]$Profile = '',
@@ -136,6 +136,10 @@ function Get-Flags($profileConfig, $profilesDoc) {
         no_thinking    = $false
         thinking       = $false
         batch_rows     = 1
+        temperature    = $null
+        top_k           = $null
+        repeat_penalty = $null
+        seed            = $null
     }
     foreach ($name in $profilesDoc.defaults.flags.PSObject.Properties.Name) { $flags[$name] = $profilesDoc.defaults.flags.$name }
     foreach ($name in $profileConfig.flags.PSObject.Properties.Name) { $flags[$name] = $profileConfig.flags.$name }
@@ -248,6 +252,10 @@ function Build-BinaryArgs($flags, [string]$modelPath, [string]$inputPath, [strin
     if ($flags.no_thinking) { $a += '--no-thinking' }
     if ($flags.thinking) { $a += '--thinking' }
     if ([int]$flags.batch_rows -gt 1) { $a += @('--batch-rows', [string]$flags.batch_rows) }
+    if ($null -ne $flags.temperature) { $a += @('--temp', [string]$flags.temperature) }
+    if ($null -ne $flags.top_k) { $a += @('--top-k', [string]$flags.top_k) }
+    if ($null -ne $flags.repeat_penalty) { $a += @('--repeat-penalty', [string]$flags.repeat_penalty) }
+    if ($null -ne $flags.seed) { $a += @('--seed', [string]$flags.seed) }
     return $a
 }
 
@@ -297,7 +305,55 @@ function Resolve-QuestionSource($profileConfig, [string]$kind) {
     }
     if ($null -eq $profileConfig) { return (Join-Path $DataDir 'main.jsonl') }
     $entry = Get-InputEntry $profileConfig $kind
+    $questions = Get-Prop $entry 'questions'
+    if ($questions) { return (Resolve-RepoPath $questions) }
     return (Resolve-RepoPath $entry.source)
+}
+
+function Test-TransferProfile($profileConfig) {
+    return ((Get-Prop (Get-Prop $profileConfig 'evaluation') 'kind') -eq 'hotpotqa_frozen_transfer')
+}
+
+function Get-RunProfile([string]$dir) {
+    $id = $Profile
+    $runnerPath = Join-Path $dir 'runner.json'
+    if (Test-Path -LiteralPath $runnerPath) {
+        $recorded = [string](Get-Prop (Get-Json $runnerPath) 'profile')
+        if ($id -and $recorded -and $id -ne $recorded) {
+            Fail "analysis profile '$id' differs from runner profile '$recorded'; do not relabel or train under another profile"
+        }
+        if ($recorded) { $id = $recorded }
+    }
+    if ($id) { return (Get-Profile $id) }
+    return $null
+}
+
+function Get-TransferRecord($profileConfig) {
+    if (-not (Test-TransferProfile $profileConfig)) { return $null }
+    $evaluation = Get-Prop $profileConfig 'evaluation'
+    $path = Resolve-RepoPath $evaluation.protocol
+    return [ordered]@{
+        kind = $evaluation.kind
+        protocol = $path
+        protocol_sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+    }
+}
+
+function Assert-NoTransferTraining($profileConfig) {
+    if (Test-TransferProfile $profileConfig) {
+        Fail 'frozen transfer forbids probe training, layer selection and baseline calibration; use -Stage transfer instead'
+    }
+}
+
+function Invoke-TransferCheck($profileConfig, [string]$kind, [string]$inputPath, [string]$questionsPath) {
+    if (-not (Test-TransferProfile $profileConfig)) { return }
+    $evaluation = Get-Prop $profileConfig 'evaluation'
+    $pyArgs = @((Join-Path $Pipeline 'hotpotqa.py'), 'check',
+        '--protocol', (Resolve-RepoPath $evaluation.protocol), '--kind', $kind,
+        '--input', $inputPath, '--questions', $questionsPath)
+    if ($Model) { $pyArgs += @('--model', $Model) }
+    Write-Step "frozen transfer provenance ($kind)"
+    Invoke-Python $pyArgs
 }
 
 function Assert-InputMatchesProfile($profileConfig, [string]$inputPath) {
@@ -320,8 +376,10 @@ function Assert-InputMatchesProfile($profileConfig, [string]$inputPath) {
     }
 }
 
-function Invoke-Preflight([string]$inputPath, [string]$kind) {
+function Invoke-Preflight([string]$inputPath, [string]$kind, $profileConfig = $null) {
     $expect = if ($kind -eq 'pilot') { 200 } else { $null }
+    $expectedRows = Get-Prop (Get-Prop $profileConfig 'evaluation') 'expected_rows'
+    if ($expectedRows) { $expect = Get-Prop $expectedRows $kind }
     $pyArgs = @((Join-Path $Pipeline 'preflight.py'), '--input', $inputPath, '--require-instruction')
     if ($expect) { $pyArgs += @('--expect-rows', [string]$expect) }
     if ($kind -eq 'main') {
@@ -355,7 +413,9 @@ function Invoke-PromptCheck([string]$kind, $profileConfig, $binary, [string]$inp
         Write-Host "  (dry run: not executed)" -ForegroundColor Yellow
         return
     }
-    $code = Invoke-Process $dumpExe @($Model) $dumpPath
+    $dumpArgs = @($Model)
+    if (Test-TransferProfile $profileConfig) { $dumpArgs += @('--batch', $inputPath) }
+    $code = Invoke-Process $dumpExe $dumpArgs $dumpPath
     if ($code -ne 0) { Fail "hs-prompt-dump failed; see $dumpPath" }
 
     $dump = Get-Content -LiteralPath $dumpPath -Raw -Encoding UTF8
@@ -367,6 +427,18 @@ function Invoke-PromptCheck([string]$kind, $profileConfig, $binary, [string]$inp
         $bosId = [int]$Matches[2]
     }
     if ($dump -match 'tokens add_special=true\s+\((\d+)\):\s+(-?\d+)') { $firstTok = [int]$Matches[2] }
+    if (Test-TransferProfile $profileConfig) {
+        $tokenRows = @(Get-Content -LiteralPath $dumpPath -Encoding UTF8 |
+            Where-Object { $_ -match '^\{' } | ForEach-Object { $_ | ConvertFrom-Json })
+        if ($tokenRows.Count -eq 0) { Fail "no batch token diagnostic in $dumpPath" }
+        $addBos = [int]$tokenRows[0].add_bos
+        $bosId = [int]$tokenRows[0].bos_id
+        $firstTok = [int]$tokenRows[0].first_token
+        $flags = Get-Flags $profileConfig (Get-Profiles)
+        if (@($tokenRows | Where-Object { [int]$_.n_prompt -gt ([int]$flags.max_len - [int]$flags.max_new_tokens) }).Count) {
+            Fail "a HotpotQA prompt does not leave the frozen answer budget; keep the sample unchanged and stop"
+        }
+    }
     if ($null -eq $addBos) { Fail "could not parse add_bos from $dumpPath" }
 
     Write-Host "  add_bos=$addBos bos=$bosId first_token=$firstTok" -ForegroundColor DarkGray
@@ -422,6 +494,7 @@ function Invoke-PromptCheck([string]$kind, $profileConfig, $binary, [string]$inp
         first_token          = $firstTok
         checked              = (Get-Date).ToUniversalTime().ToString('o')
     }
+    if (Test-TransferProfile $profileConfig) { $record['evaluation'] = Get-TransferRecord $profileConfig }
     $tmp = "$recordPath.tmp"
     ($record | ConvertTo-Json -Depth 5) | Out-File -FilePath $tmp -Encoding utf8
     Move-Item -LiteralPath $tmp -Destination $recordPath
@@ -445,6 +518,13 @@ function Assert-PromptChecked([string]$kind, [string]$inputPath, $binary) {
     if ($record.commit -ne $binary.commit -or [int]$record.build -ne [int]$binary.build) {
         Fail "prompt check used a different binary: $($record.commit)/$($record.build) vs $($binary.commit)/$($binary.build)"
     }
+    $profileConfig = Get-Profile $Profile
+    if (Test-TransferProfile $profileConfig) {
+        $evaluation = Get-TransferRecord $profileConfig
+        if (-not $record.evaluation -or $record.evaluation.protocol_sha256 -ne $evaluation.protocol_sha256) {
+            Fail 'transfer protocol changed after the prompt check; use a new tag without changing the sample or probe'
+        }
+    }
     $inputHash = (Get-FileHash -LiteralPath $inputPath -Algorithm SHA256).Hash
     if ($record.input_sha256 -ne $inputHash) {
         Fail "input changed after the prompt check: $inputPath`nUse a new tag and rerun -Stage prompt."
@@ -457,8 +537,8 @@ function Assert-PromptChecked([string]$kind, [string]$inputPath, $binary) {
     Write-Host "  prompt provenance verified: $recordPath" -ForegroundColor DarkGray
 }
 
-function Invoke-PilotGate([string]$runDir, [string]$inputPath, [string]$logPath, [string]$kind) {
-    $gatePath = Join-Path $runDir 'gate.json'
+function Invoke-PilotGate([string]$runDir, [string]$inputPath, [string]$logPath, [string]$kind, [string]$filename = 'gate.json') {
+    $gatePath = Join-Path $runDir $filename
     $pyArgs = @((Join-Path $Pipeline 'gate_report.py'),
         '--dir', $runDir,
         '--input', $inputPath,
@@ -507,6 +587,8 @@ function Write-RunnerRecord([string]$runDir, $flags, [string]$inputPath,
         started     = (Get-Date).ToString('s')
         host        = $env:COMPUTERNAME
     }
+    $profileConfig = Get-Profile $Profile
+    if (Test-TransferProfile $profileConfig) { $record['evaluation'] = Get-TransferRecord $profileConfig }
     $path = Join-Path $runDir 'runner.json'
     ($record | ConvertTo-Json -Depth 5) | Out-File -FilePath $path -Encoding utf8
 }
@@ -537,9 +619,10 @@ function Invoke-Generation([string]$kind) {
     if (-not (Test-Path -LiteralPath $questionSource)) {
         Fail "original question source is missing: $questionSource"
     }
+    Invoke-TransferCheck $profileConfig $kind $inputPath $questionSource
     Assert-InputMatchesProfile $profileConfig $inputPath
     Assert-PromptChecked $kind $inputPath $binary
-    Invoke-Preflight $inputPath $kind
+    Invoke-Preflight $inputPath $kind $profileConfig
 
     $runName = "${kind}_$Tag"
     $runDir = Join-Path $OutDir $runName
@@ -586,8 +669,17 @@ function Invoke-Generation([string]$kind) {
             if ($pilotFlags -ne $mainFlags) {
                 Fail "the pilot and main flags differ:`n  pilot: $pilotFlags`n  main:  $mainFlags`nRun a new pilot with exactly the main flags."
             }
+            if (Test-TransferProfile $profileConfig) {
+                $evaluation = Get-TransferRecord $profileConfig
+                if (-not $prev.evaluation -or $prev.evaluation.protocol_sha256 -ne $evaluation.protocol_sha256) {
+                    Fail 'the pilot used a different transfer protocol; main is blocked'
+                }
+                $pilotVerify = Get-Json (Join-Path $pilotDir 'verify.json')
+                if ($pilotVerify.fails -ne 0) { Fail 'pilot state verification failed; main is blocked' }
+            }
         }
-        Write-Host "  pilot gate: $($gate.summary.rows) rows, $($gate.summary.truncated) truncated, estimate $($gate.summary.estimated_hours_6000) h" -ForegroundColor DarkGray
+        $estimate = if ($gate.summary.main_rows) { $gate.summary.estimated_hours_main } else { $gate.summary.estimated_hours_6000 }
+        Write-Host "  pilot gate: $($gate.summary.rows) rows, $($gate.summary.truncated) truncated, estimate $estimate h" -ForegroundColor DarkGray
         }
     }
 
@@ -604,12 +696,13 @@ function Invoke-Generation([string]$kind) {
 
     Invoke-MetaPostprocessor $profileConfig $runDir
 
-    $gateCode = Invoke-PilotGate $runDir $inputPath $logPath $kind
+    $gateName = if ($kind -eq 'pilot' -and (Test-TransferProfile $profileConfig)) { 'gate.prelabel.json' } else { 'gate.json' }
+    $gateCode = Invoke-PilotGate $runDir $inputPath $logPath $kind $gateName
     if ($gateCode -ne 0) {
         if ($AllowGateWarnings) {
             Warn "-AllowGateWarnings cannot override hard gate failures; warnings already pass without this switch"
         }
-        Fail "gate failed for $runName. Read $(Join-Path $runDir 'gate.json') before continuing.`nFor a pilot this means: do not start main."
+        Fail "gate failed for $runName. Read $(Join-Path $runDir $gateName) before continuing.`nFor a pilot this means: do not start main."
     }
 
     if ($kind -eq 'pilot') {
@@ -617,9 +710,21 @@ function Invoke-Generation([string]$kind) {
         Assert-QuestionsMatchRunner $runDir $questionSource
         Assert-Absent $pilotLabels 'pilot labels.csv'
         Write-Step "labeling pilot for the class-balance gate"
-        Invoke-Python @((Join-Path $Pipeline 'label.py'),
-            '--meta', (Join-Path $runDir 'meta.jsonl'), '--out', $pilotLabels,
-            '--questions', $questionSource)
+        if (Test-TransferProfile $profileConfig) {
+            $evaluation = Get-Prop $profileConfig 'evaluation'
+            Invoke-Python @((Join-Path $Pipeline 'hotpotqa.py'), 'label',
+                '--protocol', (Resolve-RepoPath $evaluation.protocol), '--kind', 'pilot',
+                '--dir', $runDir, '--questions', $questionSource)
+            $pilotVerifyPath = Join-Path $runDir 'verify.json'
+            Assert-Absent $pilotVerifyPath 'pilot verify.json'
+            Invoke-Python @((Join-Path $Pipeline 'verify_run.py'), '--dir', $runDir, '--input', $inputPath,
+                '--json', $pilotVerifyPath, '--full', '--label-column', $evaluation.label_column,
+                '--required-splits', 'test')
+        } else {
+            Invoke-Python @((Join-Path $Pipeline 'label.py'),
+                '--meta', (Join-Path $runDir 'meta.jsonl'), '--out', $pilotLabels,
+                '--questions', $questionSource)
+        }
         $gateCode = Invoke-PilotGate $runDir $inputPath $logPath $kind
         if ($gateCode -ne 0) {
             Fail "pilot failed after labeling (missing class or unexplained null labels). See $(Join-Path $runDir 'gate.json'). Do not start main."
@@ -630,6 +735,8 @@ function Invoke-Generation([string]$kind) {
     Write-Host "$kind finished: $runDir" -ForegroundColor Green
     if ($kind -eq 'pilot') {
         Write-Host "Next: read 10 answers from $runDir\meta.jsonl, then -Stage main with the same -Tag." -ForegroundColor Green
+    } elseif (Test-TransferProfile $profileConfig) {
+        Write-Host "Next: -Stage label, then verify and transfer (no training or calibration)." -ForegroundColor Green
     } else {
         Write-Host "Next: -Stage label, then verify, baseline and probe." -ForegroundColor Green
     }
@@ -687,7 +794,7 @@ function Resolve-VerifyInput($profileConfig, [string]$kind) {
 function Invoke-LabelStage {
     $dir = Get-RunDir 'main'
     $labels = Join-Path $dir 'labels.csv'
-    $profileConfig = if ($Profile) { Get-Profile $Profile } else { $null }
+    $profileConfig = Get-RunProfile $dir
     $questionSource = Resolve-QuestionSource $profileConfig 'main'
     if (-not (Test-Path -LiteralPath $questionSource)) {
         Fail "original question source is missing: $questionSource"
@@ -695,8 +802,14 @@ function Invoke-LabelStage {
     Assert-QuestionsMatchRunner $dir $questionSource
     Assert-Absent $labels 'labels.csv'
     Write-Step "labeling $dir"
-    Invoke-Python @((Join-Path $Pipeline 'label.py'), '--meta', (Join-Path $dir 'meta.jsonl'),
-        '--out', $labels, '--questions', $questionSource)
+    if (Test-TransferProfile $profileConfig) {
+        $evaluation = Get-Prop $profileConfig 'evaluation'
+        Invoke-Python @((Join-Path $Pipeline 'hotpotqa.py'), 'label', '--dir', $dir, '--questions', $questionSource,
+            '--protocol', (Resolve-RepoPath $evaluation.protocol), '--kind', 'main')
+    } else {
+        Invoke-Python @((Join-Path $Pipeline 'label.py'), '--meta', (Join-Path $dir 'meta.jsonl'),
+            '--out', $labels, '--questions', $questionSource)
+    }
 }
 
 function Invoke-VerifyStage {
@@ -705,16 +818,22 @@ function Invoke-VerifyStage {
     if (-not (Test-Path -LiteralPath $labels)) { Fail "labels.csv missing: run -Stage label first" }
     $verify = Join-Path $dir 'verify.json'
     Assert-Absent $verify 'verify.json'
-    $profileConfig = if ($Profile) { Get-Profile $Profile } else { $null }
+    $profileConfig = Get-RunProfile $dir
     $inputPath = Resolve-VerifyInput $profileConfig 'main'
     $pyArgs = @((Join-Path $Pipeline 'verify_run.py'), '--dir', $dir, '--json', $verify, '--full')
     if ($inputPath) { $pyArgs += @('--input', $inputPath) }
+    if (Test-TransferProfile $profileConfig) {
+        $evaluation = Get-Prop $profileConfig 'evaluation'
+        Invoke-TransferCheck $profileConfig 'main' $inputPath (Resolve-QuestionSource $profileConfig 'main')
+        $pyArgs += @('--label-column', $evaluation.label_column, '--required-splits') + @($evaluation.required_splits)
+    }
     Write-Step "verify $dir"
     Invoke-Python $pyArgs
 }
 
 function Invoke-BaselineStage {
     $dir = Get-RunDir 'main'
+    Assert-NoTransferTraining (Get-RunProfile $dir)
     Assert-RunnerGatePassed $dir
     if (-not (Test-Path -LiteralPath (Join-Path $dir 'labels.csv'))) { Fail "labels.csv missing: run -Stage label first" }
     $verify = Join-Path $dir 'verify.json'
@@ -735,6 +854,7 @@ function Invoke-BaselineStage {
 
 function Invoke-ProbeStage([switch]$Repeat) {
     $dir = Get-RunDir 'main'
+    Assert-NoTransferTraining (Get-RunProfile $dir)
     Assert-RunnerGatePassed $dir
     if (-not (Test-Path -LiteralPath (Join-Path $dir 'baseline.json'))) {
         Fail "baseline.json missing: run -Stage baseline before probe"
@@ -796,6 +916,7 @@ function Invoke-CompareStage {
     $refPath = Resolve-RepoPath $Ref
     if (-not (Test-Path -LiteralPath $refPath)) { Fail "reference not found: $refPath" }
     $dir = Get-RunDir 'main'
+    Assert-NoTransferTraining (Get-RunProfile $dir)
     $mine = Join-Path $dir 'probe_scores.csv'
     if (-not (Test-Path -LiteralPath $mine)) { Fail "probe_scores.csv missing in $dir" }
     $refName = Split-Path -Leaf (Split-Path -Parent $refPath)
@@ -804,6 +925,24 @@ function Invoke-CompareStage {
     Write-Step "compare $refName vs $Tag ($Split)"
     Invoke-Python @((Join-Path $Pipeline 'compare_probes.py'),
         '--a', $refPath, '--b', $mine, '--split', $Split, '--out', $out)
+}
+
+function Invoke-TransferStage {
+    $dir = Get-RunDir 'main'
+    $profileConfig = Get-RunProfile $dir
+    if (-not (Test-TransferProfile $profileConfig)) { Fail '-Stage transfer requires a frozen-transfer run/profile' }
+    Assert-RunnerGatePassed $dir
+    $verifyPath = Join-Path $dir 'verify.json'
+    $verify = Get-Json $verifyPath
+    if ($verify.fails -ne 0) { Fail 'verify failed; frozen transfer scoring is blocked' }
+    $out = Join-Path $dir 'transfer.json'
+    $scoresOut = Join-Path $dir 'transfer_scores.csv'
+    Assert-Absent $out 'transfer.json'
+    Assert-Absent $scoresOut 'transfer_scores.csv'
+    $evaluation = Get-Prop $profileConfig 'evaluation'
+    Write-Step "apply saved probe without fitting: $dir"
+    Invoke-Python @((Join-Path $Pipeline 'hotpotqa.py'), 'score', '--dir', $dir,
+        '--protocol', (Resolve-RepoPath $evaluation.protocol), '--out', $out, '--scores-out', $scoresOut)
 }
 
 function Invoke-DoctorStage {
@@ -827,7 +966,8 @@ function Invoke-InputsStage {
     $profileConfig = Get-Profile $Profile
     foreach ($kind in @('pilot', 'main')) {
         $path = Resolve-InputPath $profileConfig $kind -Build
-        Invoke-Preflight $path $kind
+        Invoke-TransferCheck $profileConfig $kind $path (Resolve-QuestionSource $profileConfig $kind)
+        Invoke-Preflight $path $kind $profileConfig
     }
 }
 
@@ -844,6 +984,7 @@ switch ($Stage) {
         $promptKinds = if ($PromptKind -eq 'both') { @('pilot', 'main') } else { @($PromptKind) }
         foreach ($kind in $promptKinds) {
             $path = Resolve-InputPath $profileConfig $kind -Build
+            Invoke-TransferCheck $profileConfig $kind $path (Resolve-QuestionSource $profileConfig $kind)
             Assert-InputMatchesProfile $profileConfig $path
             Invoke-PromptCheck $kind $profileConfig $binary $path
         }
@@ -856,12 +997,14 @@ switch ($Stage) {
     'probe'    { Invoke-ProbeStage }
     'probe2'   { Invoke-ProbeStage -Repeat }
     'compare'  { Invoke-CompareStage }
+    'transfer' { Invoke-TransferStage }
     'all'      {
         Invoke-DoctorStage
         $profileConfig = Get-Profile $Profile
         $binary = Get-Binary (Get-Prop $profileConfig 'binary')
         foreach ($kind in @('pilot', 'main')) {
             $path = Resolve-InputPath $profileConfig $kind -Build
+            Invoke-TransferCheck $profileConfig $kind $path (Resolve-QuestionSource $profileConfig $kind)
             Assert-InputMatchesProfile $profileConfig $path
             Invoke-PromptCheck $kind $profileConfig $binary $path
         }
@@ -869,12 +1012,17 @@ switch ($Stage) {
         Invoke-Generation 'main'
         if ($DryRun) {
             Write-Step 'downstream stages'
-            Write-Host '  (dry run: label -> verify -> baseline -> probe require files produced by pilot/main)' -ForegroundColor Yellow
+            $downstream = if (Test-TransferProfile $profileConfig) { 'label -> verify -> transfer (no fitting)' } else { 'label -> verify -> baseline -> probe' }
+            Write-Host "  (dry run: $downstream require files produced by pilot/main)" -ForegroundColor Yellow
         } else {
             Invoke-LabelStage
             Invoke-VerifyStage
-            Invoke-BaselineStage
-            Invoke-ProbeStage
+            if (Test-TransferProfile $profileConfig) {
+                Invoke-TransferStage
+            } else {
+                Invoke-BaselineStage
+                Invoke-ProbeStage
+            }
         }
     }
 }

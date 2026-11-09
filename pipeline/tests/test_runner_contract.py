@@ -7,8 +7,12 @@ the full workflow. Keep a small test so that refactors cannot reintroduce it.
 
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import helpers
@@ -68,6 +72,54 @@ class RunnerContractTest(unittest.TestCase):
         block = self.text[start:end]
         self.assertIn("Start-Process", block)
         self.assertIn("return $proc.ExitCode", block)
+
+    def test_transfer_has_separate_label_verify_score_and_provenance_guards(self):
+        for phrase in (
+            "function Invoke-TransferStage",
+            "protocol_sha256",
+            "pilot state verification failed; main is blocked",
+            "the pilot used a different transfer protocol; main is blocked",
+            "'--label-column', $evaluation.label_column",
+            "'--required-splits', 'test'",
+            "'gate.prelabel.json'",
+            "label -> verify -> transfer (no fitting)",
+        ):
+            self.assertIn(phrase, self.text)
+        for function in ("Invoke-BaselineStage", "Invoke-ProbeStage", "Invoke-CompareStage"):
+            block = self.text.split("function " + function, 1)[1].split("\nfunction ", 1)[0]
+            self.assertIn("Assert-NoTransferTraining (Get-RunProfile $dir)", block)
+        prompt = self.text.split("function Invoke-PromptCheck", 1)[1].split("\nfunction ", 1)[0]
+        self.assertIn("$dumpArgs += @('--batch', $inputPath)", prompt)
+        questions = self.text.split("function Resolve-QuestionSource", 1)[1].split("\nfunction ", 1)[0]
+        self.assertIn("Get-Prop $entry 'questions'", questions)
+
+    def test_transfer_training_is_blocked_even_when_profile_is_omitted(self):
+        powershell = shutil.which("powershell") or shutil.which("pwsh")
+        if not powershell:
+            self.skipTest("PowerShell is unavailable; static guards are checked separately")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "scripts").mkdir()
+            runner = root / "scripts/run.ps1"
+            runner.write_text(self.text, encoding="utf-8")
+            run_dir = root / "pipeline/out/main_transfer_test"
+            run_dir.mkdir(parents=True)
+            helpers.write_json(run_dir / "runner.json", {"profile": "qwen-hotpotqa"})
+            helpers.write_json(root / "profiles.json", {"profiles": {"qwen-hotpotqa": {
+                "evaluation": {"kind": "hotpotqa_frozen_transfer"}}}})
+            for stage in ("baseline", "probe", "probe2"):
+                with self.subTest(stage=stage):
+                    proc = subprocess.run([powershell, "-NoProfile", "-File", str(runner),
+                                           "-Stage", stage, "-Tag", "transfer_test"],
+                                          capture_output=True, text=True, encoding="utf-8", errors="replace")
+                    self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                    self.assertIn("frozen transfer forbids", proc.stdout + proc.stderr)
+            proc = subprocess.run([powershell, "-NoProfile", "-File", str(runner), "-Stage", "baseline",
+                                   "-Tag", "transfer_test", "-Profile", "qwen"],
+                                  capture_output=True, text=True, encoding="utf-8", errors="replace")
+            self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+            self.assertIn("differs from runner profile", proc.stdout + proc.stderr)
+            self.assertEqual(list(run_dir.iterdir()), [run_dir / "runner.json"])
 
 
 if __name__ == "__main__":

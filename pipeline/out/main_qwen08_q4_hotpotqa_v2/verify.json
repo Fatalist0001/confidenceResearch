@@ -1,0 +1,152 @@
+{
+  "dir": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4_hotpotqa_v2",
+  "fails": 0,
+  "warns": 0,
+  "checks": [
+    {
+      "check": "file config.json",
+      "ok": true,
+      "detail": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2\\config.json"
+    },
+    {
+      "check": "file meta.jsonl",
+      "ok": true,
+      "detail": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2\\meta.jsonl"
+    },
+    {
+      "check": "file hidden_a.npy",
+      "ok": true,
+      "detail": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2\\hidden_a.npy"
+    },
+    {
+      "check": "file hidden_c.npy",
+      "ok": true,
+      "detail": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2\\hidden_c.npy"
+    },
+    {
+      "check": "config: layers == n_layers_selected",
+      "ok": true,
+      "detail": "1 vs 1"
+    },
+    {
+      "check": "config: layers unique and in range",
+      "ok": true,
+      "detail": "[13]"
+    },
+    {
+      "check": "meta: every line is valid JSON",
+      "ok": true,
+      "detail": "500 lines"
+    },
+    {
+      "check": "meta: not empty",
+      "ok": true,
+      "detail": "500 lines"
+    },
+    {
+      "check": "meta: row indices contiguous from 0",
+      "ok": true,
+      "detail": "500 rows"
+    },
+    {
+      "check": "meta: ids unique",
+      "ok": true,
+      "detail": "500 ids"
+    },
+    {
+      "check": "meta: all rows have a split",
+      "ok": true,
+      "detail": "{'test': 500}"
+    },
+    {
+      "check": "meta: at least one ok row",
+      "ok": true,
+      "detail": "{'ok': 500}"
+    },
+    {
+      "check": "meta: ok rows have consistent pos_a/pos_c/n_tokens",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "hidden_a.npy: shape (500, 1, 1024)",
+      "ok": true,
+      "detail": "(500, 1, 1024)"
+    },
+    {
+      "check": "hidden_a.npy: dtype float16",
+      "ok": true,
+      "detail": "float16"
+    },
+    {
+      "check": "hidden_c.npy: shape (500, 1, 1024)",
+      "ok": true,
+      "detail": "(500, 1, 1024)"
+    },
+    {
+      "check": "hidden_c.npy: dtype float16",
+      "ok": true,
+      "detail": "float16"
+    },
+    {
+      "check": "hidden_a.npy and hidden_c.npy have the same shape",
+      "ok": true,
+      "detail": "(500, 1, 1024) vs (500, 1, 1024)"
+    },
+    {
+      "check": "hidden states are non-zero on ok rows (sampled)",
+      "ok": true,
+      "detail": "0 of 499 sampled rows are all-zero; sample []"
+    },
+    {
+      "check": "hidden states are zero on skipped rows (sampled)",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "no NaN/Inf in sampled rows",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "every layer has non-zero values (sampled)",
+      "ok": true,
+      "detail": "zero layers: []"
+    },
+    {
+      "check": "labels: one row per meta row",
+      "ok": true,
+      "detail": "500 vs 500"
+    },
+    {
+      "check": "labels: split matches meta",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "labels: correctness values are binary or empty",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "labels: correctness column exists",
+      "ok": true,
+      "detail": "hotpot_em"
+    },
+    {
+      "check": "labels: both classes present",
+      "ok": true,
+      "detail": "161/500"
+    },
+    {
+      "check": "labels: test all non-empty",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "labels: both classes in every split",
+      "ok": true,
+      "detail": "[]"
+    }
+  ]
+}

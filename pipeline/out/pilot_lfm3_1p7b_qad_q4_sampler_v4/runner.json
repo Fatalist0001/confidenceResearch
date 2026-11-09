@@ -1,0 +1,30 @@
+﻿{
+    "stage":  "pilot",
+    "tag":  "lfm3_1p7b_qad_q4_sampler_v4",
+    "profile":  "lfm3",
+    "model":  "D:\\Lm studio\\.lmstudio\\models\\LiquidAI\\LFM3-1.7B-GGUF\\LFM3-1.7B-QAD-Q4_0.gguf",
+    "input":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot.jsonl",
+    "input_sha256":  "278EDB60B868C04C1C692831330EB4EE62C6974D166B103054863A17A9CAF741",
+    "questions":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\pilot.jsonl",
+    "questions_sha256":  "278EDB60B868C04C1C692831330EB4EE62C6974D166B103054863A17A9CAF741",
+    "binary":  "D:\\VScode_pr\\confidenceResearch\\llama.cpp-hiddenstates-new\\build\\bin\\Release\\llama-hidden-states.exe",
+    "commit":  "785322d17",
+    "build":  12033,
+    "flags":  {
+                  "generate":  true,
+                  "max_new_tokens":  64,
+                  "max_len":  1024,
+                  "layers":  "all",
+                  "ngl":  99,
+                  "no_template":  false,
+                  "no_thinking":  false,
+                  "thinking":  false,
+                  "batch_rows":  1,
+                  "temperature":  0.1,
+                  "top_k":  50,
+                  "repeat_penalty":  1.1,
+                  "seed":  42
+              },
+    "started":  "2026-11-06T17:54:19",
+    "host":  "DESKTOP-GO8LTLT"
+}

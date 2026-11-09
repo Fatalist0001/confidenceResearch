@@ -130,6 +130,30 @@ class VerifyRunTest(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("all rows have a split", out)
 
+    def test_official_test_only_labels_need_explicit_evaluation_mode(self):
+        d = helpers.make_run(os.path.join(self.tmp.name, "transfer"))
+        meta_path = os.path.join(d, "meta.jsonl")
+        meta = helpers.read_jsonl(meta_path)
+        for row in meta:
+            row["split"] = "test"
+        helpers.write_jsonl(meta_path, meta)
+        labels_path = os.path.join(d, "labels.csv")
+        labels = helpers.read_csv_rows(labels_path)
+        for row in labels:
+            row["split"] = "test"
+            row["hotpot_em"] = row.pop("correct_filtered_b")
+        import csv
+        with open(labels_path, "w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=labels[0].keys())
+            writer.writeheader()
+            writer.writerows(labels)
+        code, out, report = run_verify(d, ["--label-column", "hotpot_em", "--required-splits", "test"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(report["fails"], 0)
+        code, out, _ = run_verify(d, ["--label-column", "hotpot_em"])
+        self.assertEqual(code, 1, out)
+        self.assertIn("train/val/test all non-empty", out)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -242,30 +242,33 @@ def check_registry(rep, runs_doc):
                     f"{cfg.get('llama_cpp_commit')}/{cfg.get('llama_cpp_build')}")
 
         labels = entry.get("labels") or {}
+        evaluation = entry.get("evaluation") or {}
+        label_column = evaluation.get("label_column", "correct_filtered_b")
+        required_splits = evaluation.get("required_splits", ["train", "val", "test"])
         labels_path = os.path.join(path, "labels.csv")
         if labels.get("rows") is not None:
             rep.add(f"{name}: labels.csv exists", os.path.exists(labels_path), labels_path)
             if os.path.exists(labels_path):
                 label_rows = read_csv_rows(labels_path)
-                values = [str(r.get("correct_filtered_b", "")).strip() for r in label_rows]
+                values = [str(r.get(label_column, "")).strip() for r in label_rows]
                 labeled = sum(v in ("0", "1") for v in values)
                 nulls = len(label_rows) - labeled
                 pos = sum(v == "1" for v in values)
                 base_rate = round(pos / labeled, 4) if labeled else None
                 disk_summary = (len(label_rows), labeled, nulls, base_rate)
                 registry_summary = (labels.get("rows"), labels.get("labeled"),
-                                    labels.get("null"), labels.get("base_rate_filtered_b"))
+                                    labels.get("null"), labels.get("base_rate_filtered_b") if label_column == "correct_filtered_b" else labels.get("base_rate"))
                 rep.add(f"{name}: labels summary", disk_summary == registry_summary,
                         f"disk {disk_summary} vs registry {registry_summary}")
                 if entry.get("status") == "valid":
                     bad_splits = []
-                    for split in ("train", "val", "test"):
-                        split_values = [str(r.get("correct_filtered_b", "")).strip()
-                                        for r in label_rows if r.get("split") == split
-                                        and str(r.get("correct_filtered_b", "")).strip() in ("0", "1")]
+                    for split in required_splits:
+                        split_values = [str(r.get(label_column, "")).strip()
+                                         for r in label_rows if r.get("split") == split
+                                         and str(r.get(label_column, "")).strip() in ("0", "1")]
                         if set(split_values) != {"0", "1"}:
                             bad_splits.append(split)
-                    rep.add(f"{name}: both label classes in train/val/test", not bad_splits,
+                    rep.add(f"{name}: both label classes in {'/'.join(required_splits)}", not bad_splits,
                             str(bad_splits))
                 meta_objects, _ = read_jsonl_tolerant(meta)
                 truncated = sum(bool(r.get("truncated")) for r in meta_objects)
@@ -341,7 +344,42 @@ def check_registry(rep, runs_doc):
         if entry.get("status") == "invalid":
             mark = os.path.join(path, "README-invalid.md")
             rep.add(f"{name}: invalid run is labelled", os.path.exists(mark),
-                    "add README-invalid.md", "warn")
+                     "add README-invalid.md", "warn")
+
+        if evaluation.get("kind") == "hotpotqa_frozen_transfer":
+            transfer_path = os.path.join(path, "transfer.json")
+            rep.add(f"{name}: frozen transfer exists", os.path.exists(transfer_path), transfer_path)
+            rep.add(f"{name}: no target fitting artifacts", not any(os.path.exists(os.path.join(path, f))
+                    for f in ("probe.json", "probe_model.npz", "probe2.json", "baseline.json")))
+            if os.path.exists(transfer_path):
+                transfer = read_json(transfer_path)
+                summary = entry.get("transfer") or {}
+                rep.add(f"{name}: transfer summary matches artifacts",
+                        bool(summary) and all(summary[key] == transfer.get(key) for key in summary))
+                feature = transfer.get("frozen_feature") or {}
+                rep.add(f"{name}: frozen feature is not fitted on target",
+                        feature.get("point") == "C" and feature.get("layer_id") == 13 and
+                        feature.get("target_array_index") == 0 and feature.get("lambda") == 1000.0 and
+                        feature.get("fit_on_target") is False and feature.get("calibration") is False)
+                source = transfer.get("source_probe") or {}
+                source_path = source.get("path", "")
+                if not os.path.isfile(source_path):
+                    # Fingerprints retain the original machine path; git clones do not.
+                    recorded = source_path.replace("\\", "/")
+                    source_path = os.path.join(OUT, os.path.basename(os.path.dirname(recorded)), os.path.basename(recorded))
+                rep.add(f"{name}: source probe hash is unchanged", os.path.isfile(source_path) and
+                        sha256(source_path) == source.get("sha256"))
+                score_path = os.path.join(path, "transfer_scores.csv")
+                if rep.add(f"{name}: transfer scores exist", os.path.exists(score_path)):
+                    score_rows = read_csv_rows(score_path)
+                    primary_n = (transfer.get("primary") or {}).get("n")
+                    rep.add(f"{name}: transfer scores cover all attempts",
+                            len(score_rows) == rows and all(r.get("split") == "test" for r in score_rows))
+                    rep.add(f"{name}: same primary rows for all methods",
+                            sum(r.get("analysis_included") == "1" for r in score_rows) == primary_n and
+                            all(all(bool(r.get(key, "")) == (r.get("analysis_included") == "1")
+                                    for key in ("frozen_probe_logit", "first_token_logprob", "negative_first_token_entropy"))
+                                for r in score_rows))
 
     for name, entry in pilots.items():
         path = os.path.join(OUT, name)
@@ -409,6 +447,7 @@ def check_profiles(rep, profiles_doc, state):
     valid_flag_keys = {
         "generate", "max_new_tokens", "max_len", "layers", "ngl",
         "no_template", "no_thinking", "thinking", "batch_rows",
+        "temperature", "top_k", "repeat_penalty", "seed",
     }
     default_flags = (profiles_doc.get("defaults") or {}).get("flags") or {}
     rep.add("default flag keys are known", not (set(default_flags) - valid_flag_keys),

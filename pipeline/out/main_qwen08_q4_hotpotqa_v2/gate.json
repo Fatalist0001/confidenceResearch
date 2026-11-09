@@ -1,0 +1,205 @@
+{
+  "dir": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2",
+  "stage": "main",
+  "profile": "qwen-hotpotqa",
+  "label_column": "hotpot_em",
+  "input": "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\hotpotqa_qwen08_v2\\main.jsonl",
+  "log": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4_hotpotqa_v2.log",
+  "passed": true,
+  "fails": 0,
+  "warns": 0,
+  "thresholds": {
+    "max_skipped": 0,
+    "max_truncated_ratio": 0.1,
+    "max_empty_answer_ratio": 0.02,
+    "max_channel_leak": 0,
+    "max_repetition_ratio": 0.1,
+    "max_long_answer_ratio": 0.15,
+    "max_retokenize_ratio": 0.05,
+    "max_estimated_hours": 6.0
+  },
+  "summary": {
+    "rows": 500,
+    "ok": 500,
+    "skipped": 0,
+    "truncated": 1,
+    "truncated_ratio": 0.002,
+    "empty_answers": 0,
+    "channel_leaks": 0,
+    "thought_leaks": 0,
+    "ex_per_s": 1.44,
+    "seconds": 348.1,
+    "estimated_hours_6000": 1.157,
+    "shape": [
+      500,
+      1,
+      1024
+    ],
+    "main_rows": 500,
+    "estimated_hours_main": 0.096
+  },
+  "checks": [
+    {
+      "check": "meta rows == config n_examples",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 vs 500"
+    },
+    {
+      "check": "meta rows == input rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 vs 500"
+    },
+    {
+      "check": "meta id order matches input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "first mismatch: None"
+    },
+    {
+      "check": "meta splits match input",
+      "ok": true,
+      "severity": "fail",
+      "detail": "input Counter({'test': 500}) vs meta Counter({'test': 500})"
+    },
+    {
+      "check": "input duplicate ids are the known ones",
+      "ok": true,
+      "severity": "warn",
+      "detail": "none"
+    },
+    {
+      "check": "row indices contiguous from 0",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 rows"
+    },
+    {
+      "check": "skipped rows",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 skipped"
+    },
+    {
+      "check": "all rows ok",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 ok of 500"
+    },
+    {
+      "check": "truncated share",
+      "ok": true,
+      "severity": "fail",
+      "detail": "1/500 (limit 0.1)",
+      "value": 0.002
+    },
+    {
+      "check": "all rows were generated",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500/500"
+    },
+    {
+      "check": "empty answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/500 generated (limit 0.02)",
+      "value": 0.0
+    },
+    {
+      "check": "no chat-protocol leak in answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0 rows"
+    },
+    {
+      "check": "no thinking block in answers",
+      "ok": true,
+      "severity": "warn",
+      "detail": "0 rows"
+    },
+    {
+      "check": "answers are not degenerate",
+      "ok": true,
+      "severity": "warn",
+      "detail": "most common answer 5% of rows: 'No'",
+      "value": 0.048
+    },
+    {
+      "check": "answers are not looping",
+      "ok": true,
+      "severity": "fail",
+      "detail": "0/19 long answers repeat one word (limit 0.1)",
+      "value": 0.0
+    },
+    {
+      "check": "share of very long answers",
+      "ok": true,
+      "severity": "fail",
+      "detail": "8/500 over 100 chars (limit 0.15)",
+      "value": 0.016
+    },
+    {
+      "check": "hidden_a.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[500, 1, 1024] vs [500, 1, 1024]"
+    },
+    {
+      "check": "hidden_c.npy shape",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[500, 1, 1024] vs [500, 1, 1024]"
+    },
+    {
+      "check": "hidden_a and hidden_c shapes agree",
+      "ok": true,
+      "severity": "fail",
+      "detail": "[500, 1, 1024] vs [500, 1, 1024]"
+    },
+    {
+      "check": "log: processed rows match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 vs 500"
+    },
+    {
+      "check": "log: expected rows match config",
+      "ok": true,
+      "severity": "fail",
+      "detail": "500 vs 500"
+    },
+    {
+      "check": "log: ok/skipped match meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "log 500/0 vs meta 500/0"
+    },
+    {
+      "check": "log: truncated matches meta",
+      "ok": true,
+      "severity": "fail",
+      "detail": "1 vs 1"
+    },
+    {
+      "check": "log: written shape matches arrays",
+      "ok": true,
+      "severity": "warn",
+      "detail": "[500, 1, 1024] vs [500, 1, 1024]"
+    },
+    {
+      "check": "retokenize mismatch share",
+      "ok": true,
+      "severity": "warn",
+      "detail": "1/500 (limit 0.05)",
+      "value": 0.002
+    },
+    {
+      "check": "throughput recorded",
+      "ok": true,
+      "severity": "fail",
+      "detail": "1.44 ex/s"
+    }
+  ]
+}

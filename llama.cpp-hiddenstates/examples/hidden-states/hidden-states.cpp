@@ -4,6 +4,7 @@
 #include "common.h"
 #include "log.h"
 #include "llama.h"
+#include "sampling.h"
 #include "ggml.h"
 
 #include "nlohmann/json.hpp"
@@ -713,6 +714,7 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
     const int           max_len     = o.max_len;
     const int           batch_rows  = std::max(1, o.batch_rows);
     const std::string & layers_spec = o.layers;
+    const bool          use_sampler = params.sampling.user_sampling_config != 0;
 
     if (batch_path.empty()) {
         LOG_ERR("%s : --batch requires an input .jsonl path\n", __func__);
@@ -962,6 +964,18 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         cfg["thinking"]           = thinking;
         cfg["batch"]              = batch_path;
         cfg["n_examples"]         = N;
+        if (use_sampler) {
+            cfg["sampling"] = {
+                { "type", "common_sampler" },
+                { "temperature", params.sampling.temp },
+                { "top_k", params.sampling.top_k },
+                { "repeat_penalty", params.sampling.penalty_repeat },
+                { "seed", params.sampling.seed },
+                { "seed_per_row", true },
+            };
+        } else {
+            cfg["sampling"] = { { "type", "raw_argmax" } };
+        }
         cfg["point_definitions"] = {
             { "A", "last token of the prompt already rendered by the model chat template "
                    "with add_generation_prompt=true - the state from which the first answer token is emitted" },
@@ -1096,10 +1110,19 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         return best < 0 ? (llama_token) 0 : best;
     };
 
-    // greedy generation of a single row (fallback when a group cannot be batched)
+    // generation of a single row (fallback when a group cannot be batched)
     auto generate_one = [&](hs_pending & p) {
         const int n_vocab = llama_vocab_n_tokens(vocab);
         const int n_prompt = (int) p.tok_q.size();
+
+        common_sampler_ptr smpl;
+        if (use_sampler) {
+            common_params_sampling sparams = params.sampling;
+            if (sparams.seed != LLAMA_DEFAULT_SEED) {
+                sparams.seed += (uint32_t) p.r->row;
+            }
+            smpl.reset(common_sampler_init(model, sparams));
+        }
 
         llama_memory_clear(mem, true);
         st.enabled = false;
@@ -1121,13 +1144,21 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
                 break;
             }
             float best_v = 0.0f;
-            const llama_token best = hs_argmax(logits, n_vocab, best_v);
+            const llama_token best = smpl
+                ? common_sampler_sample(smpl.get(), ctx, logits_idx)
+                : hs_argmax(logits, n_vocab, best_v);
+            if (smpl) {
+                best_v = logits[best];
+            }
             if (llama_vocab_is_eog(vocab, best)) {
                 stop_reason = "eog";
                 break;
             }
             p.tok_a.push_back(best);
             push_logprob(p.logprobs, p.entropies, logits, n_vocab, best_v);
+            if (smpl) {
+                common_sampler_accept(smpl.get(), best, true);
+            }
 
             if ((int64_t) (p.tok_q.size() + p.tok_a.size()) >= max_len) {
                 stop_reason = "max_len";
@@ -1158,8 +1189,10 @@ static int run_batch(common_params & params, hs_state & st, const hs_opts & o) {
         if (sel.empty()) {
             return;
         }
-        if (sel.size() == 1) {
-            generate_one(rows[sel[0]]);
+        if (sel.size() == 1 || use_sampler) {
+            for (size_t i : sel) {
+                generate_one(rows[i]);
+            }
             return;
         }
 

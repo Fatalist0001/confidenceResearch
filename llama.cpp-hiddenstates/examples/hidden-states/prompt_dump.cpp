@@ -13,7 +13,10 @@
 #include "common.h"
 #include "llama.h"
 
+#include "nlohmann/json.hpp"
+
 #include <cstdio>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -40,8 +43,7 @@ static void print_ids(const char * label, const std::vector<llama_token> & ids, 
     printf("\n");
 }
 
-static void dump(const common_chat_templates * tmpls, const llama_vocab * vocab,
-                 const std::string & q, bool thinking) {
+static std::string render(const common_chat_templates * tmpls, const std::string & q, bool thinking) {
     common_chat_templates_inputs inputs;
     common_chat_msg msg;
     msg.role    = "user";
@@ -52,11 +54,15 @@ static void dump(const common_chat_templates * tmpls, const llama_vocab * vocab,
 
     const common_chat_params res = common_chat_templates_apply(tmpls, inputs);
 #if __has_include("json.h")
-    const std::string prompt = res.prompt.str();   // master: rendered prompt is common_chat_prompt
+    return res.prompt.str();   // master: rendered prompt is common_chat_prompt
 #else
-    const std::string prompt = res.prompt;
+    return res.prompt;
 #endif
+}
 
+static void dump(const common_chat_templates * tmpls, const llama_vocab * vocab,
+                 const std::string & q, bool thinking) {
+    const std::string prompt = render(tmpls, q, thinking);
     printf("--- thinking=%d  len=%zu ---\n%s\n", (int) thinking, prompt.size(), escape_nl(prompt).c_str());
 
     // does the rendered text still carry the bos token itself? then add_special=true would double it
@@ -79,9 +85,52 @@ static void dump(const common_chat_templates * tmpls, const llama_vocab * vocab,
     printf("\n\n");
 }
 
+static int count_batch(const common_chat_templates * tmpls, const llama_vocab * vocab, const char * path) {
+    std::ifstream in(path);
+    if (!in.is_open()) {
+        fprintf(stderr, "failed to open %s\n", path);
+        return 1;
+    }
+    const bool add_bos = llama_vocab_get_add_bos(vocab);
+    std::string line;
+    size_t row = 0;
+    while (std::getline(in, line)) {
+        const auto input = nlohmann::json::parse(line, nullptr, false);
+        if (input.is_discarded() || !input.is_object() ||
+                !input.contains("id") || !input["id"].is_string() ||
+                !input.contains("question") || !input["question"].is_string()) {
+            fprintf(stderr, "%s:%zu: expected id and question strings\n", path, row + 1);
+            return 1;
+        }
+        try {
+            const std::string prompt = render(tmpls, input["question"].get<std::string>(), false);
+            const auto tokens = common_tokenize(vocab, prompt, add_bos, true);
+            if (tokens.empty()) {
+                fprintf(stderr, "%s:%zu: empty tokenized prompt\n", path, row + 1);
+                return 1;
+            }
+            nlohmann::json record = {
+                { "row", row }, { "id", input["id"] }, { "n_prompt", tokens.size() },
+                { "add_bos", add_bos }, { "bos_id", llama_vocab_bos(vocab) },
+                { "first_token", tokens.front() }, { "last_token", tokens.back() },
+            };
+            if (row == 0) {
+                record["rendered_prompt"] = prompt;
+            }
+            printf("%s\n", record.dump().c_str());
+        } catch (const std::exception & e) {
+            fprintf(stderr, "%s:%zu: %s\n", path, row + 1, e.what());
+            return 1;
+        }
+        ++row;
+    }
+    return row > 0 ? 0 : 1;
+}
+
 int main(int argc, char ** argv) {
-    if (argc < 2) {
-        fprintf(stderr, "usage: %s model.gguf [question]\n", argv[0]);
+    const bool batch = argc > 2 && std::string(argv[2]) == "--batch";
+    if (argc < 2 || (batch && argc != 4)) {
+        fprintf(stderr, "usage: %s model.gguf [question | --batch input.jsonl]\n", argv[0]);
         return 1;
     }
     common_init();
@@ -98,12 +147,17 @@ int main(int argc, char ** argv) {
 
     auto tmpls = common_chat_templates_init(model, "");
 
-    const std::string q = argc > 2 ? argv[2]
-                                   : "Who wrote the play Hamlet? Answer with just the answer, no explanation.";
-    dump(tmpls.get(), vocab, q, false);
-    dump(tmpls.get(), vocab, q, true);
+    int result = 0;
+    if (batch) {
+        result = count_batch(tmpls.get(), vocab, argv[3]);
+    } else {
+        const std::string q = argc > 2 ? argv[2]
+                                       : "Who wrote the play Hamlet? Answer with just the answer, no explanation.";
+        dump(tmpls.get(), vocab, q, false);
+        dump(tmpls.get(), vocab, q, true);
+    }
 
     llama_model_free(model);
     llama_backend_free();
-    return 0;
+    return result;
 }

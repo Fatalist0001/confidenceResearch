@@ -194,6 +194,7 @@ def main() -> int:
     ap.add_argument("--stage", choices=("pilot", "main"), default="pilot")
     ap.add_argument("--profile", default=None, help="profile id from profiles.json")
     ap.add_argument("--profiles-file", default=os.path.join(root, "profiles.json"))
+    ap.add_argument("--label-column", default=None)
     ap.add_argument("--json", default=None)
     args = ap.parse_args()
 
@@ -206,6 +207,9 @@ def main() -> int:
             raise SystemExit(f"unknown profile '{args.profile}' in {args.profiles_file}")
         thresholds.update(profiles.get("defaults", {}).get("pilot_gate", {}))
         thresholds.update(profile.get("pilot_gate", {}))
+
+    label_column = args.label_column or (profile or {}).get("evaluation", {}).get("label_column", "correct_filtered_b")
+    main_rows = (profile or {}).get("evaluation", {}).get("expected_rows", {}).get("main", 6000)
 
     d = args.dir
     if not os.path.isdir(d):
@@ -423,12 +427,12 @@ def main() -> int:
               f"{log['retokenize_mismatch']}/0 (no retokenized rows)")
 
     if log["ex_per_s"]:
-        hours = 6000.0 / log["ex_per_s"] / 3600.0
+        hours = float(main_rows) / log["ex_per_s"] / 3600.0
         if args.stage == "pilot":
             g.add(
                 "estimated full run is affordable",
                 hours <= thresholds["max_estimated_hours"],
-                f"{hours:.2f} h for 6000 rows at {log['ex_per_s']:.2f} ex/s (limit {thresholds['max_estimated_hours']:g} h)",
+                f"{hours:.2f} h for {main_rows} rows at {log['ex_per_s']:.2f} ex/s (limit {thresholds['max_estimated_hours']:g} h)",
                 severity="fail",
                 value=round(hours, 3),
             )
@@ -437,8 +441,10 @@ def main() -> int:
 
     # ----- labels (optional, present after the label stage) -----
     if labels is not None:
-        nulls = sum(1 for r in labels if not str(r.get("correct_filtered_b", "")).strip())
-        pos = sum(1 for r in labels if str(r.get("correct_filtered_b", "")).strip() == "1")
+        g.add("correctness label column exists", all(label_column in r for r in labels), label_column)
+        g.add("correctness labels are binary or empty", all(r.get(label_column, "") in ("", "0", "1") for r in labels))
+        nulls = sum(1 for r in labels if not str(r.get(label_column, "")).strip())
+        pos = sum(1 for r in labels if str(r.get(label_column, "")).strip() == "1")
         labeled = len(labels) - nulls
         g.add("labels rows == meta rows", len(labels) == len(meta), f"{len(labels)} vs {len(meta)}")
         g.add(
@@ -448,10 +454,10 @@ def main() -> int:
             severity="fail" if args.stage == "pilot" else "warn",
         )
         g.add(
-            "null labels are explained by truncated rows",
-            nulls == truncated,
-            f"{nulls} null vs {truncated} truncated",
-            severity="warn",
+            "null labels are explained by truncated rows" if label_column == "correct_filtered_b" else "official labels cover all attempted rows",
+            nulls == (truncated if label_column == "correct_filtered_b" else 0),
+            f"{nulls} null vs {truncated} truncated; column {label_column}",
+            severity="warn" if label_column == "correct_filtered_b" else "fail",
         )
 
     summary = {
@@ -468,10 +474,14 @@ def main() -> int:
         "estimated_hours_6000": round(6000.0 / log["ex_per_s"] / 3600.0, 3) if log["ex_per_s"] else None,
         "shape": shapes.get("a"),
     }
+    if main_rows != 6000:
+        summary["main_rows"] = main_rows
+        summary["estimated_hours_main"] = round(float(main_rows) / log["ex_per_s"] / 3600.0, 3) if log["ex_per_s"] else None
     report = {
         "dir": d,
         "stage": args.stage,
         "profile": args.profile,
+        "label_column": label_column,
         "input": args.input,
         "log": args.log,
         "passed": g.fails == 0,
@@ -495,7 +505,7 @@ def main() -> int:
     verdict = "PASSED" if report["passed"] else "FAILED"
     print(f"\ngate {args.stage} {verdict}: {g.fails} failed, {g.warns} warnings")
     if summary["estimated_hours_6000"] is not None:
-        print(f"full-run estimate: {summary['estimated_hours_6000']} h for 6000 rows")
+        print(f"full-run estimate: {summary.get('estimated_hours_main', summary['estimated_hours_6000'])} h for {main_rows} rows")
     return 0 if report["passed"] else 1
 
 

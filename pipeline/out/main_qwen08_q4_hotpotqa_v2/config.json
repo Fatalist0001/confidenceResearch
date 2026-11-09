@@ -1,0 +1,28 @@
+{
+  "batch": "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\hotpotqa_qwen08_v2\\main.jsonl",
+  "generate": true,
+  "ggml_version": "0.28.0",
+  "layers": [
+    13
+  ],
+  "llama_cpp_build": 12033,
+  "llama_cpp_commit": "785322d17",
+  "max_len": 8192,
+  "max_new_tokens": 64,
+  "model": "D:\\Lm studio\\.lmstudio\\models\\unsloth\\Qwen3.5-0.8B-GGUF\\Qwen3.5-0.8B-Q4_K_M.gguf",
+  "model_name": "Qwen3.5-0.8B",
+  "n_embd": 1024,
+  "n_examples": 500,
+  "n_layers": 24,
+  "n_layers_selected": 1,
+  "point_definitions": {
+    "A": "last token of the prompt already rendered by the model chat template with add_generation_prompt=true - the state from which the first answer token is emitted",
+    "C": "last content token of the answer, EOG/replica-end tokens removed"
+  },
+  "sampling": {
+    "type": "raw_argmax"
+  },
+  "template": true,
+  "thinking": false,
+  "version": 1
+}

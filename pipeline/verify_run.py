@@ -153,6 +153,11 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=32, help="rows to inspect in detail")
     ap.add_argument("--full", action="store_true", help="check every row instead of a sample")
     ap.add_argument("--allow-partial", action="store_true", help="accept meta with fewer rows than n_examples")
+    ap.add_argument("--label-column", default="correct_filtered_b",
+                    help="correctness column; default is the frozen training label")
+    ap.add_argument("--required-splits", nargs="+", choices=("train", "val", "test"),
+                    default=["train", "val", "test"],
+                    help="explicit evaluation-only mode may require test alone; training defaults are unchanged")
     ap.add_argument("--input", default=None,
                     help="batch JSONL to compare duplicate ids against; use it when config.json "
                          "names a path from another machine (e.g. a Kaggle run)")
@@ -331,9 +336,13 @@ def main() -> int:
                     and labels[int(r["row"])]["split"] != r.get("split")]
         rep.check("labels: split matches meta", not mismatch,
                   str([m["row"] for m in mismatch[:5]]))
+        bad_values = [i for i, r in labels.items() if r.get(args.label_column, "") not in ("", "0", "1")]
+        rep.check("labels: correctness values are binary or empty", not bad_values, str(bad_values[:5]))
+        has_column = bool(labels) and all(args.label_column in r for r in labels.values())
+        rep.check("labels: correctness column exists", has_column, args.label_column)
         labeled = [r for r in meta if int(r["row"]) in labels
-                   and labels[int(r["row"])]["correct_filtered_b"].strip() != ""]
-        pos = sum(1 for r in labeled if labels[int(r["row"])]["correct_filtered_b"] == "1")
+                   and labels[int(r["row"])].get(args.label_column, "").strip() != ""]
+        pos = sum(1 for r in labeled if labels[int(r["row"])][args.label_column] == "1")
         print(f"       labeled={len(labeled)} positives={pos}"
               f" ({pos / len(labeled):.3f})" if labeled else "       labeled=0")
         if labeled:
@@ -343,18 +352,18 @@ def main() -> int:
                 s = r.get("split", "?")
                 by_split.setdefault(s, [0, 0])
                 by_split[s][0] += 1
-                by_split[s][1] += labels[int(r["row"])]["correct_filtered_b"] == "1"
+                by_split[s][1] += labels[int(r["row"])][args.label_column] == "1"
             print("       per split (rows/positives): "
                   + ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in sorted(by_split.items())))
-            empty_splits = [s for s in ("train", "val", "test") if by_split.get(s, [0])[0] == 0]
-            rep.check("labels: train/val/test all non-empty", not empty_splits, str(empty_splits))
-            single_class = [s for s in ("train", "val", "test")
+            empty_splits = [s for s in args.required_splits if by_split.get(s, [0])[0] == 0]
+            rep.check("labels: " + "/".join(args.required_splits) + " all non-empty", not empty_splits, str(empty_splits))
+            single_class = [s for s in args.required_splits
                             if by_split.get(s, [0, 0])[0] > 0
                             and by_split[s][1] in (0, by_split[s][0])]
             rep.check("labels: both classes in every split", not single_class,
                       str(single_class))
         else:
-            rep.check("labels: at least one usable label", False, "all correct_filtered_b are empty")
+            rep.check("labels: at least one usable label", False, f"all {args.label_column} are empty")
     else:
         rep.warn("labels.csv missing", lab_path)
 

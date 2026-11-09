@@ -1,2 +1,33 @@
 # labels.csv stores model answers verbatim; embedded lines may end with spaces.
 pipeline/out/**/labels.csv whitespace=-blank-at-eol
+
+# Frozen artifacts carry byte-level fingerprints. Keep their original line endings.
+pipeline/out/main_qwen08_q4_hotpotqa_v2/** -text
+pipeline/out/pilot_qwen08_q4_hotpotqa_v2/** -text
+pipeline/data/hotpotqa_qwen08_v2/protocol.json -text
+pipeline/data/hotpotqa_source_audit_v1.json -text
+pipeline/out/pilot_lfm3_1p7b_qad_q4_sampler_v3/** -text
+pipeline/out/pilot_lfm3_1p7b_qad_q4_sampler_v4/** -text
+pipeline/out/diag_lfm3_sampler20_n256/** -text
+pipeline/out/diag_lfm3_sampler20_n256_v2/** -text
+pipeline/data/diag_lfm3_sampler20.jsonl -text
+pipeline/data/diag_lfm3_sampler20_v2.jsonl -text
+
+# Generated answer artifacts can contain trailing spaces inside quoted strings.
+pipeline/data/diag_lfm3_sampler20*.jsonl whitespace=-blank-at-eol
+pipeline/out/**/config.json whitespace=-blank-at-eol
+pipeline/out/**/meta.jsonl whitespace=-blank-at-eol
+pipeline/out/**/runner.json whitespace=-blank-at-eol
+pipeline/out/**/verify.json whitespace=-blank-at-eol
+pipeline/out/**/gate*.json whitespace=-blank-at-eol
+pipeline/out/**/transfer*.csv whitespace=-blank-at-eol
+
+# Match the line endings of implementations hashed by HotpotQA.
+pipeline/hotpotqa.py text eol=lf
+pipeline/apply_probe_model.py text eol=lf
+pipeline/baseline.py text eol=lf
+pipeline/verify_run.py text eol=lf
+pipeline/gate_report.py text eol=lf
+scripts/run.ps1 text eol=lf
+llama.cpp-hiddenstates*/examples/hidden-states/hidden-states.cpp text eol=lf
+llama.cpp-hiddenstates*/examples/hidden-states/prompt_dump.cpp text eol=lf

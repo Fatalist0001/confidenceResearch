@@ -51,6 +51,11 @@
 /pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/meta.raw.jsonl
 /pipeline/data/pilot_lfm25_thinking_r32_final.jsonl
 
+# HotpotQA: pinned public source and reproducible long-context inputs stay on D:.
+/pipeline/data/hotpotqa_raw/
+/pipeline/data/hotpotqa_qwen08_v*/*.jsonl
+/pipeline/data/hotpotqa_qwen08_v*/*.tokens.stderr.txt
+
 .env
 .vscode
 

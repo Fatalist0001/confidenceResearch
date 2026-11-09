@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-06",
+  "updated": "2026-11-09",
   "generator": "scripts/build_runs.py",
-  "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json}",
+  "generated_from": "pipeline/out/*/{config.json,meta.jsonl,labels.csv,baseline.json,probe.json,verify.json,transfer.json}",
   "read_this_first": "docs/START-HERE.md",
   "status_legend": {
     "valid": "The run is internally consistent and its numbers may be cited.",
@@ -22,7 +22,8 @@
     "deferred": "Deliberately not computed. Do not run probe.py without a new explicit request.",
     "not_run": "No probe in this directory.",
     "not_citable": "The run itself is invalid or partial, so its probe numbers must not be cited even though files exist.",
-    "pipeline_check": "Probe exists only to check the pipeline on a pilot; not a research result."
+    "pipeline_check": "Probe exists only to check the pipeline on a pilot; not a research result.",
+    "frozen_transfer": "transfer.json applies an existing probe without target training, calibration or layer selection; evaluation labels/splits are recorded separately."
   },
   "probe_protocol": "docs/START-HERE.md#frozen-probe-protocol",
   "shape_legend": "shape = [rows in meta.jsonl, selected l_out layers, n_embd]",
@@ -172,6 +173,212 @@
         "warns": 0
       },
       "notes": "Master-binary control of main_qwen08_q4. Paired dAUROC -0.0054 [-0.0225, +0.0114]; answers/labels agree 75.0%/97.3%. Use for binary-version checks, not as the series point."
+    },
+    "main_qwen08_q4_hotpotqa_v2": {
+      "kind": "main",
+      "family": "qwen3.5",
+      "model": "Qwen3.5-0.8B Q4_K_M",
+      "status": "valid",
+      "canonical": false,
+      "usable_for_analysis": true,
+      "prompt_regime": "default_bos",
+      "restriction": "HotpotQA whole-answer EM, all supplied context, frozen C/model-layer-13 feature with source train scaling. Not a newly trained TriviaQA series point or an agent evaluation; source and target binaries differ.",
+      "meta_rows": 500,
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "shape": [
+        500,
+        1,
+        1024
+      ],
+      "labels": {
+        "rows": 500,
+        "labeled": 500,
+        "null": 0,
+        "truncated": 1,
+        "base_rate_filtered_b": null,
+        "label_column": "hotpot_em",
+        "base_rate": 0.322
+      },
+      "baseline_test_auroc": null,
+      "probe": null,
+      "probe_status": "frozen_transfer",
+      "verify": {
+        "status": "passed",
+        "fails": 0,
+        "warns": 0
+      },
+      "notes": "Authorized preliminary transfer test after a disjoint technical pilot. Original-JSON audit verified the pinned parquet; short source contexts were retained by explicit user decision. Source main_qwen08_q4 weights, standardization, point, layer and lambda are unchanged. No target training, calibration, search or additional answer-verification pass.",
+      "evaluation": {
+        "kind": "hotpotqa_frozen_transfer",
+        "label_column": "hotpot_em",
+        "required_splits": [
+          "test"
+        ]
+      },
+      "transfer": {
+        "source_probe": {
+          "path": "D:/VScode_pr/confidenceResearch/pipeline/out/main_qwen08_q4/probe_model.npz",
+          "sha256": "5e948cd2146d95fef7ad2b66b21c9c5d12fdd3cfc02c250f30fcb81a1ca7088c",
+          "bytes": 27636
+        },
+        "protocol": {
+          "path": "D:/VScode_pr/confidenceResearch/pipeline/data/hotpotqa_qwen08_v2/protocol.json",
+          "sha256": "f0f1f88cfc277247d97c37f2acf8ec8c0728a7b85a9121e8c9fcbf5d830d0657",
+          "bytes": 37067
+        },
+        "frozen_feature": {
+          "point": "C",
+          "layer_id": 13,
+          "target_array_index": 0,
+          "lambda": 1000.0,
+          "standardization": "unchanged saved train mu/sd",
+          "fit_on_target": false,
+          "calibration": false
+        },
+        "accuracy_all_attempts": {
+          "n": 500,
+          "correct": 161,
+          "em": 0.322,
+          "em_ci": [
+            0.284,
+            0.366
+          ],
+          "f1": 0.42861666033558526,
+          "f1_ci": [
+            0.390209837845101,
+            0.46822610826939776
+          ]
+        },
+        "coverage": {
+          "attempted": 500,
+          "primary": 499,
+          "primary_fraction": 0.998,
+          "completed": 499,
+          "completion_reasons": {
+            "completed": 499,
+            "truncated": 1
+          },
+          "analysis_reasons": {
+            "included": 499,
+            "truncated": 1
+          },
+          "truncated": 1,
+          "empty_answers": 0
+        },
+        "primary": {
+          "n": 499,
+          "correct": 161,
+          "em": 0.3226452905811623,
+          "f1": 0.4293903346218502,
+          "label_column": "hotpot_em",
+          "same_rows_for_all_methods": true
+        },
+        "metrics": {
+          "probe": {
+            "n": 499,
+            "pos": 161,
+            "base_rate": 0.3226452905811623,
+            "auroc": 0.6441067293910103,
+            "auprc": 0.44505756145034364,
+            "auroc_ci": [
+              0.5938879016616446,
+              0.6974776859527319
+            ],
+            "auprc_ci": [
+              0.3774585757438897,
+              0.5304527405058972
+            ]
+          },
+          "logprob": {
+            "n": 499,
+            "pos": 161,
+            "base_rate": 0.3226452905811623,
+            "auroc": 0.6654783343746554,
+            "auprc": 0.4744774759649171,
+            "auroc_ci": [
+              0.6134951798365763,
+              0.7115452766807949
+            ],
+            "auprc_ci": [
+              0.40559707667292705,
+              0.5570943948401927
+            ]
+          },
+          "negative_entropy": {
+            "n": 499,
+            "pos": 161,
+            "base_rate": 0.3226452905811623,
+            "auroc": 0.6879341394391562,
+            "auprc": 0.4889045646149876,
+            "auroc_ci": [
+              0.6350851804185137,
+              0.7348401472677637
+            ],
+            "auprc_ci": [
+              0.41711755830228747,
+              0.5753303310747266
+            ]
+          }
+        },
+        "paired_deltas": {
+          "probe_vs_logprob": {
+            "auroc": {
+              "delta": -0.0213716049836451,
+              "ci": [
+                -0.08912697292355677,
+                0.05246039946603212
+              ]
+            },
+            "auprc": {
+              "delta": -0.02941991451457343,
+              "ci": [
+                -0.11518202503977663,
+                0.06267242841806946
+              ]
+            }
+          },
+          "probe_vs_negative_entropy": {
+            "auroc": {
+              "delta": -0.04382741004814583,
+              "ci": [
+                -0.1135525179726914,
+                0.030655264136152396
+              ]
+            },
+            "auprc": {
+              "delta": -0.04384700316464396,
+              "ci": [
+                -0.13412392594853026,
+                0.05069042180192861
+              ]
+            }
+          }
+        },
+        "retained_accuracy_50": {
+          "probe": {
+            "retained": 250,
+            "correct": 106,
+            "accuracy": 0.424,
+            "coverage": 0.501002004008016
+          },
+          "logprob": {
+            "retained": 250,
+            "correct": 109,
+            "accuracy": 0.436,
+            "coverage": 0.501002004008016
+          },
+          "negative_entropy": {
+            "retained": 250,
+            "correct": 112,
+            "accuracy": 0.448,
+            "coverage": 0.501002004008016
+          }
+        },
+        "binary_caveat": "Source: 3ad2230/build 37; target: 785322d17/build 12033. Prior master control had 75.0% answer and 97.3% label agreement; this is not a bit-exact dataset-only transfer."
+      }
     },
     "main_qwen35_2b_q4": {
       "kind": "main",
@@ -1104,6 +1311,41 @@
       "probe_status": "not_run",
       "notes": "Q4 anchor pilot; predicted the full run time within 3%."
     },
+    "pilot_qwen08_q4_hotpotqa_v2": {
+      "kind": "pilot",
+      "status": "valid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        1,
+        1024
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 0,
+      "labels": {
+        "rows": 200,
+        "labeled": 200,
+        "null": 0,
+        "truncated": 0,
+        "base_rate_filtered_b": null,
+        "label_column": "hotpot_em",
+        "base_rate": 0.295
+      },
+      "probe_status": "not_run",
+      "notes": "Disjoint technical pilot for the Qwen 0.8B frozen HotpotQA transfer protocol. All supplied context retained, raw argmax, official whole-answer labels and full state verification; no target fitting or layer selection.",
+      "evaluation": {
+        "kind": "hotpotqa_frozen_transfer",
+        "label_column": "hotpot_em",
+        "required_splits": [
+          "test"
+        ]
+      }
+    },
     "pilot_qwen08_iq2": {
       "kind": "pilot",
       "status": "invalid",
@@ -1519,6 +1761,58 @@
       },
       "probe_status": "not_run",
       "notes": "LFM3 pilot: 79/200 truncated, already showing the 64-token problem."
+    },
+    "pilot_lfm3_1p7b_qad_q4_sampler_v3": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 79,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Raw-argmax control after correcting the LFM3 BOS expectation. 79/200 truncated; failed the 10% gate. Diagnostic evidence only, no new main run."
+    },
+    "pilot_lfm3_1p7b_qad_q4_sampler_v4": {
+      "kind": "pilot",
+      "status": "invalid",
+      "citable": false,
+      "prompt_regime": "default_bos",
+      "meta_rows": 200,
+      "shape": [
+        200,
+        24,
+        2048
+      ],
+      "binary": {
+        "commit": "785322d17",
+        "build": 12033
+      },
+      "truncated": 83,
+      "labels": {
+        "rows": null,
+        "labeled": null,
+        "null": null,
+        "truncated": null,
+        "base_rate_filtered_b": null
+      },
+      "probe_status": "not_run",
+      "notes": "Actual common_sampler diagnostic: temp=0.1, top_k=50, repeat_penalty=1.1, seed=42+row. 83/200 truncated; failed the 10% gate. Sampling did not fix completion; no new main run or probe."
     },
     "pilot_yandexgpt5lite8b_q4": {
       "kind": "pilot",

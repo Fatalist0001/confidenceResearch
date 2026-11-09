@@ -1,0 +1,35 @@
+﻿{
+    "stage":  "pilot",
+    "tag":  "qwen08_q4_hotpotqa_v2",
+    "profile":  "qwen-hotpotqa",
+    "model":  "D:\\Lm studio\\.lmstudio\\models\\unsloth\\Qwen3.5-0.8B-GGUF\\Qwen3.5-0.8B-Q4_K_M.gguf",
+    "input":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\hotpotqa_qwen08_v2\\pilot.jsonl",
+    "input_sha256":  "FCA3B9290EA3A8811FE6C129C680B9FB754AFD604A16DE38828F7A22DFA2EDCB",
+    "questions":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\hotpotqa_qwen08_v2\\pilot.questions.jsonl",
+    "questions_sha256":  "2D330103191039F328923E8F8A48EB3B598D0703433923C3A1F950F8348FD82F",
+    "binary":  "D:\\VScode_pr\\confidenceResearch\\llama.cpp-hiddenstates-new\\build\\bin\\Release\\llama-hidden-states.exe",
+    "commit":  "785322d17",
+    "build":  12033,
+    "flags":  {
+                  "generate":  true,
+                  "max_new_tokens":  64,
+                  "max_len":  8192,
+                  "layers":  "13",
+                  "ngl":  99,
+                  "no_template":  false,
+                  "no_thinking":  false,
+                  "thinking":  false,
+                  "batch_rows":  1,
+                  "temperature":  null,
+                  "top_k":  null,
+                  "repeat_penalty":  null,
+                  "seed":  null
+              },
+    "started":  "2026-11-09T17:57:51",
+    "host":  "DESKTOP-GO8LTLT",
+    "evaluation":  {
+                       "kind":  "hotpotqa_frozen_transfer",
+                       "protocol":  "D:\\VScode_pr\\confidenceResearch\\pipeline\\data\\hotpotqa_qwen08_v2\\protocol.json",
+                       "protocol_sha256":  "F0F1F88CFC277247D97C37F2ACF8EC8C0728A7B85A9121E8C9FCBF5D830D0657"
+                   }
+}

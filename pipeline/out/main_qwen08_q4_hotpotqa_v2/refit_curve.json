@@ -1,0 +1,253 @@
+{
+  "kind": "probe_refit_learning_curve",
+  "run": "out/main_qwen08_q4_hotpotqa_v2",
+  "feature": {
+    "point": "C",
+    "array_index": 0,
+    "width": 1024,
+    "dtype": "float64 (loaded from float16)"
+  },
+  "rows": 499,
+  "positives": 161,
+  "base_rate": 0.3226452905811623,
+  "label_column": "hotpot_em",
+  "split_scheme": "stratified random split per repeat; lambda chosen on a 20% val slice of train; test scored once",
+  "sizes": [
+    50,
+    100,
+    150,
+    200,
+    300
+  ],
+  "lambdas": [
+    30.0,
+    300.0,
+    1000.0
+  ],
+  "repeats": 10,
+  "val_frac": 0.2,
+  "curve": {
+    "50": {
+      "scratch": {
+        "auroc_mean": 0.6456488203266788,
+        "auroc_sd": 0.03679278695636336
+      },
+      "finetune": {
+        "auroc_mean": 0.6125272232304901,
+        "auroc_sd": 0.05180488866718136
+      },
+      "frozen": {
+        "auroc_mean": 0.6414745916515426,
+        "auroc_sd": 0.009816155783020445
+      },
+      "logprob": {
+        "auroc_mean": 0.6671234119782214,
+        "auroc_sd": 0.007133998950392594
+      },
+      "entropy": {
+        "auroc_mean": 0.6899478221415608,
+        "auroc_sd": 0.0059718464505302445
+      },
+      "train_pos_mean": 16.0,
+      "test_rows_mean": 449.0,
+      "lambda_median": {
+        "scratch": 300.0,
+        "finetune": 165.0
+      }
+    },
+    "100": {
+      "scratch": {
+        "auroc_mean": 0.7053861613551536,
+        "auroc_sd": 0.019281532932321876
+      },
+      "finetune": {
+        "auroc_mean": 0.6733275911570484,
+        "auroc_sd": 0.07035404509308865
+      },
+      "frozen": {
+        "auroc_mean": 0.6446310651737008,
+        "auroc_sd": 0.008953011136169732
+      },
+      "logprob": {
+        "auroc_mean": 0.6657019810508183,
+        "auroc_sd": 0.00870023614259449
+      },
+      "entropy": {
+        "auroc_mean": 0.690961814527706,
+        "auroc_sd": 0.007772455063893723
+      },
+      "train_pos_mean": 32.0,
+      "test_rows_mean": 399.0,
+      "lambda_median": {
+        "scratch": 165.0,
+        "finetune": 300.0
+      }
+    },
+    "150": {
+      "scratch": {
+        "auroc_mean": 0.7279548522573872,
+        "auroc_sd": 0.01762392775647745
+      },
+      "finetune": {
+        "auroc_mean": 0.6670278986050697,
+        "auroc_sd": 0.09482696328232852
+      },
+      "frozen": {
+        "auroc_mean": 0.6464339283035848,
+        "auroc_sd": 0.018496055102759163
+      },
+      "logprob": {
+        "auroc_mean": 0.6666454177291135,
+        "auroc_sd": 0.011851074654934571
+      },
+      "entropy": {
+        "auroc_mean": 0.6928303584820759,
+        "auroc_sd": 0.009910990842518334
+      },
+      "train_pos_mean": 48.0,
+      "test_rows_mean": 349.0,
+      "lambda_median": {
+        "scratch": 165.0,
+        "finetune": 300.0
+      }
+    },
+    "200": {
+      "scratch": {
+        "auroc_mean": 0.7374076354679804,
+        "auroc_sd": 0.018710965941866324
+      },
+      "finetune": {
+        "auroc_mean": 0.6670771756978653,
+        "auroc_sd": 0.08674737892945825
+      },
+      "frozen": {
+        "auroc_mean": 0.6455818965517242,
+        "auroc_sd": 0.02889714658524295
+      },
+      "logprob": {
+        "auroc_mean": 0.6712694991789819,
+        "auroc_sd": 0.021990802752197464
+      },
+      "entropy": {
+        "auroc_mean": 0.6959051724137931,
+        "auroc_sd": 0.017400033819374806
+      },
+      "train_pos_mean": 65.0,
+      "test_rows_mean": 299.0,
+      "lambda_median": {
+        "scratch": 300.0,
+        "finetune": 650.0
+      }
+    },
+    "300": {
+      "scratch": {
+        "auroc_mean": 0.7587152777777779,
+        "auroc_sd": 0.028730140259220976
+      },
+      "finetune": {
+        "auroc_mean": 0.7221759259259259,
+        "auroc_sd": 0.07903060137048007
+      },
+      "frozen": {
+        "auroc_mean": 0.6442708333333333,
+        "auroc_sd": 0.029724333944988135
+      },
+      "logprob": {
+        "auroc_mean": 0.6636574074074074,
+        "auroc_sd": 0.03128094413676619
+      },
+      "entropy": {
+        "auroc_mean": 0.6909606481481482,
+        "auroc_sd": 0.02863893872010531
+      },
+      "train_pos_mean": 97.0,
+      "test_rows_mean": 199.0,
+      "lambda_median": {
+        "scratch": 650.0,
+        "finetune": 1000.0
+      }
+    }
+  },
+  "paired": {
+    "50": {
+      "scratch_minus_entropy": {
+        "mean": -0.04429900181488204,
+        "sd": 0.03717232475178082
+      },
+      "scratch_minus_logprob": {
+        "mean": -0.02147459165154263,
+        "sd": 0.03735902845021357
+      }
+    },
+    "100": {
+      "scratch_minus_entropy": {
+        "mean": 0.014424346827447598,
+        "sd": 0.017371315492043484
+      },
+      "scratch_minus_logprob": {
+        "mean": 0.03968418030433533,
+        "sd": 0.017411469901652776
+      }
+    },
+    "150": {
+      "scratch_minus_entropy": {
+        "mean": 0.035124493775311225,
+        "sd": 0.016320891605815846
+      },
+      "scratch_minus_logprob": {
+        "mean": 0.06130943452827357,
+        "sd": 0.017295332431028574
+      }
+    },
+    "200": {
+      "scratch_minus_entropy": {
+        "mean": 0.041502463054187186,
+        "sd": 0.023788450829191767
+      },
+      "scratch_minus_logprob": {
+        "mean": 0.06613813628899833,
+        "sd": 0.026632893355013305
+      }
+    },
+    "300": {
+      "scratch_minus_entropy": {
+        "mean": 0.06775462962962964,
+        "sd": 0.033620696351157234
+      },
+      "scratch_minus_logprob": {
+        "mean": 0.09505787037037039,
+        "sd": 0.03746203758819703
+      }
+    }
+  },
+  "cv": {
+    "folds": 5,
+    "auroc_mean": 0.7608970937425173,
+    "auroc_sd": 0.06807713034419982,
+    "auroc_folds": [
+      0.6831550802139037,
+      0.8658088235294118,
+      0.7238051470588235,
+      0.7714552238805971,
+      0.7602611940298507
+    ],
+    "lambda_folds": [
+      1000.0,
+      1000.0,
+      1000.0,
+      1000.0,
+      300.0
+    ]
+  },
+  "seconds": 560.0,
+  "provenance": {
+    "hidden": "out/main_qwen08_q4_hotpotqa_v2/hidden_c.npy",
+    "hidden_sha256": "4731497cfdb47fa759ad8c81bc9d24b83d4f5aa40d2d9558cea5ee194ebb64f8",
+    "scores": "out/main_qwen08_q4_hotpotqa_v2/transfer_scores.csv",
+    "scores_sha256": "57a00f562c5f84ab1f38a354a56f828f7dabed66998902220b90abc1498b17bd",
+    "source_probe": "out/main_qwen08_q4/probe_model.npz",
+    "source_probe_sha256": "5e948cd2146d95fef7ad2b66b21c9c5d12fdd3cfc02c250f30fcb81a1ca7088c",
+    "python": "3.11.9",
+    "numpy": "2.4.6"
+  }
+}

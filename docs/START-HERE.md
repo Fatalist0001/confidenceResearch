@@ -16,7 +16,9 @@
 | `docs/SETUP.md` | как поднять окружение с нуля |
 | `docs/LFM25-THINKING-PROTOCOL.md` | отдельный reasoning-протокол LFM2.5-1.2B-Thinking |
 | `docs/HOTPOTQA-TRANSFER.md` | замороженный перенос C/13 Qwen 0.8B на HotpotQA без обучения |
+| `docs/HOTPOTQA-REFIT.md` | переобучение Qwen 0.8B-пробы на 50–300 строках HotpotQA |
 | `docs/HOTPOTQA-SOURCE-AUDIT.md` | побайтовая проверка источника и коротких контекстов HotpotQA |
+| `docs/ANSWER-TOKEN-BASELINES.md` | exploratory score уверенности по всем токенам TriviaQA-ответа |
 | `docs/history/AGENTS-full-2026-11-02.md` | старый подробный `AGENTS.md` (история) |
 
 ---
@@ -129,6 +131,12 @@
 Запрещено: менять λ-сетку, добавлять/убирать точки, выбирать слой по test, объявлять
 «победителя» по AUPRC между моделями с разной базовой долей, подгонять протокол под
 ориентир 0.86–0.94.
+
+Дополнительные mean/minimum/last-token baseline в
+[`docs/ANSWER-TOKEN-BASELINES.md`](ANSWER-TOKEN-BASELINES.md) посчитаны post hoc и
+**не входят** в замороженный протокол. Их отдельные сравнения воспроизводимы, но
+описательный максимум между семью score выбран по test и не имеет поправки на этот
+выбор. Primary baseline остаётся первым токеном.
 
 Если каталог старый и в нём нет `probe_model.npz`:
 

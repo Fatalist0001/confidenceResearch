@@ -12,6 +12,8 @@ pipeline/out/diag_lfm3_sampler20_n256/** -text
 pipeline/out/diag_lfm3_sampler20_n256_v2/** -text
 pipeline/data/diag_lfm3_sampler20.jsonl -text
 pipeline/data/diag_lfm3_sampler20_v2.jsonl -text
+pipeline/out/answer_token_baselines.json -text
+pipeline/out/answer_token_baselines.csv -text
 
 # Generated answer artifacts can contain trailing spaces inside quoted strings.
 pipeline/data/diag_lfm3_sampler20*.jsonl whitespace=-blank-at-eol
@@ -28,6 +30,7 @@ pipeline/apply_probe_model.py text eol=lf
 pipeline/baseline.py text eol=lf
 pipeline/verify_run.py text eol=lf
 pipeline/gate_report.py text eol=lf
+pipeline/answer_token_baselines.py text eol=lf
 scripts/run.ps1 text eol=lf
 llama.cpp-hiddenstates*/examples/hidden-states/hidden-states.cpp text eol=lf
 llama.cpp-hiddenstates*/examples/hidden-states/prompt_dump.cpp text eol=lf

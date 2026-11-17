@@ -299,5 +299,6 @@ probe → probe2 → compare; точные команды — в `docs/START-HER
 | бинарники, протокол, блокировки | `PROJECT_STATE.json` |
 | reasoning-протокол LFM2.5-Thinking | `docs/LFM25-THINKING-PROTOCOL.md` |
 | frozen-перенос и переобучение на HotpotQA | `docs/HOTPOTQA-TRANSFER.md`, `docs/HOTPOTQA-REFIT.md` |
+| baseline по всем токенам ответа | `docs/ANSWER-TOKEN-BASELINES.md` |
 | история: инциденты, старые команды, все детали | `docs/history/AGENTS-full-2026-11-02.md` |
 | Kaggle | `kaggle/README.md` |

@@ -1,0 +1,2541 @@
+{
+  "kind": "exploratory_answer_token_baselines",
+  "analysis_date": "2026-11-17",
+  "scope": "15 canonical valid TriviaQA runs; held-out test only",
+  "label": "correct_filtered_b",
+  "cohort": "same exclusion rules as baseline.py/probe.py: status ok, generated, non-truncated, labeled; joined to saved test probe scores",
+  "answer_span": "first k score entries, k = pos_c - pos_a; required for the LFM2.5-Thinking fixed 64-score final-generation buffer",
+  "score_direction": "higher means more confidence in correctness; entropy scores are negated",
+  "selection_caveat": "These aggregates were inspected after the original test results. Each listed comparison is exploratory; the post-hoc maximum across methods is descriptive and has no selection-adjusted confidence interval.",
+  "bootstrap": {
+    "n": 1000,
+    "seed": 42,
+    "paired_by_question": true
+  },
+  "methods": {
+    "first_logprob": "first-token logprob",
+    "first_neg_entropy": "negative first-token entropy",
+    "mean_logprob": "mean answer-token logprob",
+    "min_logprob": "minimum answer-token logprob",
+    "last_logprob": "last answer-token logprob",
+    "mean_neg_entropy": "negative mean answer-token entropy",
+    "last_neg_entropy": "negative last-token entropy"
+  },
+  "methods_summary": {
+    "first_logprob": {
+      "label": "first-token logprob",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.04673732242402451,
+      "delta_median": 0.10242474761507825,
+      "delta_max": 0.2477210884353741,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "first_neg_entropy": {
+      "label": "negative first-token entropy",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.04015689624168317,
+      "delta_median": 0.09183291655089376,
+      "delta_max": 0.22296142296142296,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "mean_logprob": {
+      "label": "mean answer-token logprob",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.03246399399170474,
+      "delta_median": 0.08053770967177454,
+      "delta_max": 0.2409496494582537,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "min_logprob": {
+      "label": "minimum answer-token logprob",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.02589181352274772,
+      "delta_median": 0.07259812557254597,
+      "delta_max": 0.2071250737917405,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "last_logprob": {
+      "label": "last answer-token logprob",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.1624358820743682,
+      "delta_median": 0.2082156338274629,
+      "delta_max": 0.31772081873501756,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "mean_neg_entropy": {
+      "label": "negative mean answer-token entropy",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.03974105376730808,
+      "delta_median": 0.08435291071991358,
+      "delta_max": 0.2415933715742511,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    },
+    "last_neg_entropy": {
+      "label": "negative last-token entropy",
+      "probe_wins_point_estimate": 15,
+      "ties": 0,
+      "baseline_wins_point_estimate": 0,
+      "delta_min": 0.15958017379595235,
+      "delta_median": 0.2063459795525966,
+      "delta_max": 0.30917388899133325,
+      "probe_wins_paired_ci_excludes_zero": 15,
+      "baseline_wins_paired_ci_excludes_zero": 0,
+      "runs": 15
+    }
+  },
+  "runs": [
+    {
+      "run": "main_qwen08_q4",
+      "model": "Qwen3.5-0.8B Q4_K_M",
+      "n": 1196,
+      "positives": 150,
+      "base_rate": 0.1254180602006689,
+      "answer_tokens": {
+        "mean": 7.119565217391305,
+        "median": 3.0,
+        "single_token": 148,
+        "max": 61
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 4,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8708731676226896,
+        "auroc_ci": [
+          0.8396151631732628,
+          0.8995523664390556
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.6796048438495857,
+          "auroc_ci": [
+            0.6344522065822179,
+            0.7222647076186985
+          ],
+          "probe_minus_baseline": 0.19126832377310388,
+          "probe_minus_baseline_ci": [
+            0.1390739761187521,
+            0.24347098190434482
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7170554493307839,
+          "auroc_ci": [
+            0.6680880948694298,
+            0.7582939866457352
+          ],
+          "probe_minus_baseline": 0.15381771829190571,
+          "probe_minus_baseline_ci": [
+            0.10631868001725542,
+            0.2038237053034316
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.6299235181644359,
+          "auroc_ci": [
+            0.5808302162856875,
+            0.6774099968676799
+          ],
+          "probe_minus_baseline": 0.2409496494582537,
+          "probe_minus_baseline_ci": [
+            0.18431262824547393,
+            0.29524320976224444
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.7449267049075845,
+          "auroc_ci": [
+            0.7020532543228668,
+            0.7814920728772418
+          ],
+          "probe_minus_baseline": 0.12594646271510512,
+          "probe_minus_baseline_ci": [
+            0.0789052885577096,
+            0.17004799153377056
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.5935436583811344,
+          "auroc_ci": [
+            0.5471627294771005,
+            0.6424388577648575
+          ],
+          "probe_minus_baseline": 0.2773295092415552,
+          "probe_minus_baseline_ci": [
+            0.218710563719922,
+            0.333303572390136
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.6292797960484385,
+          "auroc_ci": [
+            0.5798956541313101,
+            0.6781770119564074
+          ],
+          "probe_minus_baseline": 0.2415933715742511,
+          "probe_minus_baseline_ci": [
+            0.18423065250316817,
+            0.2956693638585359
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.5935309114085404,
+          "auroc_ci": [
+            0.5452300851600999,
+            0.6411570769818192
+          ],
+          "probe_minus_baseline": 0.2773422562141492,
+          "probe_minus_baseline_ci": [
+            0.21823769420427905,
+            0.3339092768579948
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.7449267049075845,
+        "probe_minus_baseline": 0.12594646271510512
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_qwen08_q4/meta.jsonl",
+          "sha256": "e30754d53996a56d4ae4293635d1c64ab29b4a7b7870379b02d742a70a0bef7c",
+          "bytes": 5038667
+        },
+        "labels": {
+          "path": "pipeline/out/main_qwen08_q4/labels.csv",
+          "sha256": "d153b04f0d30c7a544c8eec4260b738122255732a989af2fa5a5c63829034529",
+          "bytes": 483977
+        },
+        "baseline": {
+          "path": "pipeline/out/main_qwen08_q4/baseline.json",
+          "sha256": "0dc1ffa7ee24e9936c4401e4e172ff7b6e6321de4599987a0f914af6b10629eb",
+          "bytes": 6168
+        },
+        "probe": {
+          "path": "pipeline/out/main_qwen08_q4/probe.json",
+          "sha256": "fd0364f309fe8613fd85af8f1cc61982ee4419bb036e8310cba7addde16e7ead",
+          "bytes": 46982
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_qwen08_q4/probe_scores.csv",
+          "sha256": "9e17343361014d78386b72cf778e14340c3161c8eef838e30b68dab491f6c0a3",
+          "bytes": 140544
+        }
+      }
+    },
+    {
+      "run": "main_qwen35_2b_q4",
+      "model": "Qwen3.5-2B Q4_K_M",
+      "n": 1190,
+      "positives": 305,
+      "base_rate": 0.25630252100840334,
+      "answer_tokens": {
+        "mean": 4.964705882352941,
+        "median": 3.0,
+        "single_token": 138,
+        "max": 62
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 10,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8854867092710939,
+        "auroc_ci": [
+          0.8650927463826668,
+          0.9058911337759507
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.7830619616560156,
+          "auroc_ci": [
+            0.753642686617173,
+            0.8132946381370126
+          ],
+          "probe_minus_baseline": 0.10242474761507825,
+          "probe_minus_baseline_ci": [
+            0.0709217932253628,
+            0.1339514513422161
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7936537927202001,
+          "auroc_ci": [
+            0.7648671786820834,
+            0.8216990610385722
+          ],
+          "probe_minus_baseline": 0.09183291655089376,
+          "probe_minus_baseline_ci": [
+            0.06302879891065984,
+            0.12115513593383039
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8021042882282116,
+          "auroc_ci": [
+            0.7713807604952401,
+            0.8312119124427485
+          ],
+          "probe_minus_baseline": 0.0833824210428823,
+          "probe_minus_baseline_ci": [
+            0.054801264416553294,
+            0.11478234714676924
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8117662313605631,
+          "auroc_ci": [
+            0.783501458431699,
+            0.8398600123229851
+          ],
+          "probe_minus_baseline": 0.07372047791053071,
+          "probe_minus_baseline_ci": [
+            0.045567795162954755,
+            0.10151873564166147
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6787996665740483,
+          "auroc_ci": [
+            0.6446154942316105,
+            0.712364247295246
+          ],
+          "probe_minus_baseline": 0.20668704269704552,
+          "probe_minus_baseline_ci": [
+            0.17103012879722893,
+            0.2427805042714065
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7957025099564694,
+          "auroc_ci": [
+            0.7644596305938728,
+            0.8253498869512107
+          ],
+          "probe_minus_baseline": 0.08978419931462445,
+          "probe_minus_baseline_ci": [
+            0.060894856993831126,
+            0.12130155129444166
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6830156524960638,
+          "auroc_ci": [
+            0.6471056461880615,
+            0.7160043696979308
+          ],
+          "probe_minus_baseline": 0.20247105677503008,
+          "probe_minus_baseline_ci": [
+            0.16913385165422526,
+            0.2374603228917199
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.8117662313605631,
+        "probe_minus_baseline": 0.07372047791053071
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_qwen35_2b_q4/meta.jsonl",
+          "sha256": "ef064dd4aae40e659ce5376fe05d6aa6484b36c28ccd0e98973dd4d910cd2599",
+          "bytes": 4434665
+        },
+        "labels": {
+          "path": "pipeline/out/main_qwen35_2b_q4/labels.csv",
+          "sha256": "79b457149775200a28f789464c6c299673958e7806b9c8eb765d24129ce42412",
+          "bytes": 428539
+        },
+        "baseline": {
+          "path": "pipeline/out/main_qwen35_2b_q4/baseline.json",
+          "sha256": "43ffd12493a88009a4ee70bbc6a3fbffbc97a3fd17dd87bfccc6d4e12a859f36",
+          "bytes": 6142
+        },
+        "probe": {
+          "path": "pipeline/out/main_qwen35_2b_q4/probe.json",
+          "sha256": "53a415489abd612d537630d00192e76e015f6177557e32e1c299f7aa0218a858",
+          "bytes": 46925
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_qwen35_2b_q4/probe_scores.csv",
+          "sha256": "a76c0c855a18e806011ec7b50870c7b5b492d875938b9b0f0fe94db5f3489462",
+          "bytes": 138389
+        }
+      }
+    },
+    {
+      "run": "main_qwen35_4b_q4",
+      "model": "Qwen3.5-4B Q4_K_M",
+      "n": 1198,
+      "positives": 531,
+      "base_rate": 0.44323873121869783,
+      "answer_tokens": {
+        "mean": 3.5792988313856426,
+        "median": 3.0,
+        "single_token": 93,
+        "max": 62
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 2,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9180183919339765,
+        "auroc_ci": [
+          0.9023803555491152,
+          0.9332694865512825
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.870381193583999,
+          "auroc_ci": [
+            0.8484501632285599,
+            0.8902445872615476
+          ],
+          "probe_minus_baseline": 0.04763719834997748,
+          "probe_minus_baseline_ci": [
+            0.02862928345319327,
+            0.06666304829565738
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8776289821191099,
+          "auroc_ci": [
+            0.8562340535847807,
+            0.8969371291354062
+          ],
+          "probe_minus_baseline": 0.040389409814866606,
+          "probe_minus_baseline_ci": [
+            0.02293050378092304,
+            0.05790942276311359
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8855543979422718,
+          "auroc_ci": [
+            0.8662050136612626,
+            0.9054824684327046
+          ],
+          "probe_minus_baseline": 0.03246399399170474,
+          "probe_minus_baseline_ci": [
+            0.015452358520932208,
+            0.05001906585201608
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8893575810964575,
+          "auroc_ci": [
+            0.8703396243098068,
+            0.9077817948939879
+          ],
+          "probe_minus_baseline": 0.028660810837519035,
+          "probe_minus_baseline_ci": [
+            0.011973814987708381,
+            0.04546388607151422
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.7068160834836819,
+          "auroc_ci": [
+            0.6791363012118222,
+            0.735302806557506
+          ],
+          "probe_minus_baseline": 0.21120230845029464,
+          "probe_minus_baseline_ci": [
+            0.18140611287297248,
+            0.23936511959688597
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8769541782780926,
+          "auroc_ci": [
+            0.8561984628461259,
+            0.8961710152516894
+          ],
+          "probe_minus_baseline": 0.04106421365588386,
+          "probe_minus_baseline_ci": [
+            0.02430656548986035,
+            0.058745662765910325
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.7116724123813799,
+          "auroc_ci": [
+            0.6835369437450305,
+            0.7399054708245227
+          ],
+          "probe_minus_baseline": 0.2063459795525966,
+          "probe_minus_baseline_ci": [
+            0.17635622749939459,
+            0.2341719161875207
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.8893575810964575,
+        "probe_minus_baseline": 0.028660810837519035
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_qwen35_4b_q4/meta.jsonl",
+          "sha256": "c4a72aa2419c935c34444896dbaa3d375fd22707ddcc3dd2e1f7cde7dbb16428",
+          "bytes": 4004253
+        },
+        "labels": {
+          "path": "pipeline/out/main_qwen35_4b_q4/labels.csv",
+          "sha256": "f01ee83aedc400f1006a4e247a66db33db4c6d57659ff835408914711eb958a0",
+          "bytes": 384149
+        },
+        "baseline": {
+          "path": "pipeline/out/main_qwen35_4b_q4/baseline.json",
+          "sha256": "9a6c8eefb96710ee2a6038869eb688ccd75a72b93806be7f26142dfd80e20264",
+          "bytes": 6131
+        },
+        "probe": {
+          "path": "pipeline/out/main_qwen35_4b_q4/probe.json",
+          "sha256": "4b4326f34f221b13c1dc79becd8b78f872b8fa3f3b06308efeda7ceed41ee8fd",
+          "bytes": 61323
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_qwen35_4b_q4/probe_scores.csv",
+          "sha256": "14d75f9cc742c3f76d5aa51abefbf8bdcb7c479c26fe3b114961c71d3aa91ead",
+          "bytes": 137467
+        }
+      }
+    },
+    {
+      "run": "main_qwen35_9b_q4",
+      "model": "Qwen3.5-9B Q4_K_M",
+      "n": 1200,
+      "positives": 664,
+      "base_rate": 0.5533333333333333,
+      "answer_tokens": {
+        "mean": 3.145,
+        "median": 3.0,
+        "single_token": 121,
+        "max": 45
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 0,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9171602454594497,
+        "auroc_ci": [
+          0.9014627676289907,
+          0.9330381110343451
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8704229230354252,
+          "auroc_ci": [
+            0.8502082244204864,
+            0.8903955035043655
+          ],
+          "probe_minus_baseline": 0.04673732242402451,
+          "probe_minus_baseline_ci": [
+            0.028333451372837614,
+            0.0654448168536982
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8770033492177666,
+          "auroc_ci": [
+            0.8564508115465415,
+            0.8967615706580251
+          ],
+          "probe_minus_baseline": 0.04015689624168317,
+          "probe_minus_baseline_ci": [
+            0.023392027244688703,
+            0.05723027664817745
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8806110636576155,
+          "auroc_ci": [
+            0.861324275870517,
+            0.8995501901242817
+          ],
+          "probe_minus_baseline": 0.036549181801834196,
+          "probe_minus_baseline_ci": [
+            0.018971080035585224,
+            0.053940385115914355
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.891268431936702,
+          "auroc_ci": [
+            0.8721188384480159,
+            0.9092318949094809
+          ],
+          "probe_minus_baseline": 0.02589181352274772,
+          "probe_minus_baseline_ci": [
+            0.009477256994381155,
+            0.04238048841487412
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.7113884643049811,
+          "auroc_ci": [
+            0.6816483102169776,
+            0.7399162837123017
+          ],
+          "probe_minus_baseline": 0.2057717811544686,
+          "probe_minus_baseline_ci": [
+            0.17874676391166716,
+            0.23740283278153818
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8774191916921417,
+          "auroc_ci": [
+            0.8567275131111586,
+            0.8970133809048669
+          ],
+          "probe_minus_baseline": 0.03974105376730808,
+          "probe_minus_baseline_ci": [
+            0.024137717406693144,
+            0.05686491948565968
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.7146590091710124,
+          "auroc_ci": [
+            0.6848417762792558,
+            0.7430440284217861
+          ],
+          "probe_minus_baseline": 0.2025012362884373,
+          "probe_minus_baseline_ci": [
+            0.17591302433483588,
+            0.23341308404221936
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.891268431936702,
+        "probe_minus_baseline": 0.02589181352274772
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_qwen35_9b_q4/meta.jsonl",
+          "sha256": "7e3d655cdd869d56c61e12808982d76e9804a0849ab564e11d0bb62752a032b1",
+          "bytes": 3884726
+        },
+        "labels": {
+          "path": "pipeline/out/main_qwen35_9b_q4/labels.csv",
+          "sha256": "a84406fc03e0e5b9c5ac7c6dc2d0407d0168292dfc001037772d836d3b42690b",
+          "bytes": 373319
+        },
+        "baseline": {
+          "path": "pipeline/out/main_qwen35_9b_q4/baseline.json",
+          "sha256": "4f99fe3b83045f61ad5acb27e8999955be9a9b6fe378541e9c9bb53f8e5dd525",
+          "bytes": 6129
+        },
+        "probe": {
+          "path": "pipeline/out/main_qwen35_9b_q4/probe.json",
+          "sha256": "26804dc235127b11a05810e63bb49b7b61a728a42ae53a4b9e4234549cc9136a",
+          "bytes": 61326
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_qwen35_9b_q4/probe_scores.csv",
+          "sha256": "f18e00afa43214be7d2eef31f81ed4cd726bf893f4abe7af17b4022365a61fb4",
+          "bytes": 136711
+        }
+      }
+    },
+    {
+      "run": "main_gemma4e2b",
+      "model": "Gemma 4 E2B Q4_K_M",
+      "n": 1194,
+      "positives": 195,
+      "base_rate": 0.16331658291457288,
+      "answer_tokens": {
+        "mean": 3.507537688442211,
+        "median": 2.0,
+        "single_token": 295,
+        "max": 57
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 2,
+        "no_label": 4,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9350889350889351,
+        "auroc_ci": [
+          0.9175161389127211,
+          0.9499468639367161
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.705402838736172,
+          "auroc_ci": [
+            0.6684530164130649,
+            0.744168385751047
+          ],
+          "probe_minus_baseline": 0.22968609635276305,
+          "probe_minus_baseline_ci": [
+            0.19131464955757355,
+            0.2674319503655236
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7121275121275121,
+          "auroc_ci": [
+            0.6734679215997652,
+            0.7506612426752144
+          ],
+          "probe_minus_baseline": 0.22296142296142296,
+          "probe_minus_baseline_ci": [
+            0.18373041212081567,
+            0.2612447186236179
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.7090731757398424,
+          "auroc_ci": [
+            0.673602210185227,
+            0.7503580769413957
+          ],
+          "probe_minus_baseline": 0.22601575934909268,
+          "probe_minus_baseline_ci": [
+            0.18804355160831354,
+            0.2616447686494491
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.7279638612971946,
+          "auroc_ci": [
+            0.6926601152348543,
+            0.7645712186413217
+          ],
+          "probe_minus_baseline": 0.2071250737917405,
+          "probe_minus_baseline_ci": [
+            0.1707077306596538,
+            0.24023538834064126
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6738610405277072,
+          "auroc_ci": [
+            0.636488674864618,
+            0.71166435564618
+          ],
+          "probe_minus_baseline": 0.26122789456122786,
+          "probe_minus_baseline_ci": [
+            0.2194948117136336,
+            0.30007665073103196
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7138728472061805,
+          "auroc_ci": [
+            0.6759777147133887,
+            0.753180853070064
+          ],
+          "probe_minus_baseline": 0.2212160878827546,
+          "probe_minus_baseline_ci": [
+            0.18311478574161477,
+            0.25862889835462827
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6786016786016786,
+          "auroc_ci": [
+            0.6412210163191966,
+            0.7160096379337324
+          ],
+          "probe_minus_baseline": 0.25648725648725645,
+          "probe_minus_baseline_ci": [
+            0.2148138229472739,
+            0.2960652135886783
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.7279638612971946,
+        "probe_minus_baseline": 0.2071250737917405
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_gemma4e2b/meta.jsonl",
+          "sha256": "52b69ac5adcdf93548aaa40488a90c323b082a22395371cb002990b0236b35d0",
+          "bytes": 4083614
+        },
+        "labels": {
+          "path": "pipeline/out/main_gemma4e2b/labels.csv",
+          "sha256": "32c846a57d0afbd7181fdb8db4a7ed5fa674cdf317b70a04f2a3dca3d3c9715d",
+          "bytes": 400530
+        },
+        "baseline": {
+          "path": "pipeline/out/main_gemma4e2b/baseline.json",
+          "sha256": "24d5a53665eea007d13554cf5c299894e68c4d168648c216ba9b3eac3da74292",
+          "bytes": 6132
+        },
+        "probe": {
+          "path": "pipeline/out/main_gemma4e2b/probe.json",
+          "sha256": "0cda413799466d544329782500caf112c7313d34fec5e2dc6ce2ca160e75fc5e",
+          "bytes": 60047
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_gemma4e2b/probe_scores.csv",
+          "sha256": "0eaf05b788fec584119b769f2cc1aba5690f24941444697cc2829093ffc39b92",
+          "bytes": 140079
+        }
+      }
+    },
+    {
+      "run": "main_gemma4e4b_bos_master",
+      "model": "Gemma 4 E4B Q4_K_M",
+      "n": 1199,
+      "positives": 558,
+      "base_rate": 0.4653878231859883,
+      "answer_tokens": {
+        "mean": 3.616346955796497,
+        "median": 2.0,
+        "single_token": 239,
+        "max": 40
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 1,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9185636242654007,
+        "auroc_ci": [
+          0.9030460134521757,
+          0.9335624929057373
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8584676720402149,
+          "auroc_ci": [
+            0.8366407034571226,
+            0.8790094383671012
+          ],
+          "probe_minus_baseline": 0.06009595222518582,
+          "probe_minus_baseline_ci": [
+            0.041172620989852644,
+            0.08060180790062867
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.872060903941534,
+          "auroc_ci": [
+            0.8514033445337976,
+            0.890883856319562
+          ],
+          "probe_minus_baseline": 0.04650272032386671,
+          "probe_minus_baseline_ci": [
+            0.029048403934138,
+            0.06603628016932321
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8571564367951062,
+          "auroc_ci": [
+            0.8348966626308085,
+            0.8778762558235649
+          ],
+          "probe_minus_baseline": 0.0614071874702945,
+          "probe_minus_baseline_ci": [
+            0.041382819225448314,
+            0.08279327296720332
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8786003053025346,
+          "auroc_ci": [
+            0.8586614403987722,
+            0.8973578682487919
+          ],
+          "probe_minus_baseline": 0.03996331896286609,
+          "probe_minus_baseline_ci": [
+            0.02066641791256523,
+            0.057805803684187584
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.7389020291994476,
+          "auroc_ci": [
+            0.7108430746145794,
+            0.7658172249582073
+          ],
+          "probe_minus_baseline": 0.17966159506595314,
+          "probe_minus_baseline_ci": [
+            0.15425247705729309,
+            0.20743384604649664
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8630863514110457,
+          "auroc_ci": [
+            0.8418926697261059,
+            0.8829989432945027
+          ],
+          "probe_minus_baseline": 0.055477272854355,
+          "probe_minus_baseline_ci": [
+            0.036992038631492974,
+            0.07558606615387166
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.7442364361241116,
+          "auroc_ci": [
+            0.7168844865360126,
+            0.7709067306887022
+          ],
+          "probe_minus_baseline": 0.1743271881412891,
+          "probe_minus_baseline_ci": [
+            0.14913123870855272,
+            0.2022653652948128
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.8786003053025346,
+        "probe_minus_baseline": 0.03996331896286609
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_gemma4e4b_bos_master/meta.jsonl",
+          "sha256": "fafc19bda260c583e5e6093fe78a9e711c0bc92cc3b49e3e5764b3c25049436e",
+          "bytes": 4032977
+        },
+        "labels": {
+          "path": "pipeline/out/main_gemma4e4b_bos_master/labels.csv",
+          "sha256": "de23bf2aa56ca2d993742e56c37f5203ef49ef95dfe698b92a477c77deb72624",
+          "bytes": 396778
+        },
+        "baseline": {
+          "path": "pipeline/out/main_gemma4e4b_bos_master/baseline.json",
+          "sha256": "bd174cd2b3caa0878cce30495b1825742570b6a347b7a8a0b674be20611165f6",
+          "bytes": 6130
+        },
+        "probe": {
+          "path": "pipeline/out/main_gemma4e4b_bos_master/probe.json",
+          "sha256": "2011336691166b1a5fa7f5186de778ce497046f72ae6f23f7839d90a27067ace",
+          "bytes": 79374
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_gemma4e4b_bos_master/probe_scores.csv",
+          "sha256": "3918222ef976703ecd031f352b21bbd93798bdcecb393156f5ec3d772d1a6147",
+          "bytes": 137678
+        }
+      }
+    },
+    {
+      "run": "main_gemma4_12b_v3",
+      "model": "Gemma-4-12B-It Q4_K_M",
+      "n": 1195,
+      "positives": 678,
+      "base_rate": 0.5673640167364017,
+      "answer_tokens": {
+        "mean": 3.3146443514644353,
+        "median": 2.0,
+        "single_token": 224,
+        "max": 43
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 5,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.910697066694054,
+        "auroc_ci": [
+          0.8950060340274717,
+          0.9261525571679391
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8131722040590427,
+          "auroc_ci": [
+            0.7877301695154139,
+            0.8346715794002911
+          ],
+          "probe_minus_baseline": 0.09752486263501137,
+          "probe_minus_baseline_ci": [
+            0.07527165876169768,
+            0.1231163327938775
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8259301735106668,
+          "auroc_ci": [
+            0.8016106235399709,
+            0.8468943743991054
+          ],
+          "probe_minus_baseline": 0.08476689318338726,
+          "probe_minus_baseline_ci": [
+            0.06424657436769947,
+            0.108295955722189
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8494576721840891,
+          "auroc_ci": [
+            0.8267292188745305,
+            0.8691385528416234
+          ],
+          "probe_minus_baseline": 0.06123939450996496,
+          "probe_minus_baseline_ci": [
+            0.04249408849107291,
+            0.08232699271279395
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8484991127619634,
+          "auroc_ci": [
+            0.8266769832378931,
+            0.8692751153159983
+          ],
+          "probe_minus_baseline": 0.0621979539320906,
+          "probe_minus_baseline_ci": [
+            0.04249999433353112,
+            0.08205795154687938
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.7482611846196858,
+          "auroc_ci": [
+            0.719836440957777,
+            0.7746108333273457
+          ],
+          "probe_minus_baseline": 0.1624358820743682,
+          "probe_minus_baseline_ci": [
+            0.1358002686524727,
+            0.18840384424019205
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.857879301392764,
+          "auroc_ci": [
+            0.8353591519594203,
+            0.8763416371827396
+          ],
+          "probe_minus_baseline": 0.05281776530129001,
+          "probe_minus_baseline_ci": [
+            0.03492533032832743,
+            0.07289083030055447
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.7511168928981017,
+          "auroc_ci": [
+            0.7223249126225191,
+            0.7774541656377032
+          ],
+          "probe_minus_baseline": 0.15958017379595235,
+          "probe_minus_baseline_ci": [
+            0.13351497844308693,
+            0.1855683486356658
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "mean_neg_entropy",
+        "auroc": 0.857879301392764,
+        "probe_minus_baseline": 0.05281776530129001
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_gemma4_12b_v3/meta.jsonl",
+          "sha256": "4cc2412a2d6d801b6b0b1619bdd246083200f13854a257ac6a27c8bdb20ae715",
+          "bytes": 4024046
+        },
+        "labels": {
+          "path": "pipeline/out/main_gemma4_12b_v3/labels.csv",
+          "sha256": "f14615837477a20268add3cff408837cc638f9f74ccc0c6f5279a395cb7eeb57",
+          "bytes": 392717
+        },
+        "baseline": {
+          "path": "pipeline/out/main_gemma4_12b_v3/baseline.json",
+          "sha256": "df21b1ad6f5be3205d975a432c52be26f081afd60e382a43ca512eda40ae69a5",
+          "bytes": 6106
+        },
+        "probe": {
+          "path": "pipeline/out/main_gemma4_12b_v3/probe.json",
+          "sha256": "3c82fc174494adf13f3362d66d01735c69e2aff308d44e1cce697b5cf87bbfd8",
+          "bytes": 90235
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_gemma4_12b_v3/probe_scores.csv",
+          "sha256": "4704001cc66e1791c648ae0682c2398a509efecb48bda34b6ad1d9336de2017f",
+          "bytes": 136326
+        }
+      }
+    },
+    {
+      "run": "main_gemma4_26b_a4b_udq4km",
+      "model": "Gemma 4 26B-A4B UD-Q4_K_M",
+      "n": 1195,
+      "positives": 846,
+      "base_rate": 0.7079497907949791,
+      "answer_tokens": {
+        "mean": 3.0510460251046023,
+        "median": 2.0,
+        "single_token": 205,
+        "max": 53
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 5,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9076693287813205,
+        "auroc_ci": [
+          0.889332842572055,
+          0.9234596730160798
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8384611216105455,
+          "auroc_ci": [
+            0.8122870999445136,
+            0.8603308445451022
+          ],
+          "probe_minus_baseline": 0.06920820717077492,
+          "probe_minus_baseline_ci": [
+            0.04705867403950763,
+            0.09334489705579782
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8427963719373828,
+          "auroc_ci": [
+            0.8166359418033511,
+            0.8641865853268768
+          ],
+          "probe_minus_baseline": 0.06487295684393768,
+          "probe_minus_baseline_ci": [
+            0.04294049317072388,
+            0.0883407234402423
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8508199719563494,
+          "auroc_ci": [
+            0.8273522510651108,
+            0.8717087658800171
+          ],
+          "probe_minus_baseline": 0.056849356824971053,
+          "probe_minus_baseline_ci": [
+            0.03543914101973869,
+            0.0795401390923787
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8518292724230663,
+          "auroc_ci": [
+            0.8275762083420366,
+            0.872684208752359
+          ],
+          "probe_minus_baseline": 0.055840056358254175,
+          "probe_minus_baseline_ci": [
+            0.03471772319357479,
+            0.07762949106897042
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.7209080994668997,
+          "auroc_ci": [
+            0.6874126909619854,
+            0.7531397611037666
+          ],
+          "probe_minus_baseline": 0.18676122931442074,
+          "probe_minus_baseline_ci": [
+            0.15448620134914007,
+            0.21914256419462416
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.855084097082512,
+          "auroc_ci": [
+            0.8310023389435213,
+            0.8759145094465034
+          ],
+          "probe_minus_baseline": 0.052585231698808466,
+          "probe_minus_baseline_ci": [
+            0.031018459732669045,
+            0.07535773837128394
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.7221815792504082,
+          "auroc_ci": [
+            0.6882812359398129,
+            0.7540192140230356
+          ],
+          "probe_minus_baseline": 0.1854877495309123,
+          "probe_minus_baseline_ci": [
+            0.15320799865118157,
+            0.2178024863118212
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "mean_neg_entropy",
+        "auroc": 0.855084097082512,
+        "probe_minus_baseline": 0.052585231698808466
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_gemma4_26b_a4b_udq4km/meta.jsonl",
+          "sha256": "8826b0ff41234836af4d42e55f5a907d7f10954cc0b951bb81219c253902d453",
+          "bytes": 4003677
+        },
+        "labels": {
+          "path": "pipeline/out/main_gemma4_26b_a4b_udq4km/labels.csv",
+          "sha256": "da0844be222204d86c25290a02b331550fc0adc39bad46d389d0ed4861f34784",
+          "bytes": 387668
+        },
+        "baseline": {
+          "path": "pipeline/out/main_gemma4_26b_a4b_udq4km/baseline.json",
+          "sha256": "8fbaef378116dab650690e055bd151c08a877fa615476206bfda8c5cc123cf7e",
+          "bytes": 6228
+        },
+        "probe": {
+          "path": "pipeline/out/main_gemma4_26b_a4b_udq4km/probe.json",
+          "sha256": "4cc6ceabb5a8660240880f3d0eac454132e7a69129d46d3fdc4a3b63ff1a77da",
+          "bytes": 57826
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_gemma4_26b_a4b_udq4km/probe_scores.csv",
+          "sha256": "9cf3cc2587f2c850b82cc1af3404bf04fcc3e0499103f1af202d5e7110e2d221",
+          "bytes": 135188
+        }
+      }
+    },
+    {
+      "run": "main_gptoss20b_v2",
+      "model": "gpt-oss-20b MXFP4",
+      "n": 1192,
+      "positives": 575,
+      "base_rate": 0.4823825503355705,
+      "answer_tokens": {
+        "mean": 6.1124161073825505,
+        "median": 4.0,
+        "single_token": 86,
+        "max": 51
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 8,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9247889507434289,
+        "auroc_ci": [
+          0.90859695130716,
+          0.9387010634476325
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8279050102177437,
+          "auroc_ci": [
+            0.8049822715198247,
+            0.8500368162074025
+          ],
+          "probe_minus_baseline": 0.09688394052568527,
+          "probe_minus_baseline_ci": [
+            0.07652225652297168,
+            0.11791368131444385
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8409386230709605,
+          "auroc_ci": [
+            0.8183665131189793,
+            0.8626530436119909
+          ],
+          "probe_minus_baseline": 0.08385032767246847,
+          "probe_minus_baseline_ci": [
+            0.06508671918276847,
+            0.10424345861570078
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8490085265308999,
+          "auroc_ci": [
+            0.8257491179649025,
+            0.8708722532134897
+          ],
+          "probe_minus_baseline": 0.07578042421252906,
+          "probe_minus_baseline_ci": [
+            0.05492288515139798,
+            0.09681401820737451
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.852190825170883,
+          "auroc_ci": [
+            0.8304271126155207,
+            0.8726315423815358
+          ],
+          "probe_minus_baseline": 0.07259812557254597,
+          "probe_minus_baseline_ci": [
+            0.05443401786580193,
+            0.0909956635991271
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6874948911281799,
+          "auroc_ci": [
+            0.6564845293745712,
+            0.7167928292787499
+          ],
+          "probe_minus_baseline": 0.23729405961524908,
+          "probe_minus_baseline_ci": [
+            0.20617475972701696,
+            0.2682795274165682
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8554069480656754,
+          "auroc_ci": [
+            0.8331295234677236,
+            0.8757308400575587
+          ],
+          "probe_minus_baseline": 0.06938200267775352,
+          "probe_minus_baseline_ci": [
+            0.04974918380349884,
+            0.09013960523322519
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6987132689732929,
+          "auroc_ci": [
+            0.6693785307557196,
+            0.7267096792220596
+          ],
+          "probe_minus_baseline": 0.22607568177013604,
+          "probe_minus_baseline_ci": [
+            0.19605574736878015,
+            0.25705826283940625
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "mean_neg_entropy",
+        "auroc": 0.8554069480656754,
+        "probe_minus_baseline": 0.06938200267775352
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_gptoss20b_v2/meta.jsonl",
+          "sha256": "47c5e0db35eaf1693525db199b7f8f01bc2fa27aa61c8854f11c91c09c95a568",
+          "bytes": 4741600
+        },
+        "labels": {
+          "path": "pipeline/out/main_gptoss20b_v2/labels.csv",
+          "sha256": "9bb2841d41de23878789f88134c74204069b24bb607e18262c76dd9b0cbced36",
+          "bytes": 446343
+        },
+        "baseline": {
+          "path": "pipeline/out/main_gptoss20b_v2/baseline.json",
+          "sha256": "0b74e28c378c7c8cc4b778f7b2b7cee338ba483d29d766e791c3b5c07f1f80f0",
+          "bytes": 6132
+        },
+        "probe": {
+          "path": "pipeline/out/main_gptoss20b_v2/probe.json",
+          "sha256": "01dbf3b70ca1828bdefd595a39292294579c41f5886a606d7912de02327a102b",
+          "bytes": 42311
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_gptoss20b_v2/probe_scores.csv",
+          "sha256": "284929a73ce67ede39431f356cbcdf92b469ed476d57ed43b8bf14d3c28d723b",
+          "bytes": 136521
+        }
+      }
+    },
+    {
+      "run": "main_nemotron3nano4b_v2",
+      "model": "NVIDIA-Nemotron-3-Nano-4B",
+      "n": 1200,
+      "positives": 327,
+      "base_rate": 0.2725,
+      "answer_tokens": {
+        "mean": 3.555,
+        "median": 3.0,
+        "single_token": 124,
+        "max": 50
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 0,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8818654083952485,
+        "auroc_ci": [
+          0.859811154574592,
+          0.9011402857142857
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.8022776394099576,
+          "auroc_ci": [
+            0.7758969533393888,
+            0.8286286606537268
+          ],
+          "probe_minus_baseline": 0.07958776898529096,
+          "probe_minus_baseline_ci": [
+            0.054723760816231384,
+            0.10409344718205811
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.8155154113727839,
+          "auroc_ci": [
+            0.7874051787460034,
+            0.8423019270494075
+          ],
+          "probe_minus_baseline": 0.06634999702246458,
+          "probe_minus_baseline_ci": [
+            0.04211036759272629,
+            0.09001652493848937
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8215440447541081,
+          "auroc_ci": [
+            0.7934823443214472,
+            0.8474211150843929
+          ],
+          "probe_minus_baseline": 0.06032136364114038,
+          "probe_minus_baseline_ci": [
+            0.03668965718278924,
+            0.08576467437870448
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8387647081489888,
+          "auroc_ci": [
+            0.8145096439338527,
+            0.8615902764344489
+          ],
+          "probe_minus_baseline": 0.04310070024625967,
+          "probe_minus_baseline_ci": [
+            0.02081243718746777,
+            0.0644877408869381
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6836035884555699,
+          "auroc_ci": [
+            0.6500714492504259,
+            0.7159032589732329
+          ],
+          "probe_minus_baseline": 0.19826181993967862,
+          "probe_minus_baseline_ci": [
+            0.16578836819984022,
+            0.230260283969826
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8231098780611691,
+          "auroc_ci": [
+            0.7958102887408076,
+            0.84851774344635
+          ],
+          "probe_minus_baseline": 0.05875553033407943,
+          "probe_minus_baseline_ci": [
+            0.03408215017166736,
+            0.08216214872925204
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6923225126194955,
+          "auroc_ci": [
+            0.6595533856235437,
+            0.7247851109956827
+          ],
+          "probe_minus_baseline": 0.189542895775753,
+          "probe_minus_baseline_ci": [
+            0.15722273308371915,
+            0.2206871576253396
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.8387647081489888,
+        "probe_minus_baseline": 0.04310070024625967
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_nemotron3nano4b_v2/meta.jsonl",
+          "sha256": "2a40b23f9fca50054df67b73dc0e571f6e53945561e06faa4c3c27bd57dc782d",
+          "bytes": 3972667
+        },
+        "labels": {
+          "path": "pipeline/out/main_nemotron3nano4b_v2/labels.csv",
+          "sha256": "b0346013c123f75f2489baff0b8adb5daa0ff673cf8167a4a35cea8a6783928d",
+          "bytes": 380999
+        },
+        "baseline": {
+          "path": "pipeline/out/main_nemotron3nano4b_v2/baseline.json",
+          "sha256": "12ef422f3cedff5d75ccf67dd815c36aeda7e17dc9c5f34c3057cb5e9cb486ef",
+          "bytes": 6075
+        },
+        "probe": {
+          "path": "pipeline/out/main_nemotron3nano4b_v2/probe.json",
+          "sha256": "62961a80f7eee7ecdf790dea63e13d5e670a4532d24c90c4f9fa017a1cfbc02a",
+          "bytes": 34350
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_nemotron3nano4b_v2/probe_scores.csv",
+          "sha256": "98115815a220be0dfc2ea63b26ce7a78495ca2e2b004e93c5ab4157b3f74676c",
+          "bytes": 138892
+        }
+      }
+    },
+    {
+      "run": "main_lfm25_1p2b_instruct_q4",
+      "model": "LFM2.5-1.2B Instruct Q4",
+      "n": 1200,
+      "positives": 215,
+      "base_rate": 0.17916666666666667,
+      "answer_tokens": {
+        "mean": 3.6925,
+        "median": 3.0,
+        "single_token": 103,
+        "max": 58
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 0,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8812041081336324,
+        "auroc_ci": [
+          0.8558524657364374,
+          0.9051778695693845
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.749937433596978,
+          "auroc_ci": [
+            0.7128895693064793,
+            0.7820678199980607
+          ],
+          "probe_minus_baseline": 0.13126667453665442,
+          "probe_minus_baseline_ci": [
+            0.0948204093389341,
+            0.16797567077124345
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7649250383661905,
+          "auroc_ci": [
+            0.7311323884088972,
+            0.7968245009016526
+          ],
+          "probe_minus_baseline": 0.11627906976744184,
+          "probe_minus_baseline_ci": [
+            0.0812662800126075,
+            0.1514859012937281
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.7966851611380003,
+          "auroc_ci": [
+            0.7632933342727326,
+            0.8273097923591065
+          ],
+          "probe_minus_baseline": 0.08451894699563212,
+          "probe_minus_baseline_ci": [
+            0.05210134672133196,
+            0.11731760317373735
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.7899138236335733,
+          "auroc_ci": [
+            0.754975617490263,
+            0.8209444262549143
+          ],
+          "probe_minus_baseline": 0.09129028450005905,
+          "probe_minus_baseline_ci": [
+            0.05666612844818402,
+            0.12581848224261424
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6835603824814072,
+          "auroc_ci": [
+            0.6480332607057753,
+            0.7191653337809155
+          ],
+          "probe_minus_baseline": 0.1976437256522252,
+          "probe_minus_baseline_ci": [
+            0.16046681734662174,
+            0.23509534497514714
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7942344469366073,
+          "auroc_ci": [
+            0.7624601360233634,
+            0.8245692685767707
+          ],
+          "probe_minus_baseline": 0.0869696611970251,
+          "probe_minus_baseline_ci": [
+            0.05510961672412146,
+            0.11902420817086871
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6898972966591902,
+          "auroc_ci": [
+            0.6551787667754098,
+            0.7254734516802521
+          ],
+          "probe_minus_baseline": 0.19130681147444217,
+          "probe_minus_baseline_ci": [
+            0.15448223126248162,
+            0.22912822817443476
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "mean_logprob",
+        "auroc": 0.7966851611380003,
+        "probe_minus_baseline": 0.08451894699563212
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_lfm25_1p2b_instruct_q4/meta.jsonl",
+          "sha256": "964a1f7313a08586097dd7e50784b28b3289fbc9ffef090c89f65083276e3b0f",
+          "bytes": 3984867
+        },
+        "labels": {
+          "path": "pipeline/out/main_lfm25_1p2b_instruct_q4/labels.csv",
+          "sha256": "41c4056d118da0ebdd1b911a256bf9728f00e06dbd803e7bb36a5b44a798abff",
+          "bytes": 381288
+        },
+        "baseline": {
+          "path": "pipeline/out/main_lfm25_1p2b_instruct_q4/baseline.json",
+          "sha256": "74ed57ec91694cfd7a224d5165789e2f96b6df7bbb3384c775dae39ca546e3b0",
+          "bytes": 6166
+        },
+        "probe": {
+          "path": "pipeline/out/main_lfm25_1p2b_instruct_q4/probe.json",
+          "sha256": "2c969499e5df8062fd4854722cd15bfb02677f03abaaf14b59a908af486305e8",
+          "bytes": 32257
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_lfm25_1p2b_instruct_q4/probe_scores.csv",
+          "sha256": "d66b53613b6cb6cb625f50e822c3b87a8f9971b18087962d4f7fbe9e15883bc0",
+          "bytes": 140055
+        }
+      }
+    },
+    {
+      "run": "main_lfm25_1p2b_thinking_r32_q4_v2",
+      "model": "LFM2.5-1.2B-Thinking Q4 (32 reasoning tokens)",
+      "n": 1190,
+      "positives": 210,
+      "base_rate": 0.17647058823529413,
+      "answer_tokens": {
+        "mean": 10.446218487394958,
+        "median": 9.0,
+        "single_token": 96,
+        "max": 63
+      },
+      "rows_with_extra_generated_scores_after_c": 1190,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 0,
+        "no_label": 10,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8813265306122449,
+        "auroc_ci": [
+          0.8552722545499566,
+          0.9051464369529937
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.6336054421768708,
+          "auroc_ci": [
+            0.5950423956624836,
+            0.6718059978224503
+          ],
+          "probe_minus_baseline": 0.2477210884353741,
+          "probe_minus_baseline_ci": [
+            0.20608889305760147,
+            0.28768067859285484
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.6621379980563654,
+          "auroc_ci": [
+            0.6235164846904371,
+            0.6981689863694316
+          ],
+          "probe_minus_baseline": 0.21918853255587945,
+          "probe_minus_baseline_ci": [
+            0.18157056040361033,
+            0.2595323964068824
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.7185665694849368,
+          "auroc_ci": [
+            0.6811651384078441,
+            0.7530873694534342
+          ],
+          "probe_minus_baseline": 0.16275996112730806,
+          "probe_minus_baseline_ci": [
+            0.12531843824908062,
+            0.20156634193239265
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.7526287657920311,
+          "auroc_ci": [
+            0.7196484493628788,
+            0.7842352035202015
+          ],
+          "probe_minus_baseline": 0.12869776482021378,
+          "probe_minus_baseline_ci": [
+            0.09542823628732507,
+            0.1607637510345662
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6039893100097182,
+          "auroc_ci": [
+            0.5613100090639198,
+            0.6475973186685735
+          ],
+          "probe_minus_baseline": 0.27733722060252664,
+          "probe_minus_baseline_ci": [
+            0.2279950344182078,
+            0.32225895179702785
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7131972789115646,
+          "auroc_ci": [
+            0.6752169477120374,
+            0.7470049458865259
+          ],
+          "probe_minus_baseline": 0.16812925170068027,
+          "probe_minus_baseline_ci": [
+            0.13280829384289855,
+            0.20384234817277758
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6284305150631682,
+          "auroc_ci": [
+            0.5867268913682867,
+            0.6707773390766142
+          ],
+          "probe_minus_baseline": 0.2528960155490767,
+          "probe_minus_baseline_ci": [
+            0.20790746179102831,
+            0.2934841217877616
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.7526287657920311,
+        "probe_minus_baseline": 0.12869776482021378
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/meta.jsonl",
+          "sha256": "4650c9a8a1dcef4bec0722092807db6170fe7a0bdf7f37d79faf1a022c3b2bb1",
+          "bytes": 24152941
+        },
+        "labels": {
+          "path": "pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/labels.csv",
+          "sha256": "ee6c73b55173cd660d613e2254cadedb4cc90f98798f61924e793402bd7afc06",
+          "bytes": 580403
+        },
+        "baseline": {
+          "path": "pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/baseline.json",
+          "sha256": "bc6c0837075218b982fc056842d14003afcd516661d423554f154cbb4061205c",
+          "bytes": 6285
+        },
+        "probe": {
+          "path": "pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/probe.json",
+          "sha256": "8467e8a4f0f9f788137c56b55238d2b2941b983ddc1f08051ee710061b5e3205",
+          "bytes": 32659
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_lfm25_1p2b_thinking_r32_q4_v2/probe_scores.csv",
+          "sha256": "c416c62e41ec65c38021b0b1abf2666b10f7ed53c9032890cf856bda2de18adc",
+          "bytes": 139170
+        }
+      }
+    },
+    {
+      "run": "main_lfm25_2p6b_q4_final",
+      "model": "LFM2.5-2.6B Q4",
+      "n": 1170,
+      "positives": 436,
+      "base_rate": 0.37264957264957266,
+      "answer_tokens": {
+        "mean": 5.494017094017094,
+        "median": 3.0,
+        "single_token": 205,
+        "max": 57
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 27,
+        "no_label": 3,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8811589130815188,
+        "auroc_ci": [
+          0.8619899719364978,
+          0.9002247194599972
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.7658425618078644,
+          "auroc_ci": [
+            0.735352391015867,
+            0.793409229249287
+          ],
+          "probe_minus_baseline": 0.11531635127365447,
+          "probe_minus_baseline_ci": [
+            0.08810871047604421,
+            0.14323791948966666
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7796915231357648,
+          "auroc_ci": [
+            0.7514645911839095,
+            0.8070475688932495
+          ],
+          "probe_minus_baseline": 0.101467389945754,
+          "probe_minus_baseline_ci": [
+            0.07413477045532435,
+            0.1276624541975686
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8006212034097443,
+          "auroc_ci": [
+            0.772450513895716,
+            0.8272596110423139
+          ],
+          "probe_minus_baseline": 0.08053770967177454,
+          "probe_minus_baseline_ci": [
+            0.05415150733406213,
+            0.10974203736475759
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.8308689348298878,
+          "auroc_ci": [
+            0.8072281482499382,
+            0.8569066567199184
+          ],
+          "probe_minus_baseline": 0.05028997825163106,
+          "probe_minus_baseline_ci": [
+            0.027312573175289387,
+            0.0748231788658563
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.672943279254056,
+          "auroc_ci": [
+            0.6422670246114726,
+            0.7058158333185883
+          ],
+          "probe_minus_baseline": 0.2082156338274629,
+          "probe_minus_baseline_ci": [
+            0.1736861178271386,
+            0.24052079659841188
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7791196910231732,
+          "auroc_ci": [
+            0.7506336784550244,
+            0.8072159493095061
+          ],
+          "probe_minus_baseline": 0.10203922205834559,
+          "probe_minus_baseline_ci": [
+            0.07437905113111891,
+            0.1299346502504317
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6646345274104443,
+          "auroc_ci": [
+            0.6320899302153017,
+            0.6977535730639864
+          ],
+          "probe_minus_baseline": 0.21652438567107457,
+          "probe_minus_baseline_ci": [
+            0.18120153306230002,
+            0.25022600283550156
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.8308689348298878,
+        "probe_minus_baseline": 0.05028997825163106
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_lfm25_2p6b_q4_final/meta.jsonl",
+          "sha256": "78e8f1a69dee3b62d33697d6f276115b4438eb78eadc2003967d8222a7c649c1",
+          "bytes": 4794998
+        },
+        "labels": {
+          "path": "pipeline/out/main_lfm25_2p6b_q4_final/labels.csv",
+          "sha256": "0159dc6ee76f371453623266ba31eeb696c0f28bf60f08452a637cedad000108",
+          "bytes": 468160
+        },
+        "baseline": {
+          "path": "pipeline/out/main_lfm25_2p6b_q4_final/baseline.json",
+          "sha256": "15f89e43738eaaf814aee8915bd21385267afd7f337060e103ba3c2d5f2d6f53",
+          "bytes": 6136
+        },
+        "probe": {
+          "path": "pipeline/out/main_lfm25_2p6b_q4_final/probe.json",
+          "sha256": "b3c38eac6d20cdec3a78b430e075a74ceb512fe16bc3453db674a15228b590f5",
+          "bytes": 57468
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_lfm25_2p6b_q4_final/probe_scores.csv",
+          "sha256": "fe6de826ed67e9ac314c47be7dd80d7abda65f291ba8df37a451c5f14a8d203b",
+          "bytes": 134648
+        }
+      }
+    },
+    {
+      "run": "main_lfm3_1p7b_qad_q4",
+      "model": "LFM3-1.7B QAD Q4",
+      "n": 713,
+      "positives": 220,
+      "base_rate": 0.3085553997194951,
+      "answer_tokens": {
+        "mean": 8.305750350631136,
+        "median": 4.0,
+        "single_token": 57,
+        "max": 62
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 487,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.8607597270883275,
+        "auroc_ci": [
+          0.8317648967538283,
+          0.8892835655864769
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.7275308869629357,
+          "auroc_ci": [
+            0.6904356521748302,
+            0.7669415812308129
+          ],
+          "probe_minus_baseline": 0.13322884012539182,
+          "probe_minus_baseline_ci": [
+            0.08688829020237158,
+            0.17575961235974688
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.7247372303153237,
+          "auroc_ci": [
+            0.6868695334594422,
+            0.7648912704783501
+          ],
+          "probe_minus_baseline": 0.13602249677300382,
+          "probe_minus_baseline_ci": [
+            0.09125293735071573,
+            0.17807385148492436
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.7231329522404573,
+          "auroc_ci": [
+            0.6806560410822351,
+            0.763195145698512
+          ],
+          "probe_minus_baseline": 0.13762677484787023,
+          "probe_minus_baseline_ci": [
+            0.0941775998982391,
+            0.18142600257338873
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.7425225889728932,
+          "auroc_ci": [
+            0.701618432788912,
+            0.7821466892800187
+          ],
+          "probe_minus_baseline": 0.11823713811543424,
+          "probe_minus_baseline_ci": [
+            0.0765006672419626,
+            0.15844592252767892
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.5430389083533099,
+          "auroc_ci": [
+            0.49833258740305225,
+            0.587414809315842
+          ],
+          "probe_minus_baseline": 0.31772081873501756,
+          "probe_minus_baseline_ci": [
+            0.2642564440571864,
+            0.3698268728318081
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.7033284160059008,
+          "auroc_ci": [
+            0.6606407342051633,
+            0.7436383260829824
+          ],
+          "probe_minus_baseline": 0.1574313110824267,
+          "probe_minus_baseline_ci": [
+            0.11435515804187907,
+            0.19897360601227917
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.5515858380969942,
+          "auroc_ci": [
+            0.5078499834386361,
+            0.5967803672201161
+          ],
+          "probe_minus_baseline": 0.30917388899133325,
+          "probe_minus_baseline_ci": [
+            0.25734753447729664,
+            0.3608568999262486
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "min_logprob",
+        "auroc": 0.7425225889728932,
+        "probe_minus_baseline": 0.11823713811543424
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_lfm3_1p7b_qad_q4/meta.jsonl",
+          "sha256": "808a28ac2fac0073769d0328559ce3a5c1e93ed9ad1648202c0f2e91aa4fd7ba",
+          "bytes": 11490805
+        },
+        "labels": {
+          "path": "pipeline/out/main_lfm3_1p7b_qad_q4/labels.csv",
+          "sha256": "1826541df75350c6c6adfc8bdf2a677dc7212c72fe1f48c7f87bf66c1605167d",
+          "bytes": 1057056
+        },
+        "baseline": {
+          "path": "pipeline/out/main_lfm3_1p7b_qad_q4/baseline.json",
+          "sha256": "9dab2b169ec4b6bfae66787069f67accfb76cbf5d632f05d051c4bcf8fb6fc39",
+          "bytes": 6140
+        },
+        "probe": {
+          "path": "pipeline/out/main_lfm3_1p7b_qad_q4/probe.json",
+          "sha256": "49167137760de92567e45a2d0818de3fcb1943fbeaeba203ac7ed251eff2c13b",
+          "bytes": 46649
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_lfm3_1p7b_qad_q4/probe_scores.csv",
+          "sha256": "bc1c852d7fc5d292a48201a8255efe30a89a85d774f582448034afbdb19b23d3",
+          "bytes": 80734
+        }
+      }
+    },
+    {
+      "run": "main_yandexgpt5lite8b_q4",
+      "model": "YandexGPT 5 Lite 8B Instruct Q4",
+      "n": 1200,
+      "positives": 668,
+      "base_rate": 0.5566666666666666,
+      "answer_tokens": {
+        "mean": 3.6133333333333333,
+        "median": 3.0,
+        "single_token": 162,
+        "max": 45
+      },
+      "rows_with_extra_generated_scores_after_c": 0,
+      "skipped": {
+        "not_test": 4800,
+        "status": 0,
+        "not_generated": 0,
+        "truncated": 0,
+        "no_label": 0,
+        "no_scores": 0,
+        "bad_span": 0,
+        "no_probe": 0
+      },
+      "probe": {
+        "auroc": 0.9062429651974248,
+        "auroc_ci": [
+          0.8885839014455137,
+          0.9227661436376501
+        ]
+      },
+      "baselines": {
+        "first_logprob": {
+          "label": "first-token logprob",
+          "auroc": 0.7489588492188555,
+          "auroc_ci": [
+            0.7198824906356595,
+            0.7769554520408278
+          ],
+          "probe_minus_baseline": 0.15728411597856928,
+          "probe_minus_baseline_ci": [
+            0.12758164636839553,
+            0.18497504667741074
+          ]
+        },
+        "first_neg_entropy": {
+          "label": "negative first-token entropy",
+          "auroc": 0.770460019810004,
+          "auroc_ci": [
+            0.7406467749986476,
+            0.7972028808451914
+          ],
+          "probe_minus_baseline": 0.13578294538742075,
+          "probe_minus_baseline_ci": [
+            0.10770197391205981,
+            0.16246213425609904
+          ]
+        },
+        "mean_logprob": {
+          "label": "mean answer-token logprob",
+          "auroc": 0.8043818378281032,
+          "auroc_ci": [
+            0.7793581420590949,
+            0.8273323240403673
+          ],
+          "probe_minus_baseline": 0.10186112736932151,
+          "probe_minus_baseline_ci": [
+            0.076826645708223,
+            0.1252743487257533
+          ]
+        },
+        "min_logprob": {
+          "label": "minimum answer-token logprob",
+          "auroc": 0.806669555625591,
+          "auroc_ci": [
+            0.7817770209586806,
+            0.8294354761788119
+          ],
+          "probe_minus_baseline": 0.0995734095718338,
+          "probe_minus_baseline_ci": [
+            0.0766657331857552,
+            0.12294382195014214
+          ]
+        },
+        "last_logprob": {
+          "label": "last answer-token logprob",
+          "auroc": 0.6582464769708702,
+          "auroc_ci": [
+            0.625232557525328,
+            0.6895560152440221
+          ],
+          "probe_minus_baseline": 0.2479964882265545,
+          "probe_minus_baseline_ci": [
+            0.21386631930649888,
+            0.28204788318786195
+          ]
+        },
+        "mean_neg_entropy": {
+          "label": "negative mean answer-token entropy",
+          "auroc": 0.8218900544775112,
+          "auroc_ci": [
+            0.7984012929561135,
+            0.8444686075247873
+          ],
+          "probe_minus_baseline": 0.08435291071991358,
+          "probe_minus_baseline_ci": [
+            0.06067815402445303,
+            0.10667534275787438
+          ]
+        },
+        "last_neg_entropy": {
+          "label": "negative last-token entropy",
+          "auroc": 0.6620255729143217,
+          "auroc_ci": [
+            0.6287783353043669,
+            0.6933640875150328
+          ],
+          "probe_minus_baseline": 0.24421739228310302,
+          "probe_minus_baseline_ci": [
+            0.21083706609992847,
+            0.2769081629583044
+          ]
+        }
+      },
+      "strongest_token_baseline_post_hoc": {
+        "method": "mean_neg_entropy",
+        "auroc": 0.8218900544775112,
+        "probe_minus_baseline": 0.08435291071991358
+      },
+      "anchor_differences": {
+        "first_logprob_diff": 0.0,
+        "first_entropy_diff": 0.0,
+        "probe_diff": 0.0
+      },
+      "sources": {
+        "meta": {
+          "path": "pipeline/out/main_yandexgpt5lite8b_q4/meta.jsonl",
+          "sha256": "e88c2a3c11b42a2a6115255117153306860300fd38b5b37a2fff75a2a934294c",
+          "bytes": 4032099
+        },
+        "labels": {
+          "path": "pipeline/out/main_yandexgpt5lite8b_q4/labels.csv",
+          "sha256": "15deb6b798efc62649e31db890b3aa433884e479e8811f59a28425ca4ae5095b",
+          "bytes": 386797
+        },
+        "baseline": {
+          "path": "pipeline/out/main_yandexgpt5lite8b_q4/baseline.json",
+          "sha256": "06d742e8d1ce82184aacf125a42f7a7f3b1dfbcd77c74304b7d0954872fc7eb4",
+          "bytes": 6145
+        },
+        "probe": {
+          "path": "pipeline/out/main_yandexgpt5lite8b_q4/probe.json",
+          "sha256": "0f7f706caf7509bca619c00ec0bef0c17e952bcde21c61ad90e0e4926c26e39f",
+          "bytes": 61339
+        },
+        "probe_scores": {
+          "path": "pipeline/out/main_yandexgpt5lite8b_q4/probe_scores.csv",
+          "sha256": "da881aee9daff69cf6067cf0fcd1720c10d28230e43e4f906e2de09a4df1d582",
+          "bytes": 136707
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "registry": {
+      "path": "RUNS.json",
+      "sha256": "ef976d563da4b4c12494b1e4feccd55b1c7875ee96a67301a64b0f4a158261be",
+      "bytes": 52160
+    },
+    "script": {
+      "path": "pipeline/answer_token_baselines.py",
+      "sha256": "31bf81af6ec09291fefebee9a3574611b351d5bfe302bfeb9d0f09cd18dbbc63",
+      "bytes": 15889
+    },
+    "python": "3.11.9",
+    "numpy": "2.4.6"
+  }
+}

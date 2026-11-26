@@ -1,0 +1,39 @@
+{
+  "n": 199,
+  "em_correct": 64,
+  "adapted": {
+    "accepted": 100,
+    "wrong": 50,
+    "risk": 0.5,
+    "auroc": 0.7510416666666667
+  },
+  "frozen": {
+    "accepted": 100,
+    "wrong": 55,
+    "risk": 0.55,
+    "auroc": 0.6765046296296297
+  },
+  "jev": {
+    "accepted": 100,
+    "wrong": 52,
+    "risk": 0.52,
+    "auroc": 0.7806712962962963
+  },
+  "paired": {
+    "risk_jev_minus_adapted": 0.020000000000000018,
+    "risk_delta_ci95": [
+      -0.08000000000000007,
+      0.08000000000000002
+    ],
+    "auroc_adapted_minus_jev": -0.02962962962962956,
+    "auroc_delta_ci95": [
+      -0.12240317874146416,
+      0.06194091949240691
+    ]
+  },
+  "requested_model": "jev-1.13-free",
+  "reported_models": [
+    "jev-1.13-free"
+  ],
+  "input_tokens": 382735
+}

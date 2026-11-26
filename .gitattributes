@@ -14,6 +14,8 @@ pipeline/data/diag_lfm3_sampler20.jsonl -text
 pipeline/data/diag_lfm3_sampler20_v2.jsonl -text
 pipeline/out/answer_token_baselines.json -text
 pipeline/out/answer_token_baselines.csv -text
+pipeline/out/jev_hotpot_pilot_v1/* -text
+pipeline/out/latency/*.json -text
 
 # Generated answer artifacts can contain trailing spaces inside quoted strings.
 pipeline/data/diag_lfm3_sampler20*.jsonl whitespace=-blank-at-eol

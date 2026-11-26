@@ -1,0 +1,404 @@
+{
+  "kind": "probe_single_cpu_logit",
+  "started_utc": "2026-11-26T12:28:38.740827+00:00",
+  "kernel": "b + ((h - mu) / sd) @ weights; resident input, batch=1, no sigmoid",
+  "model": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\main_qwen08_q4\\probe_model.npz",
+  "model_sha256": "5e948cd2146d95fef7ad2b66b21c9c5d12fdd3cfc02c250f30fcb81a1ca7088c",
+  "run_dir": "D:\\VScode_pr\\confidenceResearch\\pipeline\\out\\pilot_qwen08_q4_hotpotqa_v2",
+  "point": "C",
+  "model_layer": 13,
+  "D": 1024,
+  "input_dtype": "float16",
+  "weight_dtype": "float64",
+  "sampling_seed": 42,
+  "platform": "Windows-10-10.0.26100-SP0",
+  "processor": "AMD64 Family 25 Model 33 Stepping 2, AuthenticAMD",
+  "logical_cpus": 16,
+  "python": "3.11.9",
+  "numpy": "2.4.6",
+  "requested_thread_settings": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "BLIS_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "warmup_calls": 300,
+  "repeats_per_vector": 1000,
+  "latency_us": {
+    "n": 30000,
+    "p50": 4.3,
+    "p95": 4.4,
+    "mean": 4.332106666666666
+  },
+  "back_to_back_timer_ns": {
+    "n": 1000,
+    "p50": 0.0,
+    "p95": 100.0,
+    "mean": 48.6
+  },
+  "cpu_separate_pass": {
+    "calls": 236544,
+    "process_cpu_us_per_call_including_loop": 4.22754329004329,
+    "wall_seconds": 1.0014329,
+    "average_busy_cores": 0.9985691502645859
+  },
+  "process_memory_snapshots": {
+    "before_weights": {
+      "rss_bytes": 33804288,
+      "lifetime_peak_rss_bytes": 33804288
+    },
+    "after_weights": {
+      "rss_bytes": 34447360,
+      "lifetime_peak_rss_bytes": 34447360
+    },
+    "after_vectors_and_warmup": {
+      "rss_bytes": 34668544,
+      "lifetime_peak_rss_bytes": 34803712
+    },
+    "after_measurement": {
+      "rss_bytes": 34922496,
+      "lifetime_peak_rss_bytes": 34922496
+    }
+  },
+  "one_call_incremental_tracemalloc_peak_bytes": 16600,
+  "model_file_bytes": 27636,
+  "learned_coefficients": 1025,
+  "learned_weights_bytes": 8200,
+  "normalization_bytes": 16384,
+  "model_arrays_bytes": 24584,
+  "one_input_vector_bytes": 2048,
+  "benchmark_vector_bank_bytes": 67584,
+  "per_input": [
+    {
+      "id": "5a76a0005542993569682c64",
+      "row": 106,
+      "qwen_prompt_tokens": 1720,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.360099999999998
+      }
+    },
+    {
+      "id": "5a84be845542991dd0999dcf",
+      "row": 164,
+      "qwen_prompt_tokens": 476,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3431999999999995
+      }
+    },
+    {
+      "id": "5a8f6a025542992414482ab8",
+      "row": 162,
+      "qwen_prompt_tokens": 1428,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3295
+      }
+    },
+    {
+      "id": "5ab809bb5542990e739ec7f9",
+      "row": 36,
+      "qwen_prompt_tokens": 1563,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3206999999999995
+      }
+    },
+    {
+      "id": "5adec96e5542995534e8c712",
+      "row": 46,
+      "qwen_prompt_tokens": 1249,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.326299999999999
+      }
+    },
+    {
+      "id": "5a849c135542992a431d1a7a",
+      "row": 31,
+      "qwen_prompt_tokens": 1829,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.338099999999999
+      }
+    },
+    {
+      "id": "5a792ad055429907847277d1",
+      "row": 75,
+      "qwen_prompt_tokens": 1805,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3546
+      }
+    },
+    {
+      "id": "5ae3df6e5542992e3233c48e",
+      "row": 65,
+      "qwen_prompt_tokens": 1383,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.336600000000001
+      }
+    },
+    {
+      "id": "5a7fb1e55542995d8a8ddef7",
+      "row": 133,
+      "qwen_prompt_tokens": 1352,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3335
+      }
+    },
+    {
+      "id": "5ab29e87554299194fa9346e",
+      "row": 84,
+      "qwen_prompt_tokens": 1936,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3335
+      }
+    },
+    {
+      "id": "5a78d06355429974737f78b4",
+      "row": 87,
+      "qwen_prompt_tokens": 1164,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3267999999999995
+      }
+    },
+    {
+      "id": "5a79a26d554299029c4b5f63",
+      "row": 9,
+      "qwen_prompt_tokens": 1588,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.344099999999998
+      }
+    },
+    {
+      "id": "5ac31456554299741d48a1b4",
+      "row": 188,
+      "qwen_prompt_tokens": 1445,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.334299999999999
+      }
+    },
+    {
+      "id": "5a8e17ce554299653c1aa169",
+      "row": 53,
+      "qwen_prompt_tokens": 1774,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3347999999999995
+      }
+    },
+    {
+      "id": "5a7cdd6b55429909bec76858",
+      "row": 58,
+      "qwen_prompt_tokens": 1403,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3351
+      }
+    },
+    {
+      "id": "5a7f697c5542992097ad2f59",
+      "row": 43,
+      "qwen_prompt_tokens": 1742,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3197
+      }
+    },
+    {
+      "id": "5abfa5fb5542990832d3a183",
+      "row": 115,
+      "qwen_prompt_tokens": 1653,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.334599999999999
+      }
+    },
+    {
+      "id": "5ae45cba5542991a06ce9a4a",
+      "row": 109,
+      "qwen_prompt_tokens": 1188,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.343599999999999
+      }
+    },
+    {
+      "id": "5ab42a2b5542996a3a969f5a",
+      "row": 198,
+      "qwen_prompt_tokens": 1524,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.325499999999999
+      }
+    },
+    {
+      "id": "5a8f68795542992414482ab5",
+      "row": 153,
+      "qwen_prompt_tokens": 1279,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.318899999999999
+      }
+    },
+    {
+      "id": "5ab29842554299194fa93420",
+      "row": 15,
+      "qwen_prompt_tokens": 1494,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.329199999999999
+      }
+    },
+    {
+      "id": "5ae600325542992663a4f237",
+      "row": 168,
+      "qwen_prompt_tokens": 1683,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.334699999999999
+      }
+    },
+    {
+      "id": "5a7d19d85542995ed0d165e8",
+      "row": 125,
+      "qwen_prompt_tokens": 1325,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3266
+      }
+    },
+    {
+      "id": "5a7621bb554299109176e650",
+      "row": 63,
+      "qwen_prompt_tokens": 2142,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.321
+      }
+    },
+    {
+      "id": "5a8ec7cc5542995a26add518",
+      "row": 83,
+      "qwen_prompt_tokens": 1516,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.3,
+        "mean": 4.3137
+      }
+    },
+    {
+      "id": "5a8bb90f5542996e8ac88a02",
+      "row": 158,
+      "qwen_prompt_tokens": 2106,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.320199999999999
+      }
+    },
+    {
+      "id": "5a90362f55429933b8a2049d",
+      "row": 192,
+      "qwen_prompt_tokens": 1361,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.3,
+        "mean": 4.3267999999999995
+      }
+    },
+    {
+      "id": "5a8781b65542993e715abf8f",
+      "row": 186,
+      "qwen_prompt_tokens": 1009,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.349499999999999
+      }
+    },
+    {
+      "id": "5a7c716d55429935c91b51b3",
+      "row": 101,
+      "qwen_prompt_tokens": 1098,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.322799999999999
+      }
+    },
+    {
+      "id": "5ae0bf3a55429906c02dab21",
+      "row": 30,
+      "qwen_prompt_tokens": 1305,
+      "latency_us": {
+        "n": 1000,
+        "p50": 4.3,
+        "p95": 4.4,
+        "mean": 4.3252
+      }
+    }
+  ]
+}
